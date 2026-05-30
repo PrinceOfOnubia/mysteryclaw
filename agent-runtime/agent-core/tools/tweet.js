@@ -17,7 +17,7 @@
 
 export const definition = {
   name: "tweet",
-  description: "Post a short message to Pi's X/Twitter account (@ai_piverse). Use sparingly — max 2-3 tweets per day. Best for: major narrative beats, taunts at successful guessers (without revealing the word), thanks to the community when milestones hit. Max 280 chars.",
+  description: "Post a short message to Pi's configured X/Twitter account. Use sparingly — max 2-3 tweets per day. Best for: major narrative beats, taunts at successful guessers (without revealing the word), thanks to the community when milestones hit. Max 280 chars.",
   parameters: {
     type: "object",
     properties: {

@@ -101,6 +101,6 @@ To rotate: change `SECRET` constant in BOTH `backend/routes/chat.js` and `backen
 - Production: https://piverse-nu.vercel.app
 - Vercel project: https://piverse-mp8ta5iy1-johnbuzs-projects.vercel.app
 - Backend (when live): https://<your-railway-service>.up.railway.app
-- Twitter: https://x.com/ai_piverse
+- Twitter: configure the new PiVerse X account before launch
 - Token (after launch): `https://pump.fun/coin/{mint}`
 - Agent profile: `https://clawpump.tech/agent/piverse-pi`
