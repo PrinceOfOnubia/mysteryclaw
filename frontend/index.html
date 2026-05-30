@@ -4,6 +4,17 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>PIVERSE // Infrastructure for Adversarial AI</title>
+<meta name="description" content="PiVerse — Infrastructure for Adversarial AI Experiences."/>
+<meta property="og:title" content="PIVERSE // Infrastructure for Adversarial AI"/>
+<meta property="og:description" content="The world's memory. Now yours to explore."/>
+<meta property="og:image" content="https://piverse.fun/assets/social-preview.jpg"/>
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="PIVERSE // Infrastructure for Adversarial AI"/>
+<meta name="twitter:description" content="The world's memory. Now yours to explore."/>
+<meta name="twitter:image" content="https://piverse.fun/assets/social-preview.jpg"/>
+<link rel="icon" href="/assets/pi-logo.jpg" type="image/jpeg"/>
+<link rel="apple-touch-icon" href="/assets/pi-logo.jpg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;700;800;900&family=JetBrains+Mono:wght@200;300;400;500;700&display=swap" rel="stylesheet"/>
@@ -72,13 +83,13 @@ body::after{
 .nl:hover,.nl.on{color:var(--accent)}
 .nl.on::after{content:'';position:absolute;bottom:-19px;left:0;right:0;height:1px;background:var(--accent);box-shadow:0 0 8px var(--accent)}
 
-#logoBox{display:flex;align-items:center;gap:10px;cursor:pointer}
-#logoSym{
-  width:26px;height:26px;border:1px solid var(--accent-dim);
+.logo-sym{
+  width:28px;height:28px;border:1px solid var(--accent-dim);
   display:flex;align-items:center;justify-content:center;
-  font-family:'JetBrains Mono';font-size:14px;font-weight:700;color:var(--accent);
+  background:#000;overflow:hidden;
   box-shadow:inset 0 0 12px rgba(0,255,136,.15),0 0 8px rgba(0,255,136,.1);
 }
+.logo-sym img{width:100%;height:100%;display:block;object-fit:cover}
 #logoText{
   font-family:'Inter';font-weight:900;font-size:13px;letter-spacing:.32em;
   text-transform:uppercase;color:#fff;
@@ -997,6 +1008,9 @@ body::after{
 }
 @media(max-width:680px){
   #nav{padding:0 16px}
+  #logoBox{gap:0}
+  #logoText{display:none}
+  .logo-sym{width:32px;height:32px}
   .hero{padding:80px 18px 60px}
   .sec-divider,.incident,.hiw,.tg-wrap,.cta-bottom,#footer,.lore-hero,.lore-section,.disc-hero,.disc-grid{padding-left:18px;padding-right:18px}
   .hiw-grid,.feat-grid,.agents-grid{grid-template-columns:1fr}
@@ -1103,7 +1117,7 @@ body::after{
 <!-- ═══ NAV ═══ -->
 <nav id="nav">
   <div id="logoBox" onclick="go('land')">
-    <div id="logoSym">π</div>
+    <div class="logo-sym"><img src="/assets/pi-logo.jpg" alt="PiVerse"/></div>
     <div id="logoText">PIVERSE</div>
   </div>
   <div class="nav-links" style="display:flex;align-items:center;gap:24px">
@@ -1448,7 +1462,7 @@ body::after{
     <div class="foot-grid">
       <div>
         <div class="foot-brand">
-          <div id="logoSym" style="margin:0">π</div>
+          <div class="logo-sym" style="margin:0"><img src="/assets/pi-logo.jpg" alt="PiVerse"/></div>
           <div>
             <div class="foot-brand-text">PIVERSE</div>
             <div class="foot-tag">INFRASTRUCTURE FOR ADVERSARIAL AI</div>
