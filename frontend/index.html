@@ -1031,7 +1031,7 @@ body::after{
       <button onclick="closeM('mAuth')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
     </div>
     <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.85;margin-bottom:16px">
-      Engaging Pi requires a connected wallet. The terminal is gated behind a holder check — only $CLAW / $SQUIRE / $SAID / $NEMO holders can submit guesses for the prize.
+      Engaging Pi requires a connected wallet. The terminal is gated behind a holder check — only $PIVERSE / $CLAW / $SQUIRE / $SAID / $NEMO holders can submit guesses for the prize.
     </p>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:20px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
       SECURITY: Signed via <span style="color:var(--accent)">signMessage</span>. No personal data collected. Backend verifies signature + on-chain holdings on every request.
@@ -2457,7 +2457,7 @@ function openGuess(){
     return
   }
   if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $CLAW / $SQUIRE / $SAID / $NEMO to participate')
+    toast('Holders only — acquire $PIVERSE / $CLAW / $SQUIRE / $SAID / $NEMO to participate')
     return
   }
   document.getElementById('guessCount').textContent = S.guesses
@@ -2474,7 +2474,7 @@ async function submitGuess(){
   }
   // hard gate — must be a holder
   if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $CLAW / $SQUIRE / $SAID / $NEMO to guess')
+    toast('Holders only — acquire $PIVERSE / $CLAW / $SQUIRE / $SAID / $NEMO to guess')
     return
   }
 
