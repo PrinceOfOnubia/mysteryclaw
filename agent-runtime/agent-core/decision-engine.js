@@ -19,7 +19,7 @@ import OpenAI from "openai";
 import { buildMemoryContext, recordDecision, recordToolStat, recordObservation } from "./memory.js";
 import { getToolDefinitions, executeTool } from "./tools-registry.js";
 
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

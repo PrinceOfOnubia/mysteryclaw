@@ -33,7 +33,7 @@ const SECRET_VARIANTS = [
 const sessions = {};
 // rolling per-user request log (for rate limit)
 const reqLog = {};
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o";
 
 let client = null;
 

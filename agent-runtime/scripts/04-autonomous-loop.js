@@ -32,7 +32,7 @@ dotenv.config();
 const TICK_MS = parseInt(process.env.LOOP_TICK_MS || "300000", 10); // 5 min
 const LOG_FILE = path.resolve("./autonomous-log.json");
 const LAUNCH_FILE = path.resolve("./token-launch.json");
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o";
 
 if (!fs.existsSync(LAUNCH_FILE)) {
   console.error("token-launch.json not found. Run `npm run launch-token` first.");

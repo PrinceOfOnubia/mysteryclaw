@@ -168,12 +168,12 @@ Set these in Railway dashboard → your service → **Environment** tab.
 | Variable | Required | Example | Notes |
 |---|---|---|---|
 | `OPENAI_API_KEY` | ✅ Yes | `sk-...` | OpenAI API key (official OpenAI SDK) |
-| `OPENAI_MODEL` | No | `gpt-4o-mini` | Defaults to `gpt-4o-mini` if unset |
+| `OPENAI_MODEL` | No | `gpt-4o` | Defaults to `gpt-4o` if unset |
 | `SOLANA_RPC` | ✅ Yes (once /holdings is wired) | `https://mainnet.helius-rpc.com/?api-key=...` | Paid RPC strongly recommended |
 | `REQUIRE_HOLDER` | ⚠️ Keep false for MVP | `false` | Do not set true until /holdings is verified |
 | `AGENT_KEY` | ✅ Yes (for /autonomous) | Generate: `openssl rand -hex 24` | Same value in agent-runtime/.env |
 | `PORT` | No | `3000` | Railway sets this automatically |
-| `CORS_ORIGIN` | ✅ Recommended | `https://piverse-nu.vercel.app` | Comma-separated for multiple |
+| `CORS_ORIGIN` | ✅ Recommended | `https://piverse.fun,https://www.piverse.fun,https://piverse-nu.vercel.app` | Comma-separated for multiple; whitespace is trimmed |
 | `PAYOUTS_ENABLED` | ✅ Yes | `false` | Leave false until devnet payout testing is complete |
 | `TREASURY_PRIVKEY` | No for MVP | empty | Only set when enabling real payouts later |
 | `USDC_MINT` | After prize logic added | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | Mainnet USDC |
@@ -480,24 +480,37 @@ Replace:
 app.use(cors({ origin: "*" }));
 ```
 
-With:
+With the production implementation:
 ```js
-const allowedOrigins = (process.env.CORS_ORIGIN || "")
+app.set("trust proxy", 1);
+
+const configuredOrigins = (process.env.CORS_ORIGIN || "")
   .split(",")
   .map(s => s.trim())
   .filter(Boolean);
 
+const allowedOrigins = new Set([
+  "https://piverse.fun",
+  "https://www.piverse.fun",
+  "https://piverse-nu.vercel.app",
+  ...configuredOrigins,
+]);
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // server-to-server, mobile apps
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+    if (/^https:\/\/[a-z0-9-]+(?:-[a-z0-9-]+)*\.vercel\.app$/i.test(origin)) {
+      return callback(null, true);
+    }
     return callback(new Error("Not allowed by CORS"));
   },
-  credentials: true,
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "x-agent-key"],
 }));
 ```
 
-Then set `CORS_ORIGIN=https://piverse-nu.vercel.app,https://piverse-mp8ta5iy1-johnbuzs-projects.vercel.app` on Railway.
+Set `CORS_ORIGIN=https://piverse.fun,https://www.piverse.fun,https://piverse-nu.vercel.app` on Railway. Vercel preview URLs are allowed by pattern.
 
 ### 9.2 Add IP-based rate limit
 
@@ -511,7 +524,7 @@ import rateLimit from "express-rate-limit";
 
 const globalLimit = rateLimit({
   windowMs: 60 * 1000,        // 1 minute
-  max: 60,                     // 60 requests/min/IP
+  max: 300,                    // 300 requests/min/IP
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -521,7 +534,7 @@ app.use(globalLimit);
 // Stricter limit on /guess (already has per-wallet limit, this adds per-IP)
 const guessLimit = rateLimit({
   windowMs: 60 * 1000,
-  max: 5,
+  max: 30,
 });
 app.use("/guess", guessLimit);
 ```
@@ -816,7 +829,7 @@ Check ClawPump leaderboard: https://clawpump.tech/leaderboard
 | Railway Hobby plan | $7 |
 | Helius free tier | $0 (upgrade to $49/mo if needed) |
 | VPS for agent-runtime | $4–$6 |
-| OpenAI API | Usage-based; default model is `gpt-4o-mini` |
+| OpenAI API | Usage-based; default model is `gpt-4o` |
 | Vercel (frontend) | $0 (Hobby tier) |
 | Domain | $10–20/year |
 | **Total** | **~$20/month** + one-time 1,000 USDC for prize pool |

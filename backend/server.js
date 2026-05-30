@@ -18,14 +18,25 @@ import { processPayouts } from "./_payout.js";
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 const LOCAL_ORIGINS = new Set([
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:8080",
+  "http://localhost:5500",
   "http://127.0.0.1:3000",
   "http://127.0.0.1:5173",
   "http://127.0.0.1:8080",
+  "http://127.0.0.1:5500",
   "null", // local file:// development
+]);
+
+const PRODUCTION_ORIGINS = new Set([
+  "https://piverse.fun",
+  "https://www.piverse.fun",
+  "https://piverse-nu.vercel.app",
+  "https://piverse-mp8ta5iy1-johnbuzs-projects.vercel.app",
 ]);
 
 const configuredOrigins = (process.env.CORS_ORIGIN || "")
@@ -34,40 +45,49 @@ const configuredOrigins = (process.env.CORS_ORIGIN || "")
   .filter(Boolean);
 
 const allowedOrigins = new Set([
+  ...PRODUCTION_ORIGINS,
   ...configuredOrigins,
   ...LOCAL_ORIGINS,
 ]);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+  return /^https:\/\/[a-z0-9-]+(?:-[a-z0-9-]+)*\.vercel\.app$/i.test(origin);
+}
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
 
 app.use(cors({
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "x-agent-key"],
   origin(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.has(origin)) return callback(null, true);
+    if (isAllowedOrigin(origin)) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
   },
 }));
+app.options("*", cors());
 app.use(express.json({ limit: "100kb" }));
 
 const publicLimit = rateLimit({
   windowMs: 60 * 1000,
-  max: 120,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 const chatLimit = rateLimit({
   windowMs: 60 * 1000,
-  max: 30,
+  max: 60,
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 const guessLimit = rateLimit({
   windowMs: 60 * 1000,
-  max: 10,
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
 });
