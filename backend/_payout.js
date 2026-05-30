@@ -1,24 +1,3 @@
-// ═══════════════════════════════════════════════════════════════
-// PAYOUT ENGINE
-// ═══════════════════════════════════════════════════════════════
-// Sends USDC from the treasury wallet to epoch winners, split evenly.
-//
-// SAFETY DESIGN (this moves real money):
-//   - Runs only when PAYOUTS_ENABLED=true (off by default)
-//   - Verifies treasury USDC balance >= total payout before sending
-//   - Creates recipient ATAs if they don't exist (idempotent)
-//   - Sends one tx per winner, confirms each, records signature
-//   - Marks epoch paid ONLY after all transfers confirmed
-//   - On any failure mid-batch, stops and leaves epoch unpaid for
-//     manual review (no partial-paid silent state)
-//
-// Required env:
-//   TREASURY_PRIVKEY   base58 secret key of treasury wallet
-//   USDC_MINT          mainnet USDC mint
-//   SOLANA_RPC         paid RPC endpoint
-//   PAYOUTS_ENABLED    "true" to actually send
-// ═══════════════════════════════════════════════════════════════
-
 import {
   Connection,
   Keypair,
@@ -34,48 +13,43 @@ import {
 } from "@solana/spl-token";
 import bs58 from "bs58";
 
-import { getPayableEpochs, markEpochPaid, POOL_USDC } from "./_winners.js";
+import { auditLog, hasDatabase, pool } from "./_db.js";
+import { getPayableEpochs, markEpochPaid, markWinnerPaid, POOL_USDC } from "./_winners.js";
 
 const USDC_DECIMALS = 6;
 
-// ═══════════════════════════════════════════════════════════════
-// Main: process all payable epochs. Call this on a schedule.
-// ═══════════════════════════════════════════════════════════════
-export async function processPayouts() {
-  const epochs = getPayableEpochs();
-  if (!epochs.length) return { processed: 0 };
-
-  // Hard gate — never send real money unless explicitly enabled.
+export async function processPayouts({ requestedBy = "admin" } = {}) {
   if (process.env.PAYOUTS_ENABLED !== "true") {
-    console.log(`[payout] ${epochs.length} epoch(s) ready but PAYOUTS_ENABLED != true. Skipping.`);
-    for (const e of epochs) {
-      const share = POOL_USDC / e.winners.length;
-      console.log(`[payout]   epoch ${e.epoch}: ${e.winners.length} winners × ${share} USDC (DRY RUN)`);
-    }
-    return { processed: 0, dryRun: true, epochs: epochs.length };
+    await auditLog("payout_skipped_disabled", { actor: requestedBy });
+    return { processed: 0, dryRun: true, reason: "PAYOUTS_ENABLED is not true" };
   }
 
-  // Validate config. Keep these checks before any keypair/RPC work.
-  for (const key of ["TREASURY_PRIVKEY", "SOLANA_RPC", "USDC_MINT"]) {
+  for (const key of ["TREASURY_PRIVKEY", "SOLANA_RPC", "USDC_MINT", "DATABASE_URL"]) {
     if (!process.env[key]) {
-      console.error(`[payout] missing env ${key} — aborting`);
+      await auditLog("payout_blocked_missing_env", { actor: requestedBy, missing: key });
       return { processed: 0, error: `missing ${key}` };
     }
   }
+  if (!hasDatabase) return { processed: 0, error: "database_not_configured" };
+
+  const epochs = await getPayableEpochs();
+  if (!epochs.length) return { processed: 0 };
 
   const conn = new Connection(process.env.SOLANA_RPC, "confirmed");
   const treasury = Keypair.fromSecretKey(bs58.decode(process.env.TREASURY_PRIVKEY));
   const usdcMint = new PublicKey(process.env.USDC_MINT);
 
   let processed = 0;
-
   for (const epoch of epochs) {
     try {
-      await payEpoch(conn, treasury, usdcMint, epoch);
+      await payEpoch(conn, treasury, usdcMint, epoch, requestedBy);
       processed++;
-    } catch (e) {
-      console.error(`[payout] epoch ${epoch.epoch} FAILED:`, e.message);
-      // stop — do not continue to other epochs on failure
+    } catch (err) {
+      await auditLog("payout_epoch_failed", {
+        actor: requestedBy,
+        epoch: epoch.epoch,
+        error: err.message,
+      });
       break;
     }
   }
@@ -83,78 +57,143 @@ export async function processPayouts() {
   return { processed };
 }
 
-async function payEpoch(conn, treasury, usdcMint, epoch) {
+async function payEpoch(conn, treasury, usdcMint, epoch, requestedBy) {
   const winnerCount = epoch.winners.length;
   const shareUi = POOL_USDC / winnerCount;
   const shareRaw = Math.floor(shareUi * Math.pow(10, USDC_DECIMALS));
-
-  console.log(`[payout] epoch ${epoch.epoch}: paying ${winnerCount} winners ${shareUi} USDC each`);
-
-  // ─── 1. Verify treasury balance ──────────────────────────────
   const treasuryAta = await getAssociatedTokenAddress(usdcMint, treasury.publicKey);
+
   let treasuryBalRaw;
   try {
     const acct = await getAccount(conn, treasuryAta);
     treasuryBalRaw = Number(acct.amount);
-  } catch (e) {
+  } catch {
     throw new Error("treasury USDC account not found or unreadable");
   }
+
   const needed = shareRaw * winnerCount;
   if (treasuryBalRaw < needed) {
-    throw new Error(
-      `insufficient treasury USDC: have ${treasuryBalRaw / 1e6}, need ${needed / 1e6}`
-    );
+    throw new Error(`insufficient treasury USDC: have ${treasuryBalRaw / 1e6}, need ${needed / 1e6}`);
   }
 
-  // ─── 2. Send to each winner ──────────────────────────────────
-  const payouts = [];
   for (const winner of epoch.winners) {
+    if (!winner.verifiedWalletId) throw new Error(`winner ${winner.id} has no verified wallet`);
+    await payWinner({
+      conn,
+      treasury,
+      treasuryAta,
+      usdcMint,
+      epoch,
+      winner,
+      shareUi,
+      shareRaw,
+      requestedBy,
+    });
+  }
+
+  await markEpochPaid(epoch.id);
+  await auditLog("payout_epoch_complete", { actor: requestedBy, epoch: epoch.epoch });
+}
+
+async function payWinner({ conn, treasury, treasuryAta, usdcMint, epoch, winner, shareUi, shareRaw, requestedBy }) {
+  const idempotencyKey = `winner:${winner.id}`;
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    const lock = await client.query(
+      `select id, paid_at from winners where id = $1 for update`,
+      [winner.id]
+    );
+    if (!lock.rows[0] || lock.rows[0].paid_at) {
+      await client.query("commit");
+      return;
+    }
+
+    const existing = await client.query(
+      `select status, signature from payout_attempts where idempotency_key = $1`,
+      [idempotencyKey]
+    );
+    if (existing.rows.some((row) => row.status === "confirmed")) {
+      await client.query("commit");
+      return;
+    }
+
+    await client.query(
+      `insert into payout_attempts
+        (winner_id, epoch_id, wallet_pubkey, amount_usdc, status, idempotency_key, requested_by)
+       values ($1, $2, $3, $4, 'pending', $5, $6)
+       on conflict (idempotency_key) do nothing`,
+      [winner.id, epoch.id, winner.pubkey, shareUi, idempotencyKey, requestedBy]
+    );
+    await client.query("commit");
+  } catch (err) {
+    await client.query("rollback");
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  try {
     const recipient = new PublicKey(winner.pubkey);
     const recipientAta = await getAssociatedTokenAddress(usdcMint, recipient);
-
     const tx = new Transaction();
 
-    // create recipient ATA if missing (treasury pays the rent)
     let needsAta = false;
     try {
       await getAccount(conn, recipientAta);
-    } catch (e) {
-      if (e instanceof TokenAccountNotFoundError) {
+    } catch (err) {
+      if (err instanceof TokenAccountNotFoundError) {
         needsAta = true;
       } else {
-        throw e;
+        throw err;
       }
     }
+
     if (needsAta) {
-      tx.add(
-        createAssociatedTokenAccountInstruction(
-          treasury.publicKey,  // payer
-          recipientAta,        // ata
-          recipient,           // owner
-          usdcMint             // mint
-        )
-      );
+      tx.add(createAssociatedTokenAccountInstruction(treasury.publicKey, recipientAta, recipient, usdcMint));
     }
 
-    // transfer
     tx.add(
       createTransferCheckedInstruction(
-        treasuryAta,           // from
-        usdcMint,              // mint
-        recipientAta,          // to
-        treasury.publicKey,    // owner of from
-        shareRaw,              // amount (raw)
-        USDC_DECIMALS          // decimals
+        treasuryAta,
+        usdcMint,
+        recipientAta,
+        treasury.publicKey,
+        shareRaw,
+        USDC_DECIMALS
       )
     );
 
     const sig = await conn.sendTransaction(tx, [treasury]);
     await conn.confirmTransaction(sig, "confirmed");
-    console.log(`[payout]   ✓ ${winner.pubkey.slice(0, 8)}... → ${shareUi} USDC  (${sig})`);
-    payouts.push({ pubkey: winner.pubkey, amount: shareUi, signature: sig });
-  }
 
-  // ─── 3. Mark epoch paid (only after all confirmed) ───────────
-  markEpochPaid(epoch.epoch, payouts);
-  console.log(`[payout] epoch ${epoch.epoch} COMPLETE — ${payouts.length} payouts recorded`);
+    await markWinnerPaid({ winnerId: winner.id, signature: sig });
+    await pool.query(
+      `update payout_attempts
+       set status = 'confirmed', signature = $2, confirmed_at = now()
+       where idempotency_key = $1`,
+      [idempotencyKey, sig]
+    );
+    await auditLog("payout_winner_confirmed", {
+      actor: requestedBy,
+      wallet_pubkey: winner.pubkey,
+      epoch: epoch.epoch,
+      signature: sig,
+      amount_usdc: shareUi,
+    });
+  } catch (err) {
+    await pool.query(
+      `update payout_attempts
+       set status = 'failed', error = $2
+       where idempotency_key = $1 and status <> 'confirmed'`,
+      [idempotencyKey, err.message.slice(0, 500)]
+    );
+    await auditLog("payout_winner_failed", {
+      actor: requestedBy,
+      wallet_pubkey: winner.pubkey,
+      epoch: epoch.epoch,
+      error: err.message,
+    });
+    throw err;
+  }
 }

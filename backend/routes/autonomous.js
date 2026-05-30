@@ -1,4 +1,5 @@
 import express from "express";
+import { hasDatabase, query } from "../_db.js";
 
 const router = express.Router();
 
@@ -27,13 +28,14 @@ const router = express.Router();
 const MAX_POSTS = 200;
 const posts = []; // newest first
 
-router.post("/", (req, res) => {
-  // ─── Auth: shared secret between backend and agent-runtime ───
-  const expected = process.env.AGENT_KEY;
-  const provided = req.header("x-agent-key");
-  if (expected && provided !== expected) {
-    return res.status(401).json({ error: "unauthorized" });
-  }
+router.post("/", async (req, res) => {
+  try {
+    // ─── Auth: shared secret between backend and agent-runtime ───
+    const expected = process.env.AGENT_KEY;
+    const provided = req.header("x-agent-key");
+    if (expected && provided !== expected) {
+      return res.status(401).json({ error: "unauthorized" });
+    }
 
   const { post, context, ts, earnings, tokenInfo } = req.body || {};
   if (!post || typeof post !== "string") {
@@ -61,26 +63,70 @@ router.post("/", (req, res) => {
     createdAt: Date.now(),
   };
 
-  posts.unshift(entry);
-  if (posts.length > MAX_POSTS) posts.length = MAX_POSTS;
+  if (hasDatabase) {
+    await query(
+      `insert into autonomous_posts (id, post, context, earnings, token_info, mood, created_at)
+       values ($1, $2, $3, $4, $5, $6, to_timestamp($7 / 1000.0))
+       on conflict (id) do nothing`,
+      [
+        entry.id,
+        entry.post,
+        JSON.stringify(entry.context),
+        entry.earnings ? JSON.stringify(entry.earnings) : null,
+        entry.tokenInfo ? JSON.stringify(entry.tokenInfo) : null,
+        req.body?.mood || null,
+        entry.createdAt,
+      ]
+    );
+  } else {
+    posts.unshift(entry);
+    if (posts.length > MAX_POSTS) posts.length = MAX_POSTS;
+  }
 
-  console.log(`[AUTONOMOUS] ${id}: ${entry.post.slice(0, 80)}...`);
-  res.json({ ok: true, id });
+    console.log(`[AUTONOMOUS] ${id}: ${entry.post.slice(0, 80)}...`);
+    res.json({ ok: true, id });
+  } catch (err) {
+    console.error("AUTONOMOUS ERROR:", err.message);
+    res.status(500).json({ error: "autonomous_post_failed" });
+  }
 });
 
-router.get("/", (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit, 10) || 50, MAX_POSTS);
-  // shape compatible with /discoveries so frontend can reuse the same renderer
-  const out = posts.slice(0, limit).map(p => ({
-    id: p.id,
-    by: "PI · AUTONOMOUS",
-    quote: p.post,
-    ts: formatTs(p.ts),
-    autonomous: true,
-    earnings: p.earnings,
-    tokenInfo: p.tokenInfo,
-  }));
-  res.json(out);
+router.get("/", async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, MAX_POSTS);
+    if (hasDatabase) {
+      const result = await query(
+        `select id, post, earnings, token_info, created_at
+         from autonomous_posts
+         order by created_at desc
+         limit $1`,
+        [limit]
+      );
+      return res.json(result.rows.map((p) => ({
+        id: p.id,
+        by: "PI · AUTONOMOUS",
+        quote: p.post,
+        ts: formatTs(p.created_at),
+        autonomous: true,
+        earnings: p.earnings,
+        tokenInfo: p.token_info,
+      })));
+    }
+    // shape compatible with /discoveries so frontend can reuse the same renderer
+    const out = posts.slice(0, limit).map(p => ({
+      id: p.id,
+      by: "PI · AUTONOMOUS",
+      quote: p.post,
+      ts: formatTs(p.ts),
+      autonomous: true,
+      earnings: p.earnings,
+      tokenInfo: p.tokenInfo,
+    }));
+    res.json(out);
+  } catch (err) {
+    console.error("AUTONOMOUS ERROR:", err.message);
+    res.status(500).json({ error: "autonomous_feed_failed" });
+  }
 });
 
 function formatTs(iso) {

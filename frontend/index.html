@@ -2202,6 +2202,26 @@ async function checkHoldings(pubkey){
   }
 }
 
+async function createWalletAuth(){
+  const ph = window.solana || window?.phantom?.solana
+  if(!ph?.isPhantom || !ph.signMessage) throw new Error('wallet_signature_unavailable')
+  const challengeRes = await fetch(API_BASE + '/auth/nonce', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ pubkey:S.wallet })
+  })
+  const challenge = await challengeRes.json()
+  if(!challengeRes.ok || challenge.error) throw new Error(challenge.error || 'wallet_nonce_failed')
+  const encoded = new TextEncoder().encode(challenge.message)
+  const signed = await ph.signMessage(encoded, 'utf8')
+  const sig = signed.signature || signed
+  return {
+    nonce: challenge.nonce,
+    message: challenge.message,
+    signature: Array.from(sig)
+  }
+}
+
 function setAccessBadge(state){
   const b = document.getElementById('accessBadge')
   if(!b) return
@@ -2498,10 +2518,11 @@ async function submitGuess(){
 
   closeM('mGuess')
   try{
+    const walletAuth = await createWalletAuth()
     const res = await fetch(API_BASE + '/guess', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ guess:g, userId:S.wallet, pubkey:S.wallet })
+      body:JSON.stringify({ guess:g, userId:S.wallet, pubkey:S.wallet, walletAuth })
     })
     const data = await res.json()
 
@@ -2513,6 +2534,8 @@ async function submitGuess(){
         toast('Limit reached — 10 attempts / 24h. Try again in ' + (data.cooldownHours || '24') + 'h')
       } else if(data.error === 'cooldown'){
         toast('Cooldown active — wait ' + (data.minutesLeft || '?') + ' min')
+      } else if(data.error && data.error.startsWith('wallet_')){
+        toast('Wallet verification failed — please sign the message and try again')
       } else {
         toast('Error: ' + data.error)
       }
@@ -2544,7 +2567,11 @@ async function submitGuess(){
       if(S.page === 'term') appendChat('ai', '"' + g + '"... no. That was not it. Was it close? I... cannot tell.')
     }
   }catch(e){
-    toast('Submission failed — try again')
+    if(e.message === 'wallet_signature_unavailable'){
+      toast('Wallet signature not available — update Phantom and try again')
+    } else {
+      toast('Submission failed — try again')
+    }
   }
 }
 

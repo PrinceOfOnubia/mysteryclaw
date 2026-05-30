@@ -31,18 +31,19 @@ This guide walks through everything needed to take PiVerse from code to a fully 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  FRONTEND (Vercel)                                       │
-│  https://piverse-nu.vercel.app                           │
+│  https://piverse.fun                                     │
 │  Static index.html — talks to backend via API_BASE       │
 └────────────┬─────────────────────────────────────────────┘
              │ HTTPS
              ▼
 ┌──────────────────────────────────────────────────────────┐
 │  BACKEND (Railway) — YOUR JOB                         │
-│  https://<your-railway-service>.up.railway.app         │
+│  https://piverse-production.up.railway.app              │
 │                                                          │
-│  Express app with 7 endpoints:                           │
+│  Express app with production safety endpoints:           │
 │    POST /chat        — Pi adversarial chat               │
-│    POST /guess       — word verification + rate limit    │
+│    POST /auth/nonce  — wallet signature challenge        │
+│    POST /guess       — signed word verification          │
 │    POST /holdings    — Solana RPC token check  [TODO]    │
 │    GET  /stats       — live counters           [TODO]    │
 │    GET  /discoveries — community fragments     [TODO]    │
@@ -57,7 +58,7 @@ This guide walks through everything needed to take PiVerse from code to a fully 
 │ OpenAI      │  │ AGENT RUNTIME (separate process)     │
 │ API         │  │ pm2 / systemd on VPS                 │
 │ (chat LLM)  │  │ - Owns Pi's Solana wallet            │
-└─────────────┘  │ - Launched $PIVERSE via ClawPump     │
+└─────────────┘  │ - Can launch $PIVERSE later via ClawPump │
                  │ - Runs autonomous loop 24/7          │
                  │ - Posts to /autonomous every 5 min   │
                  └─────────┬────────────────────────────┘
@@ -169,14 +170,17 @@ Set these in Railway dashboard → your service → **Environment** tab.
 |---|---|---|---|
 | `OPENAI_API_KEY` | ✅ Yes | `sk-...` | OpenAI API key (official OpenAI SDK) |
 | `OPENAI_MODEL` | No | `gpt-4o` | Defaults to `gpt-4o` if unset |
-| `SOLANA_RPC` | ✅ Yes (once /holdings is wired) | `https://mainnet.helius-rpc.com/?api-key=...` | Paid RPC strongly recommended |
+| `DATABASE_URL` | ✅ Yes | Railway PostgreSQL URL | Production source of truth for wallets, guesses, winners, payouts, autonomous posts |
+| `SOLANA_RPC` | ✅ Yes | `https://mainnet.helius-rpc.com/?api-key=...` | Paid mainnet RPC strongly recommended |
+| `SOLANA_CLUSTER` | ✅ Yes | `mainnet` | Mainnet-only deployment |
 | `REQUIRE_HOLDER` | ⚠️ Keep false for MVP | `false` | Do not set true until /holdings is verified |
 | `AGENT_KEY` | ✅ Yes (for /autonomous) | Generate: `openssl rand -hex 24` | Same value in agent-runtime/.env |
+| `ADMIN_KEY` | ✅ Yes | Generate: `openssl rand -hex 32` | Required for admin-only payout trigger |
 | `PORT` | No | `3000` | Railway sets this automatically |
-| `CORS_ORIGIN` | ✅ Recommended | `https://piverse.fun,https://www.piverse.fun,https://piverse-nu.vercel.app` | Comma-separated for multiple; whitespace is trimmed |
-| `PAYOUTS_ENABLED` | ✅ Yes | `false` | Leave false until devnet payout testing is complete |
-| `TREASURY_PRIVKEY` | No for MVP | empty | Only set when enabling real payouts later |
-| `USDC_MINT` | After prize logic added | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | Mainnet USDC |
+| `CORS_ORIGIN` | ✅ Recommended | `https://piverse.fun,https://www.piverse.fun,https://piverse.vercel.app` | Comma-separated for multiple; whitespace is trimmed |
+| `PAYOUTS_ENABLED` | ✅ Yes | `false` | Keep false until final real-money review |
+| `TREASURY_PRIVKEY` | Only when enabling payouts | empty | Base58 treasury secret, never commit |
+| `USDC_MINT` | ✅ Yes | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | Mainnet USDC |
 
 **To generate AGENT_KEY:**
 ```bash
@@ -374,8 +378,8 @@ Spin up a basic Ubuntu 22.04 server with 1 GB RAM. SSH in.
 ### 8.2 Install Node + pm2
 
 ```bash
-# Install Node 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+# Install Node 22
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # Install pm2 globally (process manager)
@@ -385,8 +389,8 @@ sudo npm install -g pm2
 ### 8.3 Pull the agent-runtime folder
 
 ```bash
-git clone https://github.com/<your-org>/piverse-agent-runtime.git
-cd piverse-agent-runtime
+git clone https://github.com/PrinceOfOnubia/piverse.git
+cd piverse/agent-runtime
 npm install
 ```
 
@@ -430,14 +434,13 @@ sudo apt install librsvg2-bin
 rsvg-convert -w 1024 -h 1024 assets/pi-token.svg -o assets/pi-token.png
 ```
 
-### 8.8 Launch $PIVERSE on pump.fun
+### 8.8 Launch $PIVERSE on pump.fun later
 
 ```bash
 npm run launch-token
 ```
 
-This will:
-1. Upload the image to ClawPump
+Do not run this until the token launch is intentionally approved.
 2. Call `POST /api/launch` with your API key
 3. Save the result to `token-launch.json`
 4. Print a Twitter template with `@clawpumptech` tag
@@ -465,7 +468,7 @@ Check it's running:
 pm2 logs pi-loop
 ```
 
-You should see a tick every 5 minutes. Within 30 seconds the first post should appear at https://piverse-nu.vercel.app/discoveries.
+You should see a tick every 5 minutes. Within 30 seconds the first post should appear at https://piverse.fun/discoveries.
 
 ---
 
@@ -492,7 +495,7 @@ const configuredOrigins = (process.env.CORS_ORIGIN || "")
 const allowedOrigins = new Set([
   "https://piverse.fun",
   "https://www.piverse.fun",
-  "https://piverse-nu.vercel.app",
+  "https://piverse.vercel.app",
   ...configuredOrigins,
 ]);
 
@@ -506,11 +509,11 @@ app.use(cors({
     return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "x-agent-key"],
+  allowedHeaders: ["Content-Type", "x-agent-key", "x-admin-key"],
 }));
 ```
 
-Set `CORS_ORIGIN=https://piverse.fun,https://www.piverse.fun,https://piverse-nu.vercel.app` on Railway. Vercel preview URLs are allowed by pattern.
+Set `CORS_ORIGIN=https://piverse.fun,https://www.piverse.fun,https://piverse.vercel.app` on Railway. Vercel preview URLs are allowed by pattern.
 
 ### 9.2 Add IP-based rate limit
 
@@ -560,18 +563,33 @@ app.use(express.json({ limit: "100kb" }));
 
 ---
 
-## 10. Prize Payout Implementation
+## 10. Prize Payout System
 
-**This is the highest-stakes feature.** When someone guesses the word correctly, they should receive a share of the $1,000 USDC pool. Get this wrong and you'll lose money.
+**This is the highest-stakes feature.** The production code is prepared for real-money payouts, but payouts remain disabled unless `PAYOUTS_ENABLED=true` and all treasury/database variables are present.
 
-### 10.1 Concept
+### 10.1 Production data flow
 
-- Prize pool: 1,000 USDC sitting in a **treasury wallet**
-- When someone submits a correct guess → their pubkey is recorded as a winner
-- After an **epoch** closes (e.g. 24h from the first correct guess), winners are summed
-- Each winner receives `1000 / winnerCount` USDC, transferred from the treasury
+- `POST /auth/nonce` issues a short-lived wallet challenge.
+- Phantom signs the exact challenge.
+- `POST /guess` verifies wallet ownership before recording a prize-eligible guess.
+- Guesses, verified wallets, prize epochs, winners, payout attempts, and autonomous posts are stored in Railway Postgres.
+- No payout is sent from guess submission.
+- `POST /admin/payout` is the only payout trigger and requires `x-admin-key`.
+- Each winner payout has an idempotency key so a confirmed winner cannot be paid twice.
 
-### 10.2 Treasury wallet setup
+### 10.2 Database migrations
+
+Run migrations after Railway PostgreSQL is attached:
+
+```bash
+cd backend
+DATABASE_URL="postgresql://..." npm run migrate
+DATABASE_URL="postgresql://..." npm run seed
+```
+
+In Railway, use the service shell or a one-off job with the same commands after `DATABASE_URL` is available.
+
+### 10.3 Treasury wallet setup
 
 ```bash
 # Generate a fresh keypair for the treasury
@@ -588,108 +606,16 @@ Fund this wallet with:
 - AWS Secrets Manager / Google Secret Manager (production-grade)
 - Railway's encrypted env vars (acceptable for MVP — paste the base58 of the secretKey into `TREASURY_PRIVKEY`)
 
-### 10.3 Winner recording
+### 10.4 Manual payout trigger
 
-In `backend/routes/guess.js`, when a correct guess is detected, instead of just returning success:
+Keep `PAYOUTS_ENABLED=false` until launch approval. When ready, set all treasury vars, review unpaid winners in Postgres, then trigger:
 
-```js
-import { recordWinner } from "../_winners.js";
-
-if (correct) {
-  await recordWinner({ pubkey: wallet, ts: Date.now() });
-  return res.json({
-    correct: true,
-    success: true,
-    word: SECRET,
-    message: "ACCESS GRANTED. The word is recovered. Payout pending.",
-    attemptsLeft: rl.attemptsLeft - 1,
-  });
-}
+```bash
+curl -X POST https://piverse-production.up.railway.app/admin/payout \
+  -H "x-admin-key: $ADMIN_KEY"
 ```
 
-`_winners.js`:
-```js
-import fs from "fs";
-
-const WINNERS_FILE = "./winners.json";
-
-export function loadWinners() {
-  try { return JSON.parse(fs.readFileSync(WINNERS_FILE)); }
-  catch { return { epoch1: { startedAt: null, winners: [], paidOut: false } }; }
-}
-
-export async function recordWinner({ pubkey, ts }) {
-  const data = loadWinners();
-  const epoch = data.epoch1;
-  if (!epoch.startedAt) epoch.startedAt = ts;
-  // Avoid duplicates
-  if (!epoch.winners.find(w => w.pubkey === pubkey)) {
-    epoch.winners.push({ pubkey, ts });
-    fs.writeFileSync(WINNERS_FILE, JSON.stringify(data, null, 2));
-  }
-}
-```
-
-### 10.4 Epoch-close payout job
-
-Create `backend/jobs/payout.js`:
-
-```js
-import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
-import { createTransferCheckedInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
-import bs58 from "bs58";
-import { loadWinners } from "../_winners.js";
-
-const POOL_USDC = 1000 * 1_000_000;     // 1,000 USDC (6 decimals)
-const EPOCH_HOURS = 24;
-
-export async function runPayout() {
-  const data = loadWinners();
-  const epoch = data.epoch1;
-  if (!epoch.startedAt || epoch.paidOut) return;
-  const hoursElapsed = (Date.now() - epoch.startedAt) / (1000 * 3600);
-  if (hoursElapsed < EPOCH_HOURS) return;
-
-  const treasury = Keypair.fromSecretKey(bs58.decode(process.env.TREASURY_PRIVKEY));
-  const conn = new Connection(process.env.SOLANA_RPC);
-  const usdcMint = new PublicKey(process.env.USDC_MINT);
-
-  const share = Math.floor(POOL_USDC / epoch.winners.length);
-  console.log(`Paying ${epoch.winners.length} winners ${share / 1e6} USDC each`);
-
-  for (const w of epoch.winners) {
-    const recipient = new PublicKey(w.pubkey);
-    const fromAta = await getAssociatedTokenAddress(usdcMint, treasury.publicKey);
-    const toAta = await getAssociatedTokenAddress(usdcMint, recipient);
-
-    const tx = new Transaction().add(
-      createTransferCheckedInstruction(
-        fromAta, usdcMint, toAta, treasury.publicKey, share, 6
-      )
-    );
-    const sig = await conn.sendTransaction(tx, [treasury]);
-    await conn.confirmTransaction(sig);
-    console.log(`Paid ${w.pubkey}: ${sig}`);
-  }
-
-  epoch.paidOut = true;
-  // persist...
-}
-```
-
-Run this hourly via cron or as a setInterval in server.js:
-```js
-import { runPayout } from "./jobs/payout.js";
-setInterval(runPayout, 60 * 60 * 1000); // every hour
-```
-
-### 10.5 Testing on devnet first
-
-**Before going to mainnet:**
-1. Use Solana devnet (`https://api.devnet.solana.com`)
-2. Use a fake USDC mint or test SPL token
-3. Run through a full guess → record → payout flow
-4. Only switch to mainnet after end-to-end success on devnet
+The payout engine refuses to run unless `PAYOUTS_ENABLED=true`, `TREASURY_PRIVKEY`, `SOLANA_RPC`, `USDC_MINT`, and `DATABASE_URL` are all configured.
 
 ---
 
@@ -758,7 +684,7 @@ Before announcing publicly, verify:
 
 ### Agent Runtime
 - [ ] Pi's wallet generated and `pi-wallet.json` backed up offline
-- [ ] `$PIVERSE` token live on pump.fun
+- [ ] `$PIVERSE` token launch intentionally approved
 - [ ] Mint address updated in frontend + backend
 - [ ] `npm run earnings` returns real data
 - [ ] `pm2 list` shows `pi-loop` as `online`
@@ -769,9 +695,9 @@ Before announcing publicly, verify:
 - [ ] Treasury wallet funded with 1,000 USDC + 0.1 SOL
 - [ ] `PAYOUTS_ENABLED=false` for MVP
 - [ ] `TREASURY_PRIVKEY` not set until real payout launch
-- [ ] End-to-end test on devnet first
-- [ ] Payout cron job running (`setInterval` in server.js)
-- [ ] `winners.json` writable (persistent disk on Railway)
+- [ ] `DATABASE_URL` migrated and seeded
+- [ ] Admin payout trigger tested with `PAYOUTS_ENABLED=false`
+- [ ] No `winners.json` dependency in production
 
 ### Security
 - [ ] `.env` and `pi-wallet.json` NOT in git history (run `git log --all -- pi-wallet.json` to verify)

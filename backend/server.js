@@ -13,8 +13,8 @@ import statsRoute from "./routes/stats.js";
 import discoveriesRoute from "./routes/discoveries.js";
 import autonomousRoute from "./routes/autonomous.js";
 import prizeRoute from "./routes/prize.js";
-
-import { processPayouts } from "./_payout.js";
+import authRoute from "./routes/auth.js";
+import adminRoute from "./routes/admin.js";
 
 const app = express();
 
@@ -35,6 +35,7 @@ const LOCAL_ORIGINS = new Set([
 const PRODUCTION_ORIGINS = new Set([
   "https://piverse.fun",
   "https://www.piverse.fun",
+  "https://piverse.vercel.app",
   "https://piverse-nu.vercel.app",
   "https://piverse-mp8ta5iy1-johnbuzs-projects.vercel.app",
 ]);
@@ -62,7 +63,7 @@ app.use(helmet({
 
 app.use(cors({
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "x-agent-key"],
+  allowedHeaders: ["Content-Type", "x-agent-key", "x-admin-key"],
   origin(origin, callback) {
     if (isAllowedOrigin(origin)) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
@@ -97,6 +98,7 @@ app.use(publicLimit);
 // Pi agent endpoints
 app.use("/chat", chatLimit, chatRoute);
 app.use("/guess", guessLimit, guessRoute);
+app.use("/auth", guessLimit, authRoute);
 
 // Platform endpoints
 app.use("/holdings", holdingsRoute);
@@ -104,6 +106,7 @@ app.use("/stats", statsRoute);
 app.use("/discoveries", discoveriesRoute);
 app.use("/autonomous", autonomousRoute);
 app.use("/prize", prizeRoute);
+app.use("/admin", adminRoute);
 
 app.get("/", (req, res) => {
   res.json({
@@ -113,6 +116,7 @@ app.get("/", (req, res) => {
     endpoints: {
       "POST /chat":          "talk to Pi",
       "POST /guess":         "submit the forgotten word",
+      "POST /auth/nonce":    "create a wallet signature challenge",
       "POST /holdings":      "verify wallet token holdings",
       "GET  /stats":         "live platform stats",
       "GET  /discoveries":   "community-saved fragments",
@@ -120,7 +124,8 @@ app.get("/", (req, res) => {
       "GET  /autonomous":    "Pi's self-generated posts (live feed)",
       "POST /autonomous":    "agent-runtime pushes new post (requires x-agent-key)",
       "GET  /prize":         "current prize epoch status",
-      "GET  /prize/history": "past epoch payouts (transparency)"
+      "GET  /prize/history": "past epoch payouts (transparency)",
+      "POST /admin/payout":  "admin-only payout trigger"
     }
   });
 });
@@ -130,27 +135,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`PiVerse server running on port ${PORT}`);
 });
-
-// ═══════════════════════════════════════════════════════════════
-// AUTOMATIC PRIZE PAYOUT SCHEDULER
-// ═══════════════════════════════════════════════════════════════
-// Every 10 minutes, check for closed epochs that need paying out.
-// processPayouts() is a no-op unless PAYOUTS_ENABLED=true, so this
-// is safe to leave running even before treasury is funded.
-// ═══════════════════════════════════════════════════════════════
-const PAYOUT_CHECK_MS = 10 * 60 * 1000; // 10 min
-
-async function payoutTick() {
-  try {
-    const result = await processPayouts();
-    if (result.processed > 0) {
-      console.log(`[payout-scheduler] processed ${result.processed} epoch(s)`);
-    }
-  } catch (e) {
-    console.error("[payout-scheduler] error:", e.message);
-  }
-}
-
-// run shortly after boot, then on interval
-setTimeout(payoutTick, 30 * 1000);
-setInterval(payoutTick, PAYOUT_CHECK_MS);

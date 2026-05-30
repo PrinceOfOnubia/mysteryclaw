@@ -1,5 +1,6 @@
 import express from "express";
 import { getHoldings } from "../_access.js";
+import { normalizePubkey } from "../_walletAuth.js";
 
 const router = express.Router();
 
@@ -26,15 +27,16 @@ router.post("/", async (req, res) => {
   try {
     const { pubkey } = req.body;
     if (!pubkey) return res.status(400).json({ error: "pubkey required" });
+    const wallet = normalizePubkey(pubkey);
     // TODO: pair this pubkey with signed-message verification before
     // public prize launch. This endpoint verifies token balances for the
     // supplied address, not ownership of that address.
 
-    const result = await getHoldings(pubkey);
+    const result = await getHoldings(wallet);
     return res.json(result);
   } catch (err) {
     console.error("HOLDINGS ERROR:", err.message);
-    res.status(500).json({ error: "Holdings check failed" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Holdings check failed" });
   }
 });
 

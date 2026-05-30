@@ -1,6 +1,7 @@
 import express from "express";
 import { isHolder } from "../_access.js";
-import { recordWinner } from "../_winners.js";
+import { recordGuess, recordWinner } from "../_winners.js";
+import { normalizePubkey, verifyWalletAuth } from "../_walletAuth.js";
 
 const router = express.Router();
 
@@ -56,8 +57,8 @@ function recordAttempt(pubkey) {
 
 router.post("/", async (req, res) => {
   try {
-    const { guess, pubkey, userId } = req.body;
-    const wallet = pubkey || userId;
+    const { guess, pubkey, userId, walletAuth } = req.body;
+    const rawWallet = pubkey || userId;
 
     if (!guess || typeof guess !== "string") {
       return res.status(400).json({ error: "Guess required" });
@@ -67,12 +68,12 @@ router.post("/", async (req, res) => {
     }
 
     // ─── GATE 1: must be connected & valid pubkey ────────
-    if (!wallet) {
+    if (!rawWallet) {
       return res.status(401).json({ error: "wallet_required" });
     }
-    // TODO: before public prize launch, require a signed wallet message
-    // and verify the signature server-side. At the moment this endpoint
-    // treats pubkey as an unverified claim from the client.
+    const wallet = normalizePubkey(rawWallet);
+
+    const verified = await verifyWalletAuth(wallet, walletAuth);
 
     // ─── GATE 2: must be a holder (when enforced) ────────
     if (process.env.REQUIRE_HOLDER === "true") {
@@ -99,11 +100,25 @@ router.post("/", async (req, res) => {
     // ─── ACTUAL CHECK ────────────────────────────────────
     const normalized = guess.toUpperCase().trim();
     const correct = normalized === SECRET;
+    const guessRecord = await recordGuess({
+      wallet,
+      userId,
+      guess,
+      normalized,
+      correct,
+      verifiedWallet: true,
+      verifiedWalletId: verified.verified_wallet_id,
+      req,
+    });
 
     if (correct) {
-      // Record into the current 24h epoch. Payout happens automatically
-      // after the epoch closes (see _payout.js + scheduled job in server.js).
-      const winInfo = recordWinner(wallet);
+      // Record into the current 24h epoch. Real payouts require a later
+      // admin-only trigger and PAYOUTS_ENABLED=true.
+      const winInfo = await recordWinner({
+        wallet,
+        guessId: guessRecord.id,
+        verifiedWalletId: verified.verified_wallet_id,
+      });
       return res.json({
         correct: true,
         success: true,
@@ -127,7 +142,7 @@ router.post("/", async (req, res) => {
     });
   } catch (err) {
     console.error("GUESS ERROR:", err.message);
-    res.status(500).json({ error: "Guess submission failed" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Guess submission failed" });
   }
 });
 

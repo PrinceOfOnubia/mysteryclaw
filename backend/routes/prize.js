@@ -1,5 +1,5 @@
 import express from "express";
-import { publicStatus, load } from "../_winners.js";
+import { publicStatus, prizeHistory } from "../_winners.js";
 
 const router = express.Router();
 
@@ -10,26 +10,22 @@ const router = express.Router();
 // GET /prize/history → past epochs + payout signatures (transparency)
 // ═══════════════════════════════════════════════════════════════
 
-router.get("/", (req, res) => {
-  res.json(publicStatus());
+router.get("/", async (req, res) => {
+  try {
+    res.json(await publicStatus());
+  } catch (err) {
+    console.error("PRIZE ERROR:", err.message);
+    res.status(500).json({ error: "prize_status_failed" });
+  }
 });
 
-router.get("/history", (req, res) => {
-  const data = load();
-  // expose only non-sensitive fields
-  const history = Object.values(data.epochs)
-    .filter((e) => e.paidOut)
-    .map((e) => ({
-      epoch: e.epoch,
-      winners: e.winners.length,
-      paidAt: e.paidAt,
-      payouts: (e.payouts || []).map((p) => ({
-        pubkey: p.pubkey.slice(0, 4) + "..." + p.pubkey.slice(-4),
-        amount: p.amount,
-        signature: p.signature,
-      })),
-    }));
-  res.json(history);
+router.get("/history", async (req, res) => {
+  try {
+    res.json(await prizeHistory());
+  } catch (err) {
+    console.error("PRIZE HISTORY ERROR:", err.message);
+    res.status(500).json({ error: "prize_history_failed" });
+  }
 });
 
 export default router;
