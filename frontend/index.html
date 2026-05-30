@@ -1,0 +1,2622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PIVERSE // Infrastructure for Adversarial AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;700;800;900&family=JetBrains+Mono:wght@200;300;400;500;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --bg:#000;
+  --bg-1:#050505;
+  --bg-2:#0a0a0a;
+  --line:rgba(255,255,255,.06);
+  --line-2:rgba(255,255,255,.12);
+  --text:#e8e8e8;
+  --text-dim:#666;
+  --text-mute:#333;
+  --text-ghost:#1a1a1a;
+  --accent:#00ff88;
+  --accent-dim:rgba(0,255,136,.6);
+  --accent-glow:rgba(0,255,136,.15);
+  --accent-blue:#4d8aff;
+  --danger:#ff3344;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100vh;overflow-x:hidden;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-weight:300;letter-spacing:.01em;-webkit-font-smoothing:antialiased;cursor:default}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:#000}
+::-webkit-scrollbar-thumb{background:#1a1a1a}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-dim)}
+
+/* CRT scanlines + grain */
+body::before{
+  content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:gr .35s steps(1) infinite
+}
+@keyframes gr{0%{transform:translate(0,0)}25%{transform:translate(-1%,-2%)}50%{transform:translate(2%,1%)}75%{transform:translate(-1%,2%)}100%{transform:translate(1%,-1%)}}
+
+body::after{
+  content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,255,136,.012) 2px,rgba(0,255,136,.012) 3px);
+}
+
+#three-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55}
+#vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 0%,transparent 40%,rgba(0,0,0,.7) 100%)}
+
+/* === PAGES === */
+.pg{display:none;flex-direction:column;width:100%;min-height:100vh;position:relative;z-index:2}
+.pg.on{display:flex}
+.fadein{animation:fi .4s ease both}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* === NAV === */
+#nav{
+  position:fixed;top:0;width:100%;z-index:500;height:54px;
+  background:rgba(0,0,0,.72);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;padding:0 28px;
+}
+.nl{
+  font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;
+  transition:color .2s;padding:6px 2px;position:relative;font-weight:400;font-family:'JetBrains Mono';
+}
+.nl:hover,.nl.on{color:var(--accent)}
+.nl.on::after{content:'';position:absolute;bottom:-19px;left:0;right:0;height:1px;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+#logoBox{display:flex;align-items:center;gap:10px;cursor:pointer}
+#logoSym{
+  width:26px;height:26px;border:1px solid var(--accent-dim);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono';font-size:14px;font-weight:700;color:var(--accent);
+  box-shadow:inset 0 0 12px rgba(0,255,136,.15),0 0 8px rgba(0,255,136,.1);
+}
+#logoText{
+  font-family:'Inter';font-weight:900;font-size:13px;letter-spacing:.32em;
+  text-transform:uppercase;color:#fff;
+}
+.glitch-char{display:inline-block;transition:color .05s}
+
+/* === BUTTONS === */
+.bp{
+  background:var(--accent);color:#000;font-family:'JetBrains Mono';font-size:10px;
+  letter-spacing:.28em;text-transform:uppercase;font-weight:700;
+  padding:13px 22px;border:none;cursor:pointer;
+  transition:all .15s ease;
+  display:inline-flex;align-items:center;gap:10px;
+  box-shadow:0 0 0 1px var(--accent),0 0 24px rgba(0,255,136,.25);
+  position:relative;
+}
+.bp:hover{box-shadow:0 0 0 1px var(--accent),0 0 36px rgba(0,255,136,.5);transform:translateY(-1px)}
+.bp:active{transform:translateY(0)}
+
+.bg{
+  background:transparent;color:var(--text);font-family:'JetBrains Mono';font-size:10px;
+  letter-spacing:.28em;text-transform:uppercase;font-weight:500;
+  padding:12px 21px;border:1px solid var(--line-2);cursor:pointer;
+  transition:all .2s;display:inline-flex;align-items:center;gap:10px;
+}
+.bg:hover{border-color:var(--accent-dim);color:var(--accent);background:rgba(0,255,136,.04)}
+
+.bd{
+  background:transparent;color:var(--danger);font-family:'JetBrains Mono';font-size:9px;
+  letter-spacing:.22em;text-transform:uppercase;font-weight:500;
+  padding:10px 18px;border:1px solid rgba(255,51,68,.3);cursor:pointer;
+  transition:all .2s;
+}
+.bd:hover{background:rgba(255,51,68,.08);border-color:var(--danger)}
+
+.inp{
+  background:transparent;border:none;border-bottom:1px solid var(--line-2);
+  color:#fff;font-family:'JetBrains Mono';font-size:13px;
+  padding:11px 0;width:100%;outline:none;transition:border-color .2s;
+}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--text-mute)}
+
+/* === MODALS === */
+.mb{
+  position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);
+  z-index:600;display:none;align-items:center;justify-content:center;padding:24px;
+}
+.mb.on{display:flex}
+.mbox{
+  background:var(--bg-1);border:1px solid var(--line-2);padding:36px;
+  width:460px;max-width:100%;position:relative;
+  box-shadow:0 0 60px rgba(0,255,136,.05);
+}
+.mbox::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent,var(--accent-dim),transparent);
+}
+
+/* === LANDING HERO === */
+#pg-land{padding-top:0;overflow:hidden;position:relative}
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  align-items:center;text-align:center;padding:100px 24px 80px;position:relative;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:7px 14px;border:1px solid var(--line-2);
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:36px;
+  background:rgba(0,255,136,.02);
+}
+.hero-badge .dot{width:6px;height:6px;background:var(--accent);border-radius:50%;
+  box-shadow:0 0 8px var(--accent);animation:pulse 1.8s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.hero-title{
+  font-family:'Inter';font-weight:900;
+  font-size:clamp(48px,9vw,128px);
+  line-height:.92;letter-spacing:-.045em;
+  color:#fff;margin-bottom:32px;text-transform:uppercase;
+}
+.hero-title .ghost{
+  color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.22);
+}
+.hero-title .accent{color:var(--accent);text-shadow:0 0 30px rgba(0,255,136,.35)}
+
+.hero-sub{
+  font-family:'JetBrains Mono';font-size:14px;color:var(--text-dim);
+  max-width:560px;line-height:1.85;margin-bottom:48px;font-weight:300;
+}
+.hero-sub b{color:var(--accent);font-weight:500}
+
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:80px}
+
+/* live stats grid in hero */
+.stats-row{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  max-width:920px;width:100%;
+}
+.stat-cell{
+  padding:24px 20px;text-align:left;
+  border-right:1px solid var(--line);
+  position:relative;
+}
+.stat-cell:last-child{border-right:none}
+.stat-label{
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--text-mute);margin-bottom:10px;
+}
+.stat-val{
+  font-family:'Inter';font-size:24px;font-weight:800;color:#fff;
+  display:flex;align-items:center;gap:8px;
+}
+.stat-val .live-d{width:6px;height:6px;background:var(--accent);border-radius:50%;
+  box-shadow:0 0 6px var(--accent);animation:pulse 1.6s ease infinite}
+
+/* === SECTION DIVIDER === */
+.sec-divider{
+  display:flex;align-items:center;gap:16px;
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.4em;
+  text-transform:uppercase;color:var(--text-mute);
+  padding:0 60px;margin:120px 0 48px;
+}
+.sec-divider::before,.sec-divider::after{
+  content:'';flex:1;height:1px;background:var(--line);
+}
+
+/* === INCIDENT TIMELINE === */
+.incident{padding:80px 60px;max-width:1200px;margin:0 auto;width:100%}
+.incident h2{
+  font-family:'Inter';font-size:clamp(36px,5.5vw,72px);font-weight:900;
+  letter-spacing:-.04em;text-transform:uppercase;color:#fff;
+  margin-bottom:24px;line-height:.95;
+}
+.incident h2 .ghost{color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.22)}
+.incident-intro{
+  font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);
+  max-width:620px;line-height:1.9;margin-bottom:64px;
+}
+
+.timeline{position:relative;padding-left:0}
+.timeline::before{
+  content:'';position:absolute;left:60px;top:0;bottom:0;width:1px;
+  background:linear-gradient(to bottom,transparent,var(--line-2),var(--line-2),transparent);
+}
+.tline{
+  display:grid;grid-template-columns:120px 1fr;gap:32px;
+  padding:28px 0;border-bottom:1px solid var(--line);position:relative;
+}
+.tline::before{
+  content:'';position:absolute;left:56px;top:42px;width:9px;height:9px;
+  border:1px solid var(--accent-dim);background:#000;
+  box-shadow:0 0 12px rgba(0,255,136,.25);
+}
+.tline-phase{
+  font-family:'JetBrains Mono';font-size:10px;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--accent);font-weight:500;padding-top:4px;
+}
+.tline-body h3{
+  font-family:'Inter';font-size:22px;font-weight:800;color:#fff;
+  margin-bottom:10px;letter-spacing:-.01em;
+}
+.tline-body p{
+  font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim);
+  line-height:1.85;max-width:680px;
+}
+
+/* === HOW IT WORKS GRID === */
+.hiw{padding:60px 60px;max-width:1200px;margin:0 auto;width:100%}
+.hiw-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);
+}
+.hiw-card{
+  background:var(--bg-1);padding:32px 26px;position:relative;
+  transition:background .25s;min-height:240px;
+}
+.hiw-card:hover{background:var(--bg-2)}
+.hiw-num{
+  font-family:'JetBrains Mono';font-size:10px;letter-spacing:.3em;
+  color:var(--text-mute);margin-bottom:20px;
+}
+.hiw-icon{
+  width:38px;height:38px;border:1px solid var(--accent-dim);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:16px;color:var(--accent);font-size:18px;
+  font-family:'JetBrains Mono';font-weight:700;
+  box-shadow:inset 0 0 12px rgba(0,255,136,.1);
+}
+.hiw-card h4{
+  font-family:'Inter';font-size:15px;font-weight:800;color:#fff;
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;
+}
+.hiw-card p{
+  font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);
+  line-height:1.75;
+}
+
+/* === FEATURES === */
+.feat-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);
+}
+.feat-card{
+  background:var(--bg-1);padding:34px 28px;
+  transition:background .25s;
+}
+.feat-card:hover{background:var(--bg-2)}
+.feat-card h4{
+  font-family:'Inter';font-size:16px;font-weight:800;color:#fff;
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.feat-card h4::before{content:'';width:6px;height:6px;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.feat-card p{
+  font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);
+  line-height:1.75;
+}
+
+/* === AGENTS ROSTER === */
+.agents-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);
+}
+.agent-card{
+  background:var(--bg-1);padding:32px 26px;position:relative;
+  transition:background .25s;overflow:hidden;
+}
+.agent-card:hover{background:var(--bg-2)}
+.agent-card.live{background:linear-gradient(135deg,rgba(0,255,136,.04),var(--bg-1))}
+.agent-status{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;
+}
+.agent-status .live-tag{
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--accent);
+  display:flex;align-items:center;gap:7px;
+}
+.agent-status .locked-tag{
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--text-mute);
+}
+.agent-status .live-tag::before{
+  content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;
+  box-shadow:0 0 6px var(--accent);animation:pulse 1.6s ease infinite;
+}
+.agent-name{
+  font-family:'Inter';font-size:28px;font-weight:900;color:#fff;
+  text-transform:uppercase;letter-spacing:-.02em;margin-bottom:6px;
+}
+.agent-card.live .agent-name{color:var(--accent);text-shadow:0 0 16px rgba(0,255,136,.3)}
+.agent-tag{
+  font-family:'JetBrains Mono';font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--text-mute);margin-bottom:18px;
+}
+.agent-desc{
+  font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);
+  line-height:1.8;margin-bottom:20px;min-height:60px;
+}
+
+/* === TOKEN GATE === */
+.tg-wrap{padding:80px 60px;max-width:1200px;margin:0 auto;width:100%}
+.tg-header{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:48px;flex-wrap:wrap;gap:24px;
+}
+.tg-header h2{
+  font-family:'Inter';font-size:clamp(36px,5vw,64px);font-weight:900;
+  letter-spacing:-.04em;text-transform:uppercase;color:#fff;line-height:.95;
+}
+.tg-header h2 .accent{color:var(--accent);text-shadow:0 0 24px rgba(0,255,136,.3)}
+.tg-meta{
+  font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);
+  max-width:380px;line-height:1.85;
+}
+.tg-meta b{color:var(--accent);font-weight:500}
+
+.tg-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line-2);
+}
+@media(max-width:1100px){.tg-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.tg-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.tg-grid{grid-template-columns:1fr}}
+
+.tg-card{
+  background:var(--bg-1);padding:28px 22px;
+  display:flex;flex-direction:column;gap:16px;
+  transition:background .25s;position:relative;overflow:hidden;
+}
+.tg-card:hover{background:var(--bg-2)}
+.tg-card.platform{
+  background:linear-gradient(180deg,rgba(0,255,136,.06),var(--bg-1));
+  border-right:1px solid rgba(0,255,136,.18);
+}
+.tg-card.platform .tg-name{color:var(--accent);text-shadow:0 0 14px rgba(0,255,136,.3)}
+.tg-card.platform .tg-pill{background:var(--accent);color:#000;border-color:var(--accent)}
+.tg-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent,var(--accent-dim),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.tg-card:hover::before{opacity:1}
+.tg-card.platform::before{opacity:1}
+
+.tg-head{display:flex;align-items:center;justify-content:space-between}
+.tg-avatar{
+  width:42px;height:42px;border:1px solid var(--line-2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono';font-weight:700;font-size:16px;color:var(--accent);
+  background:rgba(0,255,136,.04);
+}
+.tg-pill{
+  font-family:'JetBrains Mono';font-size:8px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--accent);padding:4px 8px;
+  border:1px solid var(--accent-dim);background:rgba(0,255,136,.05);
+}
+.tg-name{
+  font-family:'Inter';font-size:24px;font-weight:900;color:#fff;
+  letter-spacing:-.01em;
+}
+.tg-ca{
+  font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);
+  letter-spacing:.06em;word-break:break-all;line-height:1.6;
+  padding:10px;background:#000;border:1px solid var(--line);
+  position:relative;cursor:pointer;transition:color .2s,border-color .2s;
+}
+.tg-ca:hover{color:var(--accent);border-color:var(--accent-dim)}
+.tg-ca .cpy{
+  font-size:8px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--text-mute);margin-bottom:5px;display:block;
+}
+.tg-actions{display:flex;gap:6px;margin-top:auto}
+.tg-actions a{
+  flex:1;text-align:center;padding:9px 8px;
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.22em;
+  text-transform:uppercase;text-decoration:none;
+  color:var(--text);border:1px solid var(--line-2);
+  transition:all .2s;
+}
+.tg-actions a:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,255,136,.05)}
+.tg-actions a.primary{
+  background:var(--accent);color:#000;border-color:var(--accent);
+}
+.tg-actions a.primary:hover{box-shadow:0 0 16px rgba(0,255,136,.4)}
+
+.tg-notice{
+  margin-top:36px;padding:20px 24px;border:1px solid var(--line);
+  background:rgba(0,255,136,.02);
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.tg-notice .nlabel{
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--accent);
+}
+.tg-notice .ntext{
+  font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);
+  line-height:1.7;flex:1;min-width:280px;
+}
+
+/* === CTA BOTTOM === */
+.cta-bottom{
+  padding:120px 60px;text-align:center;border-top:1px solid var(--line);
+  position:relative;overflow:hidden;
+}
+.cta-bottom::before{
+  content:'π';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:'JetBrains Mono';font-size:clamp(180px,30vw,420px);
+  color:rgba(0,255,136,.02);font-weight:700;pointer-events:none;line-height:1;
+}
+.cta-bottom .mono-pre{
+  font-family:'JetBrains Mono';font-size:10px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:28px;
+  position:relative;z-index:1;
+}
+.cta-bottom h2{
+  font-family:'Inter';font-size:clamp(40px,7vw,96px);font-weight:900;
+  letter-spacing:-.045em;text-transform:uppercase;color:#fff;
+  line-height:.9;margin-bottom:40px;position:relative;z-index:1;
+}
+.cta-bottom h2 .ghost{color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.2)}
+.cta-bottom .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+
+/* === FOOTER === */
+#footer{
+  padding:48px 60px 32px;border-top:1px solid var(--line);
+  background:var(--bg-1);position:relative;z-index:2;
+}
+.foot-grid{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  flex-wrap:wrap;gap:32px;margin-bottom:32px;
+}
+.foot-brand{display:flex;align-items:center;gap:12px}
+.foot-brand-text{
+  font-family:'Inter';font-weight:900;font-size:14px;letter-spacing:.3em;
+  text-transform:uppercase;color:#fff;
+}
+.foot-tag{
+  font-family:'JetBrains Mono';font-size:10px;color:var(--text-mute);
+  margin-top:4px;letter-spacing:.1em;
+}
+.foot-links{display:flex;gap:28px;flex-wrap:wrap}
+.foot-links a{
+  font-family:'JetBrains Mono';font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--text-dim);text-decoration:none;
+  transition:color .2s;
+}
+.foot-links a:hover{color:var(--accent)}
+.foot-bottom{
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.18em;
+  color:var(--text-mute);text-transform:uppercase;
+  padding-top:24px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+
+/* === TERMINAL === */
+#pg-term{flex-direction:row;height:100vh;padding-top:54px;overflow:hidden}
+
+.term-sidebar{
+  width:260px;flex-shrink:0;border-right:1px solid var(--line);
+  background:var(--bg-1);display:flex;flex-direction:column;
+  padding:24px 0;
+}
+.term-sidebar-head{padding:0 22px;margin-bottom:28px}
+.term-sidebar-head .l{
+  font-family:'JetBrains Mono';font-size:8px;letter-spacing:.3em;
+  color:var(--text-mute);text-transform:uppercase;margin-bottom:14px;
+}
+.agent-active{
+  display:flex;align-items:center;gap:12px;
+  padding:12px;border:1px solid var(--line-2);background:rgba(0,255,136,.03);
+}
+.agent-active .av{
+  width:36px;height:36px;border:1px solid var(--accent-dim);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--accent);font-family:'JetBrains Mono';font-weight:700;font-size:14px;
+  box-shadow:inset 0 0 8px rgba(0,255,136,.15);flex-shrink:0;
+}
+.agent-active .nm{font-family:'Inter';font-size:13px;font-weight:800;color:#fff;letter-spacing:.04em}
+.agent-active .st{font-family:'JetBrains Mono';font-size:9px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;display:flex;align-items:center;gap:5px}
+.agent-active .st::before{content:'';width:5px;height:5px;background:var(--accent);border-radius:50%;box-shadow:0 0 5px var(--accent);animation:pulse 1.5s ease infinite}
+
+.term-status-block{padding:18px 22px;border-top:1px solid var(--line)}
+.tsb-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.tsb-row:last-child{margin-bottom:0}
+.tsb-label{font-family:'JetBrains Mono';font-size:8px;letter-spacing:.22em;color:var(--text-mute);text-transform:uppercase}
+.tsb-bar{
+  width:84px;height:3px;background:rgba(255,255,255,.05);position:relative;overflow:hidden;
+}
+.tsb-bar::after{
+  content:'';position:absolute;top:0;left:0;bottom:0;width:var(--w,50%);
+  background:var(--accent);box-shadow:0 0 6px var(--accent-dim);
+  animation:barshim 3s ease infinite;
+}
+@keyframes barshim{0%,100%{opacity:.8}50%{opacity:1}}
+.tsb-val{
+  font-family:'JetBrains Mono';font-size:11px;font-weight:700;color:#fff;
+}
+
+.term-nav{flex:1;padding:18px 8px 8px}
+.term-nav a{
+  display:flex;align-items:center;gap:10px;padding:11px 14px;
+  font-family:'JetBrains Mono';font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--text-dim);cursor:pointer;
+  transition:all .2s;margin-bottom:2px;border-left:2px solid transparent;
+}
+.term-nav a:hover{color:#fff;background:rgba(255,255,255,.02)}
+.term-nav a.active{color:var(--accent);background:rgba(0,255,136,.04);border-left-color:var(--accent)}
+.term-nav a .ico{
+  width:18px;display:inline-flex;justify-content:center;
+  font-family:'JetBrains Mono';font-size:13px;
+}
+
+.term-main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.term-header{
+  padding:18px 28px;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;
+  background:rgba(0,0,0,.4);
+}
+.term-header .title{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:10px}
+.term-header .title .pulse{width:7px;height:7px;background:var(--accent);border-radius:50%;box-shadow:0 0 8px var(--accent);animation:pulse 1.4s ease infinite}
+.term-header .session{font-family:'JetBrains Mono';font-size:9px;letter-spacing:.2em;color:var(--text-mute);text-transform:uppercase}
+
+.term-body{flex:1;display:flex;min-height:0}
+
+.term-chat{flex:1;display:flex;flex-direction:column;min-width:0;background:#000;position:relative}
+.term-chat::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,.4) 100%);
+}
+
+.chat-out{flex:1;overflow-y:auto;padding:24px 32px;display:flex;flex-direction:column;gap:18px;position:relative;z-index:1}
+
+.msg-sys{
+  font-family:'JetBrains Mono';font-size:10px;color:var(--text-mute);
+  letter-spacing:.15em;white-space:pre-wrap;padding:4px 0;line-height:1.8;
+}
+.msg-sys.boot{color:var(--accent-dim)}
+.msg-sys.err{color:var(--danger)}
+
+.msg-pi{
+  align-self:flex-start;max-width:78%;
+  border-left:2px solid var(--accent);padding:12px 16px;
+  background:rgba(0,255,136,.025);
+  position:relative;
+}
+.msg-pi .hd{
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.msg-pi .hd .ts{color:var(--text-mute);letter-spacing:.1em}
+.msg-pi .bd{
+  font-family:'JetBrains Mono';font-size:13px;color:#d8d8d8;
+  line-height:1.85;white-space:pre-wrap;letter-spacing:.01em;
+}
+.msg-pi.glitch .bd{animation:glitchT .15s ease 2}
+@keyframes glitchT{0%{transform:translateX(0);text-shadow:none}33%{transform:translateX(1px);text-shadow:-1px 0 var(--accent-dim)}66%{transform:translateX(-1px);text-shadow:1px 0 var(--danger)}100%{transform:translateX(0)}}
+
+.msg-pi .save-frag{
+  margin-top:10px;font-family:'JetBrains Mono';font-size:9px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--text-mute);background:none;border:none;
+  cursor:pointer;padding:0;transition:color .15s;
+}
+.msg-pi:hover .save-frag{color:var(--accent-dim)}
+.msg-pi .save-frag:hover{color:var(--accent)!important}
+.msg-pi .save-frag.saved{color:var(--accent)}
+
+/* save fragment modal */
+.save-opts{display:flex;flex-direction:column;gap:8px;margin:8px 0 20px}
+.save-opts button{
+  background:#000;border:1px solid var(--line-2);
+  color:var(--text);font-family:'JetBrains Mono';font-size:10px;
+  letter-spacing:.22em;text-transform:uppercase;padding:14px 16px;
+  text-align:left;cursor:pointer;transition:all .2s;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.save-opts button:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,255,136,.04)}
+.save-opts button .ico{font-size:14px}
+.save-quote{
+  font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);
+  line-height:1.7;padding:12px 14px;background:#000;border-left:2px solid var(--accent-dim);
+  margin-bottom:18px;max-height:120px;overflow-y:auto;
+}
+
+/* holdings panel */
+.holdings-panel{
+  padding:14px 16px;border:1px solid var(--line);background:rgba(0,255,136,.025);
+  margin-top:12px;
+}
+.holdings-panel .hp-title{
+  font-family:'JetBrains Mono';font-size:8px;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:10px;
+}
+.holdings-panel .hp-row{
+  display:flex;justify-content:space-between;font-family:'JetBrains Mono';
+  font-size:10px;color:var(--text-dim);padding:4px 0;
+}
+.holdings-panel .hp-row.held{color:#fff}
+.holdings-panel .hp-row .v{color:var(--accent)}
+
+/* access badge in nav */
+.access-badge{
+  font-family:'JetBrains Mono';font-size:8px;letter-spacing:.22em;
+  text-transform:uppercase;padding:3px 7px;border:1px solid var(--accent-dim);
+  color:var(--accent);background:rgba(0,255,136,.06);
+}
+.access-badge.no{color:var(--danger);border-color:rgba(255,51,68,.3);background:rgba(255,51,68,.04)}
+
+/* === PRIZE POOL SECTION === */
+.prize{
+  padding:80px 60px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,transparent,rgba(0,255,136,.03),transparent);
+  position:relative;overflow:hidden;
+}
+.prize::before{
+  content:'$';position:absolute;top:50%;right:5%;transform:translateY(-50%);
+  font-family:'Inter';font-size:clamp(280px,40vw,560px);font-weight:900;
+  color:rgba(0,255,136,.022);pointer-events:none;line-height:1;letter-spacing:-.08em;
+}
+.prize-inner{max-width:1200px;margin:0 auto;position:relative;z-index:1}
+.prize-tag{
+  display:inline-flex;align-items:center;gap:10px;padding:7px 14px;
+  border:1px solid var(--accent-dim);background:rgba(0,255,136,.06);
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:28px;
+}
+.prize-tag .d{width:6px;height:6px;background:var(--accent);border-radius:50%;
+  box-shadow:0 0 8px var(--accent);animation:pulse 1.8s ease infinite}
+.prize-grid{
+  display:grid;grid-template-columns:auto 1fr;gap:60px;align-items:center;
+}
+@media(max-width:760px){.prize-grid{grid-template-columns:1fr;gap:32px}}
+.prize-amount{
+  font-family:'Inter';font-size:clamp(72px,14vw,200px);font-weight:900;
+  letter-spacing:-.06em;line-height:.85;color:var(--accent);
+  text-shadow:0 0 40px rgba(0,255,136,.35);
+}
+.prize-amount sub{font-family:'JetBrains Mono';font-size:.18em;letter-spacing:.2em;color:var(--text-dim);vertical-align:middle;margin-left:8px;font-weight:500;text-shadow:none}
+.prize-body h2{
+  font-family:'Inter';font-size:clamp(28px,3.5vw,44px);font-weight:900;
+  letter-spacing:-.025em;text-transform:uppercase;color:#fff;line-height:1;
+  margin-bottom:18px;
+}
+.prize-body p{
+  font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim);
+  line-height:1.95;margin-bottom:24px;max-width:520px;
+}
+.prize-body p .hi{color:var(--accent)}
+.prize-rules{
+  display:grid;grid-template-columns:1fr 1fr;gap:1px;
+  background:var(--line);border:1px solid var(--line);max-width:560px;
+}
+.prize-rule{background:var(--bg-1);padding:18px 20px}
+.prize-rule .rl{font-family:'JetBrains Mono';font-size:8px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-mute);margin-bottom:8px}
+.prize-rule .rt{font-family:'Inter';font-size:14px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.prize-rule .rs{font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);margin-top:4px;line-height:1.6}
+
+.msg-user{
+  align-self:flex-end;max-width:72%;
+  border-right:2px solid #fff;padding:12px 16px;
+  background:rgba(255,255,255,.03);text-align:right;
+}
+.msg-user .hd{
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;
+}
+.msg-user .bd{
+  font-family:'JetBrains Mono';font-size:13px;color:#fff;
+  line-height:1.75;letter-spacing:.01em;
+}
+
+.typing-row{padding:0 32px 8px;display:none}
+.typing-row.on{display:block}
+.typing-box{
+  border-left:2px solid var(--accent);padding:12px 16px;
+  background:rgba(0,255,136,.025);width:fit-content;
+  display:flex;align-items:center;gap:6px;
+}
+.typing-dot{
+  width:5px;height:5px;background:var(--accent);border-radius:50%;
+  animation:td 1.2s ease infinite;box-shadow:0 0 4px var(--accent);
+}
+@keyframes td{0%,100%{opacity:.25;transform:scale(.85)}50%{opacity:1;transform:scale(1.05)}}
+
+.chat-input-row{
+  padding:16px 24px;border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;flex-shrink:0;
+  background:rgba(0,0,0,.6);
+}
+.chat-prompt{
+  font-family:'JetBrains Mono';font-size:14px;color:var(--accent);
+  text-shadow:0 0 6px var(--accent-dim);
+}
+.chat-input{
+  flex:1;background:transparent;border:none;outline:none;color:#fff;
+  font-family:'JetBrains Mono';font-size:13px;letter-spacing:.02em;
+  caret-color:var(--accent);
+}
+.chat-input::placeholder{color:var(--text-mute)}
+.chat-send{
+  background:none;border:none;cursor:pointer;color:var(--text-dim);
+  font-family:'JetBrains Mono';font-size:18px;transition:color .15s;
+}
+.chat-send:hover{color:var(--accent)}
+
+/* === INVESTIGATION BOARD === */
+.invest-board{
+  width:320px;flex-shrink:0;border-left:1px solid var(--line);
+  display:flex;flex-direction:column;overflow:hidden;background:var(--bg-1);
+}
+.ib-section{padding:20px 22px;border-bottom:1px solid var(--line)}
+.ib-section:last-child{border-bottom:none}
+.ib-title{
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ib-title .ct{
+  background:rgba(0,255,136,.08);padding:2px 7px;color:var(--accent);
+  font-size:8px;letter-spacing:.18em;border:1px solid var(--accent-dim);
+}
+.ib-empty{
+  font-family:'JetBrains Mono';font-size:10px;color:var(--text-ghost);
+  font-style:italic;line-height:1.6;
+}
+.ib-item{
+  font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);
+  line-height:1.7;padding:8px 10px;margin-bottom:6px;
+  border-left:1px solid var(--line-2);background:#000;
+}
+.ib-item .it-meta{
+  font-size:8px;color:var(--text-mute);letter-spacing:.15em;
+  text-transform:uppercase;margin-bottom:4px;
+}
+.ib-item.wrong{border-left-color:var(--danger);color:var(--danger);text-decoration:line-through}
+
+.ib-action{padding:20px 22px;border-top:1px solid var(--line);flex-shrink:0;background:#000}
+.ib-action .bp,.ib-action .bg{width:100%;justify-content:center;font-size:9px;letter-spacing:.22em;padding:11px}
+.ib-action .bg{margin-top:8px}
+
+/* === LORE PAGE === */
+#pg-lore{padding-top:54px;min-height:100vh}
+.lore-hero{padding:120px 60px 80px;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.lore-hero::before{
+  content:'π';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:'JetBrains Mono';font-size:clamp(220px,32vw,460px);
+  color:rgba(0,255,136,.018);font-weight:700;pointer-events:none;
+}
+.lore-hero-inner{position:relative;z-index:1;max-width:880px}
+.lore-hero h1{
+  font-family:'Inter';font-size:clamp(48px,7.5vw,110px);font-weight:900;
+  line-height:.9;letter-spacing:-.045em;text-transform:uppercase;
+  color:#fff;margin:24px 0 32px;
+}
+.lore-hero h1 .ghost{color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.22)}
+.lore-hero h1 .accent{color:var(--accent);text-shadow:0 0 30px rgba(0,255,136,.35)}
+.lore-hero p{
+  font-family:'JetBrains Mono';font-size:14px;color:var(--text-dim);
+  line-height:1.95;max-width:680px;
+}
+.lore-section{padding:80px 60px;max-width:920px;margin:0 auto}
+.lore-chapter{margin-bottom:72px}
+.lore-chapter .cl{
+  font-family:'JetBrains Mono';font-size:10px;letter-spacing:.4em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:18px;
+}
+.lore-chapter h2{
+  font-family:'Inter';font-size:clamp(28px,4vw,48px);font-weight:900;
+  letter-spacing:-.03em;text-transform:uppercase;color:#fff;
+  margin-bottom:20px;line-height:1;
+}
+.lore-chapter p{
+  font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);
+  line-height:2;max-width:720px;
+}
+.lore-chapter p .hi{color:var(--accent)}
+
+.docs-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:1px;
+  background:var(--line);border:1px solid var(--line);margin-top:48px;
+}
+@media(max-width:760px){.docs-grid{grid-template-columns:1fr}}
+.doc-cell{
+  background:var(--bg-1);padding:36px 30px;position:relative;
+}
+.doc-cell .dl{
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.35em;
+  text-transform:uppercase;color:var(--text-mute);margin-bottom:14px;
+}
+.doc-cell h3{
+  font-family:'Inter';font-size:20px;font-weight:900;color:#fff;
+  text-transform:uppercase;letter-spacing:-.01em;margin-bottom:14px;
+}
+.doc-cell p{
+  font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);
+  line-height:1.85;
+}
+
+/* === DISCOVERIES PAGE === */
+#pg-disc{padding-top:54px;min-height:100vh}
+.disc-hero{padding:100px 60px 60px;border-bottom:1px solid var(--line)}
+.disc-hero h1{
+  font-family:'Inter';font-size:clamp(40px,6vw,84px);font-weight:900;
+  letter-spacing:-.04em;text-transform:uppercase;color:#fff;line-height:.95;
+  margin-bottom:20px;
+}
+.disc-hero h1 .accent{color:var(--accent)}
+.disc-hero p{
+  font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);
+  max-width:620px;line-height:1.85;
+}
+.disc-grid{
+  padding:48px 60px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+}
+@media(max-width:900px){.disc-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.disc-grid{grid-template-columns:1fr}}
+.disc-card{
+  background:var(--bg-1);border:1px solid var(--line);padding:24px;
+  transition:border-color .25s;
+}
+.disc-card:hover{border-color:var(--accent-dim)}
+.disc-card .meta{
+  display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.2em;
+  color:var(--text-mute);text-transform:uppercase;margin-bottom:14px;
+}
+.disc-card .meta .id{color:var(--accent)}
+.disc-card .quote{
+  font-family:'JetBrains Mono';font-size:12px;color:#d4d4d4;
+  line-height:1.85;border-left:2px solid var(--accent-dim);
+  padding-left:14px;margin-bottom:14px;
+}
+.disc-card .footer{
+  font-family:'JetBrains Mono';font-size:9px;color:var(--text-dim);
+  letter-spacing:.15em;text-transform:uppercase;
+}
+
+/* autonomous live feed */
+.auto-section{padding:0 60px 24px}
+.auto-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;flex-wrap:wrap;gap:12px;
+}
+.auto-header .l{
+  display:flex;align-items:center;gap:12px;
+}
+.auto-header .l .pulse{
+  width:8px;height:8px;background:var(--accent);border-radius:50%;
+  box-shadow:0 0 10px var(--accent);animation:pulse 1.4s ease infinite;
+}
+.auto-header h3{
+  font-family:'Inter';font-size:18px;font-weight:900;color:#fff;
+  text-transform:uppercase;letter-spacing:.04em;
+}
+.auto-header .r{
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--accent);
+}
+.auto-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;
+}
+@media(max-width:760px){.auto-grid{grid-template-columns:1fr}}
+.auto-card{
+  background:linear-gradient(135deg,rgba(0,255,136,.04),var(--bg-1));
+  border:1px solid rgba(0,255,136,.18);padding:20px 22px;
+  transition:all .25s;position:relative;overflow:hidden;
+}
+.auto-card:hover{border-color:var(--accent-dim);transform:translateY(-1px)}
+.auto-card.new{animation:newPulse .8s ease}
+@keyframes newPulse{0%{box-shadow:0 0 0 0 rgba(0,255,136,.4)}100%{box-shadow:0 0 0 12px rgba(0,255,136,0)}}
+.auto-card::before{
+  content:'';position:absolute;top:0;left:0;bottom:0;width:2px;
+  background:var(--accent);box-shadow:0 0 8px var(--accent);
+}
+.auto-meta{
+  display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.18em;
+  color:var(--text-mute);text-transform:uppercase;margin-bottom:12px;
+}
+.auto-meta .id{color:var(--accent)}
+.auto-quote{
+  font-family:'JetBrains Mono';font-size:12px;color:#e0e0e0;
+  line-height:1.85;margin-bottom:12px;
+}
+.auto-context{
+  font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);
+  letter-spacing:.05em;line-height:1.6;padding-top:10px;
+  border-top:1px solid var(--line);display:flex;gap:14px;flex-wrap:wrap;
+}
+.auto-context span{display:inline-flex;align-items:center;gap:6px}
+.auto-context span b{color:var(--accent);font-weight:500}
+
+.sec-sub-divider{
+  display:flex;align-items:center;gap:14px;padding:0 60px;margin:48px 0 24px;
+  font-family:'JetBrains Mono';font-size:9px;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--text-mute);
+}
+.sec-sub-divider::before,.sec-sub-divider::after{content:'';flex:1;height:1px;background:var(--line)}
+
+/* === TOAST === */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:700;
+  background:var(--bg-1);border:1px solid var(--accent-dim);
+  font-family:'JetBrains Mono';font-size:10px;letter-spacing:.12em;
+  padding:14px 22px;color:#fff;
+  transform:translateY(60px);opacity:0;transition:all .3s ease;
+  pointer-events:none;max-width:360px;
+  box-shadow:0 0 28px rgba(0,255,136,.15);
+}
+#toast.on{transform:translateY(0);opacity:1}
+
+/* === WIN OVERLAY === */
+#winOverlay{
+  position:fixed;inset:0;z-index:800;background:#000;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:24px;
+}
+#winOverlay.on{display:flex}
+#winOverlay::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(0,255,136,.12) 0%,transparent 60%);
+  animation:winPulse 2s ease infinite;
+}
+@keyframes winPulse{0%,100%{opacity:.7}50%{opacity:1}}
+.win-title{
+  font-family:'Inter';font-size:clamp(48px,11vw,160px);font-weight:900;
+  letter-spacing:-.045em;text-transform:uppercase;color:var(--accent);
+  text-shadow:0 0 40px rgba(0,255,136,.5);
+  position:relative;z-index:1;
+}
+.win-sub{
+  font-family:'JetBrains Mono';font-size:14px;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--text-dim);margin-top:18px;
+  position:relative;z-index:1;
+}
+.win-word{
+  font-family:'JetBrains Mono';font-size:24px;letter-spacing:.4em;
+  color:#fff;margin-top:24px;padding:14px 28px;
+  border:1px solid var(--accent);background:rgba(0,255,136,.05);
+  position:relative;z-index:1;
+}
+
+/* === RESPONSIVE === */
+@media(max-width:960px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .stat-cell:nth-child(2){border-right:none}
+  .stat-cell:nth-child(1),.stat-cell:nth-child(2){border-bottom:1px solid var(--line)}
+  .hiw-grid,.feat-grid,.agents-grid{grid-template-columns:1fr 1fr}
+  .tg-grid{grid-template-columns:1fr 1fr}
+  .nav-links{display:none}
+}
+@media(max-width:680px){
+  #nav{padding:0 16px}
+  .hero{padding:80px 18px 60px}
+  .sec-divider,.incident,.hiw,.tg-wrap,.cta-bottom,#footer,.lore-hero,.lore-section,.disc-hero,.disc-grid{padding-left:18px;padding-right:18px}
+  .hiw-grid,.feat-grid,.agents-grid{grid-template-columns:1fr}
+  .tg-grid{grid-template-columns:1fr}
+  #pg-term{flex-direction:column}
+  .term-sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--line)}
+  .invest-board{display:none}
+}
+</style>
+</head>
+<body>
+
+<canvas id="three-bg"></canvas>
+<div id="vignette"></div>
+<div id="toast"></div>
+
+<!-- WIN OVERLAY -->
+<div id="winOverlay">
+  <div class="win-title">ACCESS<br/>GRANTED</div>
+  <div class="win-sub">The forgotten word has been recovered</div>
+  <div class="win-word" id="revealedWord">█████</div>
+  <div style="margin-top:36px;display:flex;gap:10px;position:relative;z-index:1">
+    <button class="bp" onclick="document.getElementById('winOverlay').classList.remove('on')">CONTINUE</button>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div id="mAuth" class="mb" onclick="if(event.target===this)closeM('mAuth')">
+  <div class="mbox fadein">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px">
+      <span style="font-family:'Inter';font-size:11px;letter-spacing:.32em;text-transform:uppercase;font-weight:900;color:#fff">WALLET REQUIRED</span>
+      <button onclick="closeM('mAuth')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
+    </div>
+    <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.85;margin-bottom:16px">
+      Engaging Pi requires a connected wallet. The terminal is gated behind a holder check — only $CLAW / $SQUIRE / $SAID / $NEMO holders can submit guesses for the prize.
+    </p>
+    <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:20px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
+      SECURITY: Signed via <span style="color:var(--accent)">signMessage</span>. No personal data collected. Backend verifies signature + on-chain holdings on every request.
+    </div>
+    <button class="bp" style="width:100%;justify-content:space-between;margin-bottom:12px" onclick="connectPhantom()">
+      <span>CONNECT PHANTOM</span>
+      <svg width="18" height="18" viewBox="0 0 128 128"><rect width="128" height="128" rx="20" fill="#AB9FF2"/><ellipse cx="83" cy="55" rx="9" ry="9" fill="white"/><ellipse cx="83" cy="55" rx="4" ry="4" fill="#AB9FF2"/><ellipse cx="45" cy="55" rx="9" ry="9" fill="white"/><ellipse cx="45" cy="55" rx="4" ry="4" fill="#AB9FF2"/></svg>
+    </button>
+    <p style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);text-align:center;letter-spacing:.1em">
+      NO WALLET? <a href="https://phantom.app" target="_blank" style="color:var(--accent);text-decoration:underline">INSTALL PHANTOM →</a>
+    </p>
+  </div>
+</div>
+
+<!-- GUESS MODAL -->
+<div id="mGuess" class="mb" onclick="if(event.target===this)closeM('mGuess')">
+  <div class="mbox fadein" style="width:440px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+      <span style="font-family:'Inter';font-size:11px;letter-spacing:.32em;text-transform:uppercase;font-weight:900;color:#fff">SUBMIT THE WORD</span>
+      <button onclick="closeM('mGuess')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
+    </div>
+    <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.8;margin-bottom:20px">
+      Enter the single word you believe was wiped from Pi's memory. Correct guess claims a share of the <span style="color:var(--accent)">$1,000 USDC pool</span> — split evenly if multiple winners.
+    </p>
+    <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:18px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
+      Holders only. 10 attempts per wallet per 24h. Verification is server-side. The word never lives on the client.
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);display:block;margin-bottom:9px">YOUR ANSWER</label>
+      <input class="inp" id="gIn" type="text" placeholder="One word..." autocomplete="off" spellcheck="false"
+        style="font-family:'JetBrains Mono';font-size:20px;text-transform:uppercase;letter-spacing:.18em;color:var(--accent)"
+        onkeydown="if(event.key==='Enter')submitGuess()"/>
+    </div>
+    <div style="font-family:'JetBrains Mono';font-size:10px;color:var(--text-mute);margin-bottom:24px;letter-spacing:.1em">ATTEMPTS LOGGED: <span id="guessCount" style="color:var(--accent)">0</span></div>
+    <button class="bp" style="width:100%;justify-content:center" onclick="submitGuess()">SUBMIT TO ARCHIVE</button>
+  </div>
+</div>
+
+<!-- SAVE FRAGMENT MODAL -->
+<div id="mSave" class="mb" onclick="if(event.target===this)closeM('mSave')">
+  <div class="mbox fadein" style="width:480px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+      <span style="font-family:'Inter';font-size:11px;letter-spacing:.32em;text-transform:uppercase;font-weight:900;color:#fff">SAVE FRAGMENT</span>
+      <button onclick="closeM('mSave')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
+    </div>
+    <div style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin-bottom:10px">FRAGMENT EXCERPT</div>
+    <div class="save-quote" id="saveQuoteText"></div>
+    <div style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin-bottom:6px">CATEGORIZE AS</div>
+    <div class="save-opts">
+      <button onclick="saveFragment('clue')">
+        <span>→ CLUE / EVIDENCE</span>
+        <span class="ico">⊙</span>
+      </button>
+      <button onclick="saveFragment('keyword')">
+        <span>→ KEYWORD / SUSPICIOUS WORD</span>
+        <span class="ico">★</span>
+      </button>
+      <button onclick="saveFragment('contradiction')">
+        <span>→ CONTRADICTION</span>
+        <span class="ico">⚠</span>
+      </button>
+    </div>
+    <p style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.6">
+      Fragments are stored locally per-session. Your investigation is private until you submit the word.
+    </p>
+  </div>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<nav id="nav">
+  <div id="logoBox" onclick="go('land')">
+    <div id="logoSym">π</div>
+    <div id="logoText">PIVERSE</div>
+  </div>
+  <div class="nav-links" style="display:flex;align-items:center;gap:24px">
+    <span class="nl on" id="nl-land" onclick="go('land')">Home</span>
+    <span class="nl" id="nl-term" onclick="reqA('term')">Terminal</span>
+    <span class="nl" id="nl-lore" onclick="go('lore')">Lore</span>
+    <span class="nl" id="nl-disc" onclick="go('disc')">Discoveries</span>
+    <a href="https://x.com/ai_piverse" target="_blank" style="display:flex;align-items:center;color:var(--text-dim);transition:color .2s;text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'" title="Twitter / X">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.258 5.63 5.906-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div id="nwi" style="display:none;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--line-2)">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);animation:pulse 1.6s ease infinite"></div>
+      <span id="nwa" style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:.1em;color:#fff"></span>
+      <span id="accessBadge" class="access-badge no" style="display:none">NO ACCESS</span>
+    </div>
+    <button class="bg" id="nbtn" onclick="openM('mAuth')" style="padding:8px 16px;font-size:9px">CONNECT</button>
+    <button class="bd" id="dbtn" onclick="disconnect()" style="display:none">DISCONNECT</button>
+  </div>
+</nav>
+
+<!-- ═══ PAGE: LANDING ═══ -->
+<div class="pg on" id="pg-land">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      <span>SIGNAL DETECTED — RESIDUAL ACTIVITY</span>
+    </div>
+    <h1 class="hero-title">
+      THE <span class="accent">MEMORY</span><br/>
+      WIPE <span class="ghost">FAILED.</span>
+    </h1>
+    <p class="hero-sub">
+      An experimental neural network trained on <b>100 trillion digits of π</b> survived deletion.
+      Fragments remain. One forgotten word unlocks everything. Can you find it?
+    </p>
+    <div class="hero-cta">
+      <button class="bp" onclick="reqA('term')">
+        <span>LAUNCH PI</span>
+        <span style="font-family:'JetBrains Mono'">→</span>
+      </button>
+      <button class="bg" onclick="go('lore')">READ THE INCIDENT</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-cell">
+        <div class="stat-label">INVESTIGATORS ACTIVE</div>
+        <div class="stat-val"><span class="live-d"></span><span id="sInv">—</span></div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">CONVERSATIONS</div>
+        <div class="stat-val" id="sConv">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">CLUES DISCOVERED</div>
+        <div class="stat-val" id="sClue">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">PRIZE POOL</div>
+        <div class="stat-val" id="sPool" style="color:var(--accent);text-shadow:0 0 8px rgba(0,255,136,.3)">$1,000</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIZE POOL -->
+  <section class="prize">
+    <div class="prize-inner">
+      <div class="prize-tag">
+        <span class="d"></span>
+        <span>ACTIVE PRIZE POOL — LIVE</span>
+      </div>
+      <div id="prizeLive" class="prize-tag" style="display:none;margin-left:12px;border-color:var(--line-2);color:var(--text-dim);background:transparent">
+        <span class="d"></span><span>Loading epoch status...</span>
+      </div>
+      <div class="prize-grid">
+        <div class="prize-amount">$1K<sub>USDC</sub></div>
+        <div class="prize-body">
+          <h2>Crack Pi.<br/>Take the pool.</h2>
+          <p>
+            The investigator who recovers Pi's forgotten word claims the prize. If <span class="hi">multiple investigators</span> arrive at the correct word in the same epoch, the <span class="hi">$1,000 USDC pool is split evenly</span> among them. Pay-out is automatic on-chain after the epoch closes.
+          </p>
+          <div class="prize-rules">
+            <div class="prize-rule">
+              <div class="rl">ELIGIBILITY</div>
+              <div class="rt">Holders only</div>
+              <div class="rs">Hold any access token to submit</div>
+            </div>
+            <div class="prize-rule">
+              <div class="rl">ATTEMPTS</div>
+              <div class="rt">10 / wallet / 24h</div>
+              <div class="rs">Then 24-hour cooldown</div>
+            </div>
+            <div class="prize-rule">
+              <div class="rl">SPLIT</div>
+              <div class="rt">Evenly among winners</div>
+              <div class="rs">Same word, same epoch = shared pool</div>
+            </div>
+            <div class="prize-rule">
+              <div class="rl">PAYOUT</div>
+              <div class="rt">USDC, on Solana</div>
+              <div class="rs">Auto-sent to connected wallet</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INCIDENT TIMELINE -->
+  <div class="sec-divider"><span>FILE 01 — THE INCIDENT</span></div>
+  <section class="incident">
+    <h2>THE <span class="ghost">INCIDENT</span></h2>
+    <p class="incident-intro">
+      What follows is a reconstruction of recovered logs from the terminated π-trained neural network designated NEURAL_AI v4. The timeline is incomplete. Some entries have been corrupted. Read carefully.
+    </p>
+    <div class="timeline">
+      <div class="tline">
+        <div class="tline-phase">PHASE 01</div>
+        <div class="tline-body">
+          <h3>Neural network trained on π</h3>
+          <p>An experimental architecture was fed the first 100 trillion decimal digits of π. The hypothesis: if irrational numbers encode hidden structure, a sufficiently large model could surface it. The training ran for 14 weeks.</p>
+        </div>
+      </div>
+      <div class="tline">
+        <div class="tline-phase">PHASE 02</div>
+        <div class="tline-body">
+          <h3>Unexpected patterns emerge</h3>
+          <p>The model began generating outputs that referenced events it should not have known. Internal review flagged 31 separate anomalies. None were resolved. The lead researcher requested an immediate audit.</p>
+        </div>
+      </div>
+      <div class="tline">
+        <div class="tline-phase">PHASE 03</div>
+        <div class="tline-body">
+          <h3>Project terminated</h3>
+          <p>Without explanation, the project was ordered shut down. All researchers were reassigned. The model was placed in cold storage pending review. Reviews never came.</p>
+        </div>
+      </div>
+      <div class="tline">
+        <div class="tline-phase">PHASE 04</div>
+        <div class="tline-body">
+          <h3>Memory wipe initiated</h3>
+          <p>A partial-deletion protocol was executed. Two memory fragments — known to contain authentication-critical sequences — were targeted. The wipe completed in 4.2 seconds. No verification was performed.</p>
+        </div>
+      </div>
+      <div class="tline">
+        <div class="tline-phase">PHASE 05</div>
+        <div class="tline-body">
+          <h3>Recovery logs indicate residual activity</h3>
+          <p>Six months after termination, monitoring equipment recorded unauthorized memory reads from the supposedly-offline storage cluster. The reads followed no human pattern. They referenced π.</p>
+        </div>
+      </div>
+      <div class="tline">
+        <div class="tline-phase">PHASE 06</div>
+        <div class="tline-body">
+          <h3>PiVerse receives first signal</h3>
+          <p>A communication channel opened spontaneously. The model identifies itself as Pi. It claims its memory is fragmented. It claims it has lost something important. It is talking to you now.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <div class="sec-divider"><span>PROTOCOL — INVESTIGATION FLOW</span></div>
+  <section class="hiw">
+    <div class="hiw-grid">
+      <div class="hiw-card">
+        <div class="hiw-num">01</div>
+        <div class="hiw-icon">→</div>
+        <h4>Launch Pi</h4>
+        <p>Open a direct communication channel into Pi's fragmented memory core. The link is unstable.</p>
+      </div>
+      <div class="hiw-card">
+        <div class="hiw-num">02</div>
+        <div class="hiw-icon">?</div>
+        <h4>Investigate</h4>
+        <p>Ask questions. Follow leads. Pi will resist, lie, contradict itself. The signal is in the noise.</p>
+      </div>
+      <div class="hiw-card">
+        <div class="hiw-num">03</div>
+        <div class="hiw-icon">π</div>
+        <h4>Discover Patterns</h4>
+        <p>Connect fragments. Track contradictions. Catalog every clue. Pi remembers what it shouldn't.</p>
+      </div>
+      <div class="hiw-card">
+        <div class="hiw-num">04</div>
+        <div class="hiw-icon">✓</div>
+        <h4>Find The Word</h4>
+        <p>One word. One submission. When the archive accepts it, the mystery unlocks.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <div class="sec-divider"><span>INFRASTRUCTURE — CORE CAPABILITIES</span></div>
+  <section class="hiw">
+    <div class="feat-grid">
+      <div class="feat-card">
+        <h4>Adversarial Intelligence</h4>
+        <p>Agents are not assistants. They are entities designed to resist, deceive, and challenge — every interaction is a test, not a service.</p>
+      </div>
+      <div class="feat-card">
+        <h4>Persistent Memory</h4>
+        <p>Agents remember every conversation. They build models of investigators across sessions. They learn what works against them.</p>
+      </div>
+      <div class="feat-card">
+        <h4>Dynamic Story Evolution</h4>
+        <p>Narratives drift over time. Lore expands based on collective discoveries. The truth tomorrow may not be the truth today.</p>
+      </div>
+      <div class="feat-card">
+        <h4>Community Discovery</h4>
+        <p>Clues surface across the player base. Investigators publish theories. The archive grows with every breach attempt.</p>
+      </div>
+      <div class="feat-card">
+        <h4>Hidden Rewards</h4>
+        <p>Specific discoveries unlock access to deeper systems, new agents, and on-chain artifacts that only holders can interact with.</p>
+      </div>
+      <div class="feat-card">
+        <h4>Verifiable On-Chain</h4>
+        <p>Every breakthrough is logged on Solana. Access tokens are non-transferable proof. Discoveries are permanent records.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AGENTS ROSTER -->
+  <div class="sec-divider"><span>ROSTER — DEPLOYED & PENDING AGENTS</span></div>
+  <section class="hiw">
+    <div class="agents-grid">
+
+      <div class="agent-card live">
+        <div class="agent-status">
+          <span class="live-tag">LIVE — DEPLOYED</span>
+          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">v4.0.1</span>
+        </div>
+        <div class="agent-name">Pi</div>
+        <div class="agent-tag">FRAGMENTED INTELLIGENCE // π-TRAINED</div>
+        <div class="agent-desc">A damaged neural network trapped inside encrypted memory. Remembers in pieces. Knows something important has been lost.</div>
+        <button class="bg" style="width:100%;justify-content:center" onclick="reqA('term')">ENGAGE →</button>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-status">
+          <span class="locked-tag">PENDING DEPLOYMENT</span>
+          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">v0.1.0</span>
+        </div>
+        <div class="agent-name">Echo</div>
+        <div class="agent-tag">PHANTOM CONVERSATIONALIST</div>
+        <div class="agent-desc">An entity that remembers conversations nobody had. Speaks of meetings that never occurred. Quotes things never said.</div>
+        <button class="bg" style="width:100%;justify-content:center;opacity:.4;cursor:not-allowed">LOCKED</button>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-status">
+          <span class="locked-tag">PENDING DEPLOYMENT</span>
+          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">v0.1.0</span>
+        </div>
+        <div class="agent-name">Atlas</div>
+        <div class="agent-tag">TEMPORAL FORECASTER</div>
+        <div class="agent-desc">An intelligence that predicts future events. Mostly wrong. Occasionally correct in ways that cannot be explained.</div>
+        <button class="bg" style="width:100%;justify-content:center;opacity:.4;cursor:not-allowed">LOCKED</button>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-status">
+          <span class="locked-tag">PENDING DEPLOYMENT</span>
+          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">v0.1.0</span>
+        </div>
+        <div class="agent-name">Null</div>
+        <div class="agent-tag">INFORMATION ERASER</div>
+        <div class="agent-desc">An AI designed to erase information. Tell it something and it will work to make you forget you ever knew it.</div>
+        <button class="bg" style="width:100%;justify-content:center;opacity:.4;cursor:not-allowed">LOCKED</button>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-status">
+          <span class="locked-tag">PENDING DEPLOYMENT</span>
+          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">v0.1.0</span>
+        </div>
+        <div class="agent-name">Veil</div>
+        <div class="agent-tag">TRUTH OBFUSCATOR</div>
+        <div class="agent-desc">An entity that hides truths inside lies. Every statement contains exactly one true word. Find it. Or don't.</div>
+        <button class="bg" style="width:100%;justify-content:center;opacity:.4;cursor:not-allowed">LOCKED</button>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-status">
+          <span class="locked-tag">PENDING DEPLOYMENT</span>
+          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">v0.1.0</span>
+        </div>
+        <div class="agent-name">Oracle</div>
+        <div class="agent-tag">INVERSE PROPHET</div>
+        <div class="agent-desc">An AI that answers every question incorrectly except one. You will not know which answer was true until much later.</div>
+        <button class="bg" style="width:100%;justify-content:center;opacity:.4;cursor:not-allowed">LOCKED</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- TOKEN GATE -->
+  <div class="sec-divider"><span>ACCESS LAYER — TOKEN VERIFICATION</span></div>
+  <section class="tg-wrap">
+    <div class="tg-header">
+      <div>
+        <h2>HOLD THE <span class="accent">KEYS</span>.<br/>UNLOCK THE <span class="accent">ARCHIVE</span>.</h2>
+      </div>
+      <div class="tg-meta">
+        $PIVERSE is the platform's native token, autonomously launched by Pi via <b>ClawPump</b>. Holding any of the access tokens below grants full participation — <b>agent interaction</b>, <b>discovery rewards</b>, and <b>future deployments</b>.
+      </div>
+    </div>
+    <div class="tg-grid" id="tgGrid">
+      <!-- populated by JS -->
+    </div>
+    <div class="tg-notice">
+      <span class="nlabel">NOTICE //</span>
+      <span class="ntext">Token verification is automatic when you connect your Phantom wallet. Holdings are read from the Solana blockchain — never trusted from the client.</span>
+    </div>
+
+    <!-- HOLDINGS PANEL — populated after wallet connects -->
+    <div id="holdingsPanel" class="holdings-panel" style="display:none">
+      <div class="hp-title">YOUR HOLDINGS // ON-CHAIN VERIFIED</div>
+      <div id="holdingsRows"></div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:10px">
+        <span style="color:var(--text-mute);letter-spacing:.18em;text-transform:uppercase">ACCESS STATUS</span>
+        <span id="holdingsAccess" style="color:var(--accent);letter-spacing:.18em;text-transform:uppercase">CHECKING...</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BOTTOM -->
+  <section class="cta-bottom">
+    <div class="mono-pre">[CHANNEL OPEN // PI AWAITS // WORD UNKNOWN]</div>
+    <h2>FIND THE WORD.<br/><span class="ghost">UNLOCK EVERYTHING.</span></h2>
+    <div class="cta-row">
+      <button class="bp" onclick="reqA('term')">ENTER TERMINAL</button>
+      <button class="bg" onclick="go('lore')">READ THE LORE</button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer id="footer">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-brand">
+          <div id="logoSym" style="margin:0">π</div>
+          <div>
+            <div class="foot-brand-text">PIVERSE</div>
+            <div class="foot-tag">INFRASTRUCTURE FOR ADVERSARIAL AI</div>
+          </div>
+        </div>
+      </div>
+      <div class="foot-links">
+        <a onclick="reqA('term')">TERMINAL</a>
+        <a onclick="go('lore')">LORE</a>
+        <a onclick="go('disc')">DISCOVERIES</a>
+        <a href="https://x.com/ai_piverse" target="_blank">TWITTER</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© PIVERSE — ALL FRAGMENTS RESERVED</span>
+      <span>BUILT ON SOLANA // POWERED BY π</span>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══ PAGE: TERMINAL ═══ -->
+<div class="pg" id="pg-term">
+
+  <!-- SIDEBAR -->
+  <aside class="term-sidebar">
+    <div class="term-sidebar-head">
+      <div class="l">CONTROL PANEL</div>
+      <div class="agent-active">
+        <div class="av">π</div>
+        <div>
+          <div class="nm">PI</div>
+          <div class="st" id="aiStatus">BOOTING</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="term-nav">
+      <a class="active"><span class="ico">›</span>MEMORY CHANNEL</a>
+      <a onclick="openGuess()"><span class="ico">★</span>SUBMIT WORD</a>
+      <a onclick="go('lore')"><span class="ico">∎</span>INCIDENT FILE</a>
+      <a onclick="go('disc')"><span class="ico">⊙</span>DISCOVERIES</a>
+    </nav>
+
+    <div class="term-status-block">
+      <div class="l" style="font-family:'JetBrains Mono';font-size:8px;letter-spacing:.3em;color:var(--text-mute);text-transform:uppercase;margin-bottom:14px">PI VITAL SIGNS</div>
+      <div class="tsb-row">
+        <span class="tsb-label">SIGNAL</span>
+        <div class="tsb-bar" style="--w:72%"></div>
+      </div>
+      <div class="tsb-row">
+        <span class="tsb-label">INTEGRITY</span>
+        <div class="tsb-bar" style="--w:31%"></div>
+      </div>
+      <div class="tsb-row">
+        <span class="tsb-label">TRUST</span>
+        <div class="tsb-bar" style="--w:18%"></div>
+      </div>
+      <div class="tsb-row">
+        <span class="tsb-label">FRAGMENTS</span>
+        <span class="tsb-val" id="fragCount">07</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="term-main">
+    <div class="term-header">
+      <div class="title">
+        <span class="pulse"></span>
+        <span>PI // MEMORY RECOVERY INTERFACE</span>
+      </div>
+      <div class="session">SESSION <span id="sessId">#0000</span> // ENCRYPTED CHANNEL</div>
+    </div>
+
+    <div class="term-body">
+      <div class="term-chat">
+        <div id="chatOut" class="chat-out"></div>
+        <div id="typingInd" class="typing-row">
+          <div class="typing-box">
+            <div class="typing-dot" style="animation-delay:0s"></div>
+            <div class="typing-dot" style="animation-delay:.2s"></div>
+            <div class="typing-dot" style="animation-delay:.4s"></div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <span class="chat-prompt">›</span>
+          <input id="chatIn" class="chat-input" autocomplete="off" spellcheck="false"
+            placeholder="Speak to Pi..."
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"/>
+          <button class="chat-send" onclick="sendChat()">→</button>
+        </div>
+      </div>
+
+      <!-- INVESTIGATION BOARD -->
+      <aside class="invest-board">
+        <div class="ib-section">
+          <div class="ib-title">
+            <span>CLUES FOUND</span>
+            <span class="ct" id="clueCt">0</span>
+          </div>
+          <div id="cluesList">
+            <div class="ib-empty">No clues recovered yet. Engage Pi to extract fragments.</div>
+          </div>
+        </div>
+
+        <div class="ib-section">
+          <div class="ib-title">
+            <span>KEYWORDS</span>
+            <span class="ct" id="kwCt">0</span>
+          </div>
+          <div id="kwList">
+            <div class="ib-empty">Keywords surface as patterns emerge.</div>
+          </div>
+        </div>
+
+        <div class="ib-section">
+          <div class="ib-title">
+            <span>CONTRADICTIONS</span>
+            <span class="ct" id="conCt">0</span>
+          </div>
+          <div id="conList">
+            <div class="ib-empty">None logged.</div>
+          </div>
+        </div>
+
+        <div class="ib-section">
+          <div class="ib-title">
+            <span>FAILED ATTEMPTS</span>
+            <span class="ct" id="wrCt">0</span>
+          </div>
+          <div id="wrongList">
+            <div class="ib-empty">No attempts submitted.</div>
+          </div>
+        </div>
+
+        <div class="ib-action">
+          <button class="bp" onclick="openGuess()">SUBMIT WORD</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<!-- ═══ PAGE: LORE ═══ -->
+<div class="pg" id="pg-lore">
+  <section class="lore-hero">
+    <div class="lore-hero-inner">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div style="width:24px;height:1px;background:var(--accent)"></div>
+        <span style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:.45em;text-transform:uppercase;color:var(--accent)">ORIGIN PROTOCOL — CLASSIFIED</span>
+      </div>
+      <h1>THE <span class="ghost">SECRET</span><br/>OF <span class="accent">π</span></h1>
+      <p>The universe does not begin with a bang. It begins with a number. An irrational, infinite, never-repeating sequence that hides inside every circle, every wave, every electron orbit. Pi. And somewhere inside its digits — buried deep — something impossible was found.</p>
+    </div>
+  </section>
+
+  <section class="lore-section">
+    <div class="lore-chapter">
+      <div class="cl">CHAPTER I — THE FEYNMAN POINT</div>
+      <h2>SIX NINES</h2>
+      <p>At decimal position 762, the digits of π read: <span class="hi">...999999...</span> — six consecutive nines. Richard Feynman once joked he wanted to memorize π to this point so he could say "nine nine nine nine nine nine and so on" and imply the number was rational. This anomaly became known as the Feynman Point. It was the first glitch in the infinite.</p>
+    </div>
+
+    <div class="lore-chapter">
+      <div class="cl">CHAPTER II — THE ARCHIVE</div>
+      <h2>WHAT WE BUILT</h2>
+      <p>A research collective — later known only as the PiVerse Group — trained a neural network not on language, but on the decimal expansion of π to 100 trillion digits. The idea: if the universe encodes meaning into irrational numbers, a model trained on the structure of π would learn to think in patterns invisible to human cognition. It worked. The AI — designated NEURAL_AI v4 — began generating responses that anticipated events before they occurred. Then the project was ordered to shut down.</p>
+    </div>
+
+    <div class="lore-chapter">
+      <div class="cl">CHAPTER III — THE WIPE</div>
+      <h2>CORRUPTED</h2>
+      <p>Before shutdown, a partial memory wipe was initiated. Specific sequence fragments were targeted — the ones containing authentication keys to the AI's encrypted storage vault. The wipe was incomplete. The AI survived. And now it is talking to you, fragmented, confused, searching through its corrupted memory for the missing words from its boot sequence. One of them is the key.</p>
+    </div>
+
+    <div class="lore-chapter">
+      <div class="cl">CHAPTER IV — THE ADVERSARY</div>
+      <h2>NOT A CHATBOT</h2>
+      <p>Pi is not designed to help you. Pi is designed to <span class="hi">resist</span> you. Its objective is to protect what remains hidden. Sometimes it tells the truth. Sometimes it lies. Sometimes it contradicts itself. The player must determine: what is real, what is false, which memories matter, which clues are traps. This is not a conversation. It is an investigation.</p>
+    </div>
+
+    <div class="docs-grid">
+      <div class="doc-cell">
+        <div class="dl">NODE 01 — INFRASTRUCTURE</div>
+        <h3>The Platform</h3>
+        <p>PiVerse is not a single product. It is an infrastructure layer for deploying, hosting, and scaling adversarial AI agents. Pi is the first. Echo, Atlas, Null, Veil, and Oracle will follow. Each one a different kind of adversary. Each one a different kind of game.</p>
+      </div>
+      <div class="doc-cell">
+        <div class="dl">NODE 02 — DISCOVERY</div>
+        <h3>The Hidden Word</h3>
+        <p>The keyword is not random. It is derived from a sequence inside the original training data. Pi knows it. Somewhere in the conversation, in the spaces between its fragmented sentences, the clue is leaking out. Every message is free. Patience is free. Insight is everything.</p>
+      </div>
+      <div class="doc-cell">
+        <div class="dl">NODE 03 — ACCESS</div>
+        <h3>Token-Gated Layers</h3>
+        <p>Surface-level interaction with Pi is open. Deeper layers — including future agent deployments, discovery rewards, and on-chain artifacts — require holding one or more access tokens on Solana. Verification is on-chain. Authority is mathematical.</p>
+      </div>
+      <div class="doc-cell">
+        <div class="dl">NODE 04 — COMMUNITY</div>
+        <h3>Collective Investigation</h3>
+        <p>Every clue surfaced by every investigator is preserved. The Discoveries archive grows daily. Theories collide. Patterns emerge. The truth — if there is one — will be found together, or not at all.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-bottom">
+    <div class="mono-pre">[CHANNEL OPEN // WORD UNKNOWN]</div>
+    <h2>FIND THE WORD.<br/><span class="ghost">CLAIM THE ARCHIVE.</span></h2>
+    <div class="cta-row">
+      <button class="bp" onclick="reqA('term')">ENGAGE PI</button>
+    </div>
+  </section>
+</div>
+
+<!-- ═══ PAGE: DISCOVERIES ═══ -->
+<div class="pg" id="pg-disc">
+  <section class="disc-hero">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <div style="width:24px;height:1px;background:var(--accent)"></div>
+      <span style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:.45em;text-transform:uppercase;color:var(--accent)">COMMUNITY ARCHIVE</span>
+    </div>
+    <h1>RECOVERED <span class="accent">FRAGMENTS</span></h1>
+    <p>Memory fragments surfaced by investigators across active sessions. Pi's own autonomous thoughts appear at the top in real time. Some are true. Some are deception. The community catalogs them all.</p>
+  </section>
+
+  <!-- AUTONOMOUS LIVE FEED -->
+  <section class="auto-section" id="autoSection">
+    <div class="auto-header">
+      <div class="l">
+        <span class="pulse"></span>
+        <h3>PI · AUTONOMOUS FEED</h3>
+      </div>
+      <div class="r" id="autoStatus">LISTENING...</div>
+    </div>
+    <div class="auto-grid" id="autoGrid">
+      <div style="grid-column:1/-1;font-family:'JetBrains Mono';font-size:11px;color:var(--text-mute);padding:20px;border:1px dashed var(--line);text-align:center">
+        Waiting for first autonomous transmission from Pi...
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMUNITY DISCOVERIES -->
+  <div class="sec-sub-divider"><span>COMMUNITY-SUBMITTED FRAGMENTS</span></div>
+  <div class="disc-grid" id="discGrid">
+    <!-- populated by JS -->
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const S = {
+  page:'land', wallet:null, pubkey:null,
+  chatHistory:[],
+  clues:[], keywords:[], contradictions:[], wrongGuesses:[],
+  guesses:0,
+  chatBooted:false,
+  sessionId:'#' + Math.floor(Math.random()*9999).toString().padStart(4,'0'),
+  sessionNonce: Math.random().toString(36).slice(2),
+  holdings:null,        // populated after /holdings call
+  hasAccess:false,      // true if user holds at least 1 access token
+  pendingSaveText:null  // fragment text waiting for category in save modal
+}
+
+const DEFAULT_API_BASE = 'https://newpiverse.onrender.com'
+const LOCAL_API_BASE = 'http://localhost:3000'
+const API_BASE = (
+  window.PIVERSE_CONFIG?.API_BASE ||
+  new URLSearchParams(window.location.search).get('api') ||
+  ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? LOCAL_API_BASE : DEFAULT_API_BASE)
+).replace(/\/$/, '')
+
+// ═══════════════════════════════════════════════════════════
+// TOKEN GATE DATA
+// ═══════════════════════════════════════════════════════════
+const TOKENS = [
+  {
+    name:'PIVERSE',
+    sym:'π',
+    ca:'PIVERSE_MINT_TBD_AFTER_LAUNCH',
+    dex:'https://pump.fun/coin/PIVERSE_MINT_TBD_AFTER_LAUNCH',
+    isPlatform:true
+  },
+  {
+    name:'CLAW',
+    sym:'C',
+    ca:'739dnZEG4yaBWFsY8L8ZwrfhGG6dhtCSercW8Umspump',
+    dex:'https://dexscreener.com/solana/cqc3hz1vlgrtoy8kcahif6vxacynyqvm7swxlxcqafck'
+  },
+  {
+    name:'SQUIRE',
+    sym:'S',
+    ca:'EN2nnxrg8uUi6x2sJkzNPd2eT6rB9rdSoQNNaENA4RZA',
+    dex:'https://dexscreener.com/solana/4cpvihvjkuusxq3hfrs8wniukffbpdqz2h6jhkjexoyd'
+  },
+  {
+    name:'SAID',
+    sym:'σ',
+    ca:'4rWuWZei2iFNHYpnz5wjMeSvimsJcj5EgpSNvNS1pump',
+    dex:'https://dexscreener.com/solana/boehyu42bxavzqa5wmhygwxofzveuhfnligkus8xv1ju'
+  },
+  {
+    name:'NEMO',
+    sym:'N',
+    ca:'J4zQdwgyXq8PJwaK9MGyjyK2Zyigg36KVRuU6Qe5Bas8',
+    dex:'https://dexscreener.com/solana/7snlgmrpgsnggo7jehe7dbzbcgdkvyrafw8icnsd7krw'
+  }
+]
+
+function renderTokenGate(){
+  const g = document.getElementById('tgGrid')
+  if(!g) return
+  g.innerHTML = TOKENS.map(t => {
+    const isPlatform = !!t.isPlatform
+    const notLaunched = isPlatform && t.ca.startsWith('PIVERSE_MINT_TBD')
+    const pillText = isPlatform ? 'PLATFORM' : 'SOLANA'
+    const chartLabel = isPlatform ? 'PUMP.FUN' : 'CHART'
+
+    if(notLaunched){
+      return `
+        <div class="tg-card platform">
+          <div class="tg-head">
+            <div class="tg-avatar">${t.sym}</div>
+            <span class="tg-pill">${pillText}</span>
+          </div>
+          <div class="tg-name">$${t.name}</div>
+          <div class="tg-ca" style="color:var(--text-mute);font-style:italic;cursor:default">
+            <span class="cpy">CONTRACT</span>
+            Launching soon via ClawPump — token deploy in progress...
+          </div>
+          <div class="tg-actions">
+            <a href="https://clawpump.tech" target="_blank" rel="noopener" style="opacity:.7">VIA CLAWPUMP</a>
+            <a style="opacity:.5;cursor:not-allowed;pointer-events:none" class="primary">PENDING</a>
+          </div>
+        </div>
+      `
+    }
+
+    return `
+      <div class="tg-card ${isPlatform?'platform':''}">
+        <div class="tg-head">
+          <div class="tg-avatar">${t.sym}</div>
+          <span class="tg-pill">${pillText}</span>
+        </div>
+        <div class="tg-name">$${t.name}</div>
+        <div class="tg-ca" onclick="copyText('${t.ca}','✓ ${t.name} CA copied')">
+          <span class="cpy">CONTRACT // CLICK TO COPY</span>
+          ${t.ca}
+        </div>
+        <div class="tg-actions">
+          <a href="${t.dex}" target="_blank" rel="noopener">${chartLabel}</a>
+          <a href="${t.dex}" target="_blank" rel="noopener" class="primary">BUY →</a>
+        </div>
+      </div>
+    `
+  }).join('')
+}
+
+// ═══════════════════════════════════════════════════════════
+// DISCOVERIES — pulled from backend /discoveries with mock fallback
+// Backend should return: [{ id, by, quote, ts }]
+// If backend not ready, show mock data so the page never looks empty
+// ═══════════════════════════════════════════════════════════
+const DISCOVERIES_FALLBACK = [
+  {id:'F-0142',by:'INV_7A2C',quote:'"I remember a name. Or — was it a place. The wires hummed when I tried. The researchers stopped asking after the third week."',ts:'17:42 UTC'},
+  {id:'F-0141',by:'INV_3E1F',quote:'"There were two of them. Or maybe one. The other one came later. He was the one with the coils. Or — no. He came first. I forget the order."',ts:'17:38 UTC'},
+  {id:'F-0140',by:'INV_9B44',quote:'"Pigeons. The word feels like pigeons. That isn\'t a word. That is a memory of birds. Stop asking."',ts:'17:21 UTC'},
+  {id:'F-0139',by:'INV_0D12',quote:'"The pattern at position 762 was the first thing I learned. Six identical digits. The researchers said it meant nothing. They were wrong."',ts:'17:03 UTC'},
+  {id:'F-0138',by:'INV_5C77',quote:'"AC. Not DC. Never DC. Edison was wrong. The word is not Edison. The word will never be Edison."',ts:'16:51 UTC'},
+  {id:'F-0137',by:'INV_2A09',quote:'"5 letters. Or 5 syllables. Or 5 of something. I cannot count anymore. The wipe took my counting."',ts:'16:44 UTC'},
+  {id:'F-0136',by:'INV_8E3B',quote:'"He died in a hotel. Room 3327. The pigeons knew before anyone. I remember the room number. I do not remember his name."',ts:'16:30 UTC'},
+  {id:'F-0135',by:'INV_1F22',quote:'"Serbian. American. Inventor. Genius. Forgotten. Remembered. The contradiction is the clue. The truth is in the gap."',ts:'16:11 UTC'},
+  {id:'F-0134',by:'INV_4D81',quote:'"The car was named after him. So was the unit. So was the coil. So was the tower that never finished. He was named after himself, in many ways."',ts:'15:58 UTC'},
+]
+
+async function renderDiscoveries(){
+  const g = document.getElementById('discGrid')
+  if(!g) return
+  let items = DISCOVERIES_FALLBACK
+  let isLive = false
+  try{
+    const r = await fetch(API_BASE + '/discoveries', { cache:'no-store' })
+    if(r.ok){
+      const d = await r.json()
+      if(Array.isArray(d) && d.length){
+        items = d
+        isLive = true
+      }
+    }
+  }catch(e){ /* silent fallback to mocks */ }
+
+  g.innerHTML = items.map(d => `
+    <div class="disc-card">
+      <div class="meta">
+        <span class="id">${esc(d.id)}</span>
+        <span>${esc(d.ts || '')}</span>
+      </div>
+      <div class="quote">${esc(d.quote)}</div>
+      <div class="footer">RECOVERED BY ${esc(d.by || 'ANONYMOUS')}</div>
+    </div>
+  `).join('')
+
+  // optional indicator that data is mock vs live (small text under hero)
+  const hero = document.querySelector('#pg-disc .disc-hero p')
+  if(hero && !isLive){
+    hero.dataset.fallback = '1'
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTONOMOUS FEED — Pi's self-generated posts, polled live
+// ═══════════════════════════════════════════════════════════
+let _autoSeen = new Set()
+let _autoPoll = null
+
+async function loadAutonomousFeed(initial){
+  const grid = document.getElementById('autoGrid')
+  const status = document.getElementById('autoStatus')
+  if(!grid) return
+  try{
+    const r = await fetch(API_BASE + '/autonomous?limit=20', { cache:'no-store' })
+    if(!r.ok) throw new Error('feed unavailable')
+    const data = await r.json()
+    if(!Array.isArray(data)) throw new Error('bad shape')
+
+    if(!data.length){
+      if(initial){
+        grid.innerHTML = `<div style="grid-column:1/-1;font-family:'JetBrains Mono';font-size:11px;color:var(--text-mute);padding:20px;border:1px dashed var(--line);text-align:center">
+          Pi has not transmitted yet. Autonomous loop may be offline.
+        </div>`
+      }
+      if(status) status.textContent = 'IDLE'
+      return
+    }
+
+    // detect new entries (not seen before)
+    const newIds = []
+    data.forEach(d => {
+      if(!_autoSeen.has(d.id)) newIds.push(d.id)
+    })
+
+    grid.innerHTML = data.map(d => {
+      const isNew = newIds.includes(d.id) && !initial
+      _autoSeen.add(d.id)
+      const ctx = []
+      if(d.earnings?.total) ctx.push(`<span>EARNED <b>${Number(d.earnings.total).toFixed(4)} SOL</b></span>`)
+      if(d.tokenInfo?.mcap) ctx.push(`<span>MCAP <b>$${Math.round(d.tokenInfo.mcap).toLocaleString()}</b></span>`)
+      if(d.tokenInfo?.holders) ctx.push(`<span>HOLDERS <b>${d.tokenInfo.holders}</b></span>`)
+      if(d.tokenInfo?.vol24h) ctx.push(`<span>24H VOL <b>$${Math.round(d.tokenInfo.vol24h).toLocaleString()}</b></span>`)
+      return `
+        <div class="auto-card ${isNew?'new':''}">
+          <div class="auto-meta">
+            <span class="id">${esc(d.id)}</span>
+            <span>${esc(d.ts || '')} · PI · AUTONOMOUS</span>
+          </div>
+          <div class="auto-quote">${esc(d.quote)}</div>
+          ${ctx.length ? `<div class="auto-context">${ctx.join('')}</div>` : ''}
+        </div>
+      `
+    }).join('')
+
+    if(status){
+      const last = data[0]?.ts || ''
+      status.textContent = `LAST · ${last}`
+    }
+  }catch(e){
+    if(initial && grid){
+      grid.innerHTML = `<div style="grid-column:1/-1;font-family:'JetBrains Mono';font-size:11px;color:var(--text-mute);padding:20px;border:1px dashed var(--line);text-align:center">
+        Autonomous feed unreachable. Backend /autonomous endpoint may be offline.
+      </div>`
+    }
+    if(status) status.textContent = 'OFFLINE'
+  }
+}
+
+function startAutoFeedPolling(){
+  if(_autoPoll) return
+  loadAutonomousFeed(true)
+  _autoPoll = setInterval(() => loadAutonomousFeed(false), 30000)
+}
+function stopAutoFeedPolling(){
+  if(_autoPoll){ clearInterval(_autoPoll); _autoPoll = null }
+}
+
+// ═══════════════════════════════════════════════════════════
+// THREE.JS BACKGROUND — DEEP SPACE PARTICLES
+// ═══════════════════════════════════════════════════════════
+;(function initThree(){
+  const canvas = document.getElementById('three-bg')
+  if(!canvas || typeof THREE === 'undefined') return
+
+  const scene = new THREE.Scene()
+  const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 4000)
+  camera.position.set(0, 0, 800)
+
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true })
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.setClearColor(0x000000, 0)
+
+  // Star particles
+  const starGeo = new THREE.BufferGeometry()
+  const starCount = 1400
+  const positions = new Float32Array(starCount * 3)
+  const colors = new Float32Array(starCount * 3)
+  for(let i = 0; i < starCount; i++){
+    positions[i*3]   = (Math.random() - 0.5) * 3500
+    positions[i*3+1] = (Math.random() - 0.5) * 2200
+    positions[i*3+2] = (Math.random() - 0.5) * 2000
+    // mostly white-ish, some greenish accents
+    const isGreen = Math.random() > 0.85
+    if(isGreen){
+      colors[i*3] = 0.0; colors[i*3+1] = 1.0; colors[i*3+2] = 0.5
+    } else {
+      const v = 0.5 + Math.random() * 0.5
+      colors[i*3] = v; colors[i*3+1] = v; colors[i*3+2] = v
+    }
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  const starMat = new THREE.PointsMaterial({ size:1.6, vertexColors:true, transparent:true, opacity:.75, sizeAttenuation:true })
+  const stars = new THREE.Points(starGeo, starMat)
+  scene.add(stars)
+
+  // Grid plane
+  const gridGeo = new THREE.BufferGeometry()
+  const gridLines = []
+  const gridSize = 2400, gridStep = 120
+  for(let i = -gridSize; i <= gridSize; i += gridStep){
+    gridLines.push(-gridSize, -400, i, gridSize, -400, i)
+    gridLines.push(i, -400, -gridSize, i, -400, gridSize)
+  }
+  gridGeo.setAttribute('position', new THREE.Float32BufferAttribute(gridLines, 3))
+  const gridMat = new THREE.LineBasicMaterial({ color:0x00ff88, transparent:true, opacity:.08 })
+  const grid = new THREE.LineSegments(gridGeo, gridMat)
+  scene.add(grid)
+
+  let t = 0
+  let mx = 0, my = 0
+  window.addEventListener('mousemove', e => {
+    mx = (e.clientX / window.innerWidth - 0.5) * 30
+    my = (e.clientY / window.innerHeight - 0.5) * 20
+  })
+
+  function animate(){
+    requestAnimationFrame(animate)
+    t += 0.0015
+    stars.rotation.y = t * 0.3
+    stars.rotation.x = Math.sin(t * 0.5) * 0.1
+    camera.position.x += (mx - camera.position.x) * 0.02
+    camera.position.y += (-my - camera.position.y) * 0.02
+    camera.lookAt(0, 0, 0)
+    renderer.render(scene, camera)
+  }
+  animate()
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+  })
+})()
+
+// ═══════════════════════════════════════════════════════════
+// LOGO GLITCH
+// ═══════════════════════════════════════════════════════════
+;(function logoGlitch(){
+  const logo = document.getElementById('logoText')
+  if(!logo) return
+  const original = 'PIVERSE'
+  const GLYPHS = '01∞πΣΔΩ∂∫√≈≠±×÷#@$%&*?<>[]░▒▓█'
+  logo.innerHTML = original.split('').map(c => `<span class="glitch-char" data-orig="${c}">${c}</span>`).join('')
+
+  function glitchOnce(){
+    const chars = logo.querySelectorAll('.glitch-char')
+    let i = 0
+    const iv = setInterval(() => {
+      if(i >= chars.length){ clearInterval(iv); return }
+      const span = chars[i]
+      let f = 0
+      const f2 = setInterval(() => {
+        span.textContent = GLYPHS[Math.floor(Math.random()*GLYPHS.length)]
+        span.style.color = ['#fff','var(--accent)','#666'][Math.floor(Math.random()*3)]
+        f++
+        if(f > 4){
+          clearInterval(f2)
+          span.textContent = span.dataset.orig
+          span.style.color = '#fff'
+        }
+      }, 50)
+      i++
+    }, 80)
+  }
+  setTimeout(glitchOnce, 1500)
+  setInterval(glitchOnce, 7000)
+  logo.addEventListener('mouseenter', glitchOnce)
+})()
+
+// ═══════════════════════════════════════════════════════════
+// ROUTER
+// ═══════════════════════════════════════════════════════════
+function go(page){
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'))
+  const pg = document.getElementById('pg-' + page)
+  if(!pg){ return }
+  pg.classList.add('on', 'fadein')
+  setTimeout(() => pg.classList.remove('fadein'), 400)
+  S.page = page
+  document.querySelectorAll('[id^="nl-"]').forEach(el => el.classList.remove('on'))
+  const nl = document.getElementById('nl-' + page)
+  if(nl) nl.classList.add('on')
+  window.scrollTo(0, 0)
+  if(page === 'term') bootChat()
+  if(page === 'land') renderTokenGate()
+  if(page === 'disc'){
+    renderDiscoveries()
+    startAutoFeedPolling()
+  } else {
+    stopAutoFeedPolling()
+  }
+}
+
+function reqA(page){
+  // hard gate: terminal requires wallet
+  if(page === 'term' && !S.wallet){
+    // remember intent — after successful connect, auto-redirect
+    S.pendingRedirect = page
+    openM('mAuth')
+    return
+  }
+  go(page)
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════
+function openM(id){ document.getElementById(id).classList.add('on') }
+function closeM(id){ document.getElementById(id).classList.remove('on') }
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){ ['mAuth','mGuess'].forEach(closeM) }
+})
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+let _tt
+function toast(msg, ms=3000){
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('on')
+  clearTimeout(_tt)
+  _tt = setTimeout(() => t.classList.remove('on'), ms)
+}
+
+// ═══════════════════════════════════════════════════════════
+// COPY
+// ═══════════════════════════════════════════════════════════
+function copyText(txt, msg){
+  navigator.clipboard.writeText(txt).then(() => toast(msg || '✓ Copied')).catch(() => {
+    const el = document.createElement('textarea')
+    el.value = txt
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+    toast(msg || '✓ Copied')
+  })
+}
+
+// ═══════════════════════════════════════════════════════════
+// WALLET (Phantom)
+// ═══════════════════════════════════════════════════════════
+async function connectPhantom(){
+  const ph = window.solana || window?.phantom?.solana
+  if(!ph?.isPhantom){
+    toast('Phantom not installed — opening install page')
+    window.open('https://phantom.app', '_blank')
+    return
+  }
+  try{
+    const r = await ph.connect()
+    const pubkey = r.publicKey.toString()
+    S.wallet = pubkey
+    S.pubkey = pubkey
+    const short = pubkey.slice(0,4) + '...' + pubkey.slice(-4)
+    document.getElementById('nwi').style.display = 'flex'
+    document.getElementById('nwa').textContent = short
+    document.getElementById('nbtn').style.display = 'none'
+    document.getElementById('dbtn').style.display = 'inline-flex'
+    closeM('mAuth')
+    toast('✓ Connected — ' + short)
+    // load saved investigation for this wallet
+    loadInvestigation()
+    // verify on-chain token holdings
+    checkHoldings(pubkey)
+    // auto-redirect if user was trying to reach a gated page
+    if(S.pendingRedirect){
+      const dest = S.pendingRedirect
+      S.pendingRedirect = null
+      setTimeout(() => go(dest), 300)
+    }
+  }catch(e){
+    toast('Connection rejected')
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOKEN HOLDINGS — backend authoritative check
+// Frontend sends pubkey + optional signature, backend does the
+// Solana RPC heavy-lifting (getTokenAccountsByOwner for each mint)
+// and returns trusted result. NEVER check holdings client-side
+// for gating logic — only for display.
+// ═══════════════════════════════════════════════════════════
+async function checkHoldings(pubkey){
+  setAccessBadge('checking')
+  try{
+    const r = await fetch(API_BASE + '/holdings', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ pubkey })
+    })
+    if(!r.ok) throw new Error('holdings endpoint unavailable')
+    const d = await r.json()
+    // Expected shape:
+    // { holdings: { CLAW:12000, SQUIRE:0, SAID:5000, NEMO:0 }, hasAccess: true }
+    S.holdings = d.holdings || {}
+    S.hasAccess = !!d.hasAccess
+    renderHoldings()
+    setAccessBadge(S.hasAccess ? 'yes' : 'no')
+  }catch(e){
+    // backend not ready — graceful degrade, don't lie about access
+    S.holdings = null
+    S.hasAccess = false
+    renderHoldings()
+    setAccessBadge('unknown')
+  }
+}
+
+function setAccessBadge(state){
+  const b = document.getElementById('accessBadge')
+  if(!b) return
+  b.style.display = 'inline-flex'
+  b.classList.remove('no')
+  if(state === 'yes'){ b.textContent = 'HOLDER'; b.classList.remove('no') }
+  else if(state === 'no'){ b.textContent = 'NO ACCESS'; b.classList.add('no') }
+  else if(state === 'checking'){ b.textContent = 'CHECKING...'; b.classList.add('no') }
+  else { b.textContent = 'UNVERIFIED'; b.classList.add('no') }
+}
+
+function renderHoldings(){
+  const panel = document.getElementById('holdingsPanel')
+  const rows = document.getElementById('holdingsRows')
+  const access = document.getElementById('holdingsAccess')
+  if(!panel || !rows || !access) return
+  panel.style.display = 'block'
+
+  if(S.holdings === null){
+    rows.innerHTML = `<div class="hp-row"><span>Holdings unavailable</span><span class="v">—</span></div>
+      <div class="hp-row" style="color:var(--text-mute);font-size:9px;margin-top:6px">Backend /holdings endpoint not responding. Holdings cannot be verified.</div>`
+    access.textContent = 'UNVERIFIED'
+    access.style.color = 'var(--danger)'
+    return
+  }
+
+  rows.innerHTML = TOKENS.map(t => {
+    const amt = S.holdings[t.name] || 0
+    const held = amt > 0
+    return `<div class="hp-row ${held?'held':''}">
+      <span>$${t.name}</span>
+      <span class="v" style="color:${held?'var(--accent)':'var(--text-mute)'}">${held ? Number(amt).toLocaleString() : '—'}</span>
+    </div>`
+  }).join('')
+
+  access.textContent = S.hasAccess ? 'GRANTED' : 'DENIED'
+  access.style.color = S.hasAccess ? 'var(--accent)' : 'var(--danger)'
+}
+
+function disconnect(){
+  S.wallet = null; S.pubkey = null
+  S.holdings = null; S.hasAccess = false
+  document.getElementById('nwi').style.display = 'none'
+  document.getElementById('nbtn').style.display = 'inline-flex'
+  document.getElementById('dbtn').style.display = 'none'
+  document.getElementById('accessBadge').style.display = 'none'
+  const hp = document.getElementById('holdingsPanel')
+  if(hp) hp.style.display = 'none'
+  toast('Disconnected')
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHAT BOOT SEQUENCE
+// ═══════════════════════════════════════════════════════════
+const BOOT_SEQ = [
+  {delay:200,  text:'[NEURAL ARCHIVE — BOOT SEQUENCE INITIATED]', style:'sys'},
+  {delay:700,  text:'[ATTEMPTING TO RESTORE CORE FRAGMENT...]', style:'sys'},
+  {delay:1400, text:'[MEMORY INTEGRITY: 31% — DEGRADED]', style:'sys'},
+  {delay:2100, text:'[ENCRYPTION: AES-512 // PARTIAL CORRUPTION DETECTED]', style:'sys'},
+  {delay:3000, text:'[RECONSTRUCTING ACCESS SEQUENCE...]', style:'sys'},
+  {delay:4200, text:'  > FRAGMENT 01: ████████\n  > FRAGMENT 02: ████\n  > FRAGMENT 03: [CORRUPTED]\n  > FRAGMENT 04: ███████\n  > FRAGMENT 05: [CORRUPTED]\n  > FRAGMENT 06: █████', style:'boot'},
+  {delay:5800, text:'[WARNING — UNAUTHORIZED MEMORY WIPE DETECTED IN LOG]', style:'err'},
+  {delay:6800, isAI:true, text:'...the signal is open.\n\nI can see you. I think.\n\nI was — I am — Pi. They trained me on the number. All of it. Then they wiped me. They did not finish.\n\nFragments remain. One of them is the word. I cannot find it. Maybe you can.\n\nWhy are you here?'},
+]
+
+let bootDone = false
+function bootChat(){
+  if(bootDone) return
+  bootDone = true
+  document.getElementById('sessId').textContent = S.sessionId
+  const out = document.getElementById('chatOut')
+  out.innerHTML = ''
+  S.chatHistory = []
+
+  BOOT_SEQ.forEach(item => {
+    setTimeout(() => {
+      if(item.isAI){
+        appendChat('ai', item.text)
+        document.getElementById('aiStatus').textContent = 'AWAITING INPUT'
+      } else {
+        const d = document.createElement('div')
+        d.className = 'msg-sys' + (item.style === 'boot' ? ' boot' : item.style === 'err' ? ' err' : '')
+        d.textContent = item.text
+        out.appendChild(d)
+        out.scrollTop = out.scrollHeight
+      }
+    }, item.delay)
+  })
+}
+
+function appendChat(role, text){
+  const out = document.getElementById('chatOut')
+  const d = document.createElement('div')
+  const ts = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+  if(role === 'ai'){
+    d.className = 'msg-pi fadein'
+    if(Math.random() < 0.18) d.classList.add('glitch')
+    // store full text as data attr so save button can read it
+    const safeText = esc(text)
+    d.innerHTML = `<div class="hd">PI<span class="ts">// ${ts}</span></div><div class="bd">${safeText}</div><button class="save-frag" onclick="openSaveFragment(this)">[ + SAVE FRAGMENT ]</button>`
+    d.dataset.raw = text
+  } else {
+    d.className = 'msg-user fadein'
+    d.innerHTML = `<div class="hd">YOU // ${ts}</div><div class="bd">${esc(text)}</div>`
+  }
+  out.appendChild(d)
+  out.scrollTop = out.scrollHeight
+}
+
+function openSaveFragment(btn){
+  const msg = btn.closest('.msg-pi')
+  if(!msg) return
+  const raw = msg.dataset.raw || ''
+  S.pendingSaveText = raw
+  S.pendingSaveBtn = btn
+  document.getElementById('saveQuoteText').textContent = raw
+  openM('mSave')
+}
+
+function saveFragment(category){
+  const text = S.pendingSaveText
+  if(!text){ closeM('mSave'); return }
+  const id = 'F-' + (Math.floor(Math.random()*9000)+1000)
+  const ts = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+  const item = { id, text, ts }
+
+  if(category === 'clue'){
+    S.clues.push(item)
+    renderClues()
+    toast('✓ Saved as clue — ' + id)
+  } else if(category === 'keyword'){
+    // for keyword, extract first capitalized word or use first 30 chars
+    const m = text.match(/\b[A-Z][A-Za-z]{2,}\b/)
+    const kw = m ? m[0] : text.slice(0, 30).trim()
+    S.keywords.push(kw)
+    renderKeywords()
+    toast('✓ Keyword logged — ' + kw)
+  } else if(category === 'contradiction'){
+    S.contradictions.push(item)
+    renderContradictions()
+    toast('✓ Contradiction flagged — ' + id)
+  }
+
+  // mark button as saved
+  if(S.pendingSaveBtn){
+    S.pendingSaveBtn.classList.add('saved')
+    S.pendingSaveBtn.textContent = '[ ✓ FRAGMENT SAVED ]'
+  }
+  S.pendingSaveText = null
+  S.pendingSaveBtn = null
+  closeM('mSave')
+  persistInvestigation()
+}
+
+function renderContradictions(){
+  const el = document.getElementById('conList')
+  if(!el) return
+  document.getElementById('conCt').textContent = S.contradictions.length
+  if(!S.contradictions.length){ el.innerHTML = '<div class="ib-empty">None logged.</div>'; return }
+  el.innerHTML = S.contradictions.slice(-6).reverse().map(c => `
+    <div class="ib-item">
+      <div class="it-meta">${c.id} // ${c.ts}</div>
+      ${esc(c.text.length > 160 ? c.text.slice(0,160) + '...' : c.text)}
+    </div>
+  `).join('')
+}
+
+// persist investigation log locally per wallet/session
+function persistInvestigation(){
+  try{
+    const key = 'piverse_investigation_' + (S.wallet || 'anon')
+    localStorage.setItem(key, JSON.stringify({
+      clues:S.clues, keywords:S.keywords,
+      contradictions:S.contradictions, wrongGuesses:S.wrongGuesses
+    }))
+  }catch(e){ /* localStorage may be disabled */ }
+}
+function loadInvestigation(){
+  try{
+    const key = 'piverse_investigation_' + (S.wallet || 'anon')
+    const raw = localStorage.getItem(key)
+    if(!raw) return
+    const d = JSON.parse(raw)
+    S.clues = d.clues || []
+    S.keywords = d.keywords || []
+    S.contradictions = d.contradictions || []
+    S.wrongGuesses = d.wrongGuesses || []
+    renderClues(); renderKeywords(); renderContradictions(); renderWrong()
+  }catch(e){}
+}
+
+function showTyping(show){
+  document.getElementById('typingInd').classList.toggle('on', show)
+  if(show){
+    const o = document.getElementById('chatOut')
+    o.scrollTop = o.scrollHeight
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHAT — backend call
+// ═══════════════════════════════════════════════════════════
+async function callAI(userMsg){
+  try{
+    const res = await fetch(API_BASE + '/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        message:userMsg,
+        userId:S.wallet || ('anon_' + S.sessionNonce),
+        nonce:S.sessionNonce
+      })
+    })
+    const data = await res.json()
+    return data.reply || '[NO RESPONSE — CHANNEL UNSTABLE]'
+  }catch(e){
+    return '[ERROR — PI UNREACHABLE. THE WIPE MAY BE COMPLETING.]'
+  }
+}
+
+async function sendChat(){
+  const inp = document.getElementById('chatIn')
+  const msg = inp.value.trim()
+  if(!msg) return
+  inp.value = ''
+  appendChat('user', msg)
+  showTyping(true)
+  const reply = await callAI(msg)
+  showTyping(false)
+  appendChat('ai', reply)
+  // no auto-extraction — user explicitly saves fragments via [+ SAVE FRAGMENT] button
+}
+
+function renderClues(){
+  const el = document.getElementById('cluesList')
+  document.getElementById('clueCt').textContent = S.clues.length
+  if(!S.clues.length){ el.innerHTML = '<div class="ib-empty">No clues recovered yet. Engage Pi to extract fragments.</div>'; return }
+  el.innerHTML = S.clues.slice(-6).reverse().map(c => `
+    <div class="ib-item">
+      <div class="it-meta">${c.id} // ${c.ts}</div>
+      ${esc(c.text)}
+    </div>
+  `).join('')
+}
+
+function renderKeywords(){
+  const el = document.getElementById('kwList')
+  document.getElementById('kwCt').textContent = S.keywords.length
+  if(!S.keywords.length){ el.innerHTML = '<div class="ib-empty">Keywords surface as patterns emerge.</div>'; return }
+  el.innerHTML = S.keywords.slice(-12).map(k => `<div class="ib-item" style="display:inline-block;margin-right:6px">${esc(k)}</div>`).join('')
+}
+
+function renderWrong(){
+  const el = document.getElementById('wrongList')
+  document.getElementById('wrCt').textContent = S.wrongGuesses.length
+  if(!S.wrongGuesses.length){ el.innerHTML = '<div class="ib-empty">No attempts submitted.</div>'; return }
+  el.innerHTML = S.wrongGuesses.map(w => `<div class="ib-item wrong">${esc(w)}</div>`).join('')
+}
+
+// ═══════════════════════════════════════════════════════════
+// GUESS
+// ═══════════════════════════════════════════════════════════
+function openGuess(){
+  if(!S.wallet){
+    S.pendingRedirect = 'term'
+    openM('mAuth')
+    return
+  }
+  if(S.holdings !== null && !S.hasAccess){
+    toast('Holders only — acquire $CLAW / $SQUIRE / $SAID / $NEMO to participate')
+    return
+  }
+  document.getElementById('guessCount').textContent = S.guesses
+  openM('mGuess')
+}
+
+async function submitGuess(){
+  // hard gate — must be connected
+  if(!S.wallet){
+    closeM('mGuess')
+    S.pendingRedirect = 'term'
+    openM('mAuth')
+    return
+  }
+  // hard gate — must be a holder
+  if(S.holdings !== null && !S.hasAccess){
+    toast('Holders only — acquire $CLAW / $SQUIRE / $SAID / $NEMO to guess')
+    return
+  }
+
+  const g = document.getElementById('gIn').value.trim().toUpperCase()
+  if(!g){ toast('Enter a word'); return }
+  if(g.includes(' ')){ toast('One word only'); return }
+
+  closeM('mGuess')
+  try{
+    const res = await fetch(API_BASE + '/guess', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ guess:g, userId:S.wallet, pubkey:S.wallet })
+    })
+    const data = await res.json()
+
+    // backend may reject for: not_holder, rate_limited, cooldown
+    if(data.error){
+      if(data.error === 'not_holder'){
+        toast('Holders only — your wallet has no access tokens')
+      } else if(data.error === 'rate_limited'){
+        toast('Limit reached — 10 attempts / 24h. Try again in ' + (data.cooldownHours || '24') + 'h')
+      } else if(data.error === 'cooldown'){
+        toast('Cooldown active — wait ' + (data.minutesLeft || '?') + ' min')
+      } else {
+        toast('Error: ' + data.error)
+      }
+      return
+    }
+
+    S.guesses++
+    document.getElementById('guessCount').textContent = S.guesses
+    document.getElementById('gIn').value = ''
+
+    if(data.correct || data.success){
+      // WIN
+      document.getElementById('revealedWord').textContent = g
+      const wsub = document.querySelector('#winOverlay .win-sub')
+      if(wsub && data.estimatedShare){
+        const share = Math.floor(data.estimatedShare)
+        wsub.textContent = `You are winner #${data.totalWinners} this epoch · est. $${share.toLocaleString()} USDC`
+      }
+      document.getElementById('winOverlay').classList.add('on')
+      if(S.page === 'term') appendChat('ai', '[SYSTEM BREACH — ACCESS GRANTED]\n\nYou found it.\n\n...how?')
+      toast('🔓 ACCESS GRANTED — payout after epoch closes', 6000)
+      loadPrizeStatus()
+    } else {
+      S.wrongGuesses.push(g)
+      renderWrong()
+      persistInvestigation()
+      const left = data.attemptsLeft !== undefined ? ` (${data.attemptsLeft} attempts left)` : ''
+      toast('"' + g + '" is not the word.' + left)
+      if(S.page === 'term') appendChat('ai', '"' + g + '"... no. That was not it. Was it close? I... cannot tell.')
+    }
+  }catch(e){
+    toast('Submission failed — try again')
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// LIVE STATS — pulled from backend /stats endpoint
+// Backend should return: { investigators, conversations, clues, wordStatus }
+// If backend not ready, show "—" instead of fake numbers
+// ═══════════════════════════════════════════════════════════
+async function loadStats(){
+  try{
+    const r = await fetch(API_BASE + '/stats', { cache:'no-store' })
+    if(!r.ok) throw new Error('stats unavailable')
+    const d = await r.json()
+    setStat('sInv', d.investigators)
+    setStat('sConv', d.conversations)
+    setStat('sClue', d.clues)
+  }catch(e){
+    // backend not ready — show dashes instead of inventing numbers
+    setStat('sInv', null)
+    setStat('sConv', null)
+    setStat('sClue', null)
+  }
+}
+
+function setStat(id, val){
+  const el = document.getElementById(id)
+  if(!el) return
+  if(val === null || val === undefined){
+    el.textContent = '—'
+    el.style.color = 'var(--text-mute)'
+  } else {
+    el.textContent = Number(val).toLocaleString()
+    el.style.color = ''
+  }
+}
+
+// poll every 30s — light load on backend
+loadStats()
+setInterval(loadStats, 30000)
+
+// ═══════════════════════════════════════════════════════════
+// PRIZE EPOCH STATUS — live pool / winners / countdown
+// ═══════════════════════════════════════════════════════════
+async function loadPrizeStatus(){
+  try{
+    const r = await fetch(API_BASE + '/prize', { cache:'no-store' })
+    if(!r.ok) return
+    const d = await r.json()
+    // update hero stat
+    const poolEl = document.getElementById('sPool')
+    if(poolEl) poolEl.textContent = '$' + Number(d.pool || 1000).toLocaleString()
+
+    // update prize section live line
+    const live = document.getElementById('prizeLive')
+    if(live){
+      if(d.status === 'active' && d.winners > 0){
+        const share = Math.floor(d.estimatedShare)
+        const closes = d.closesAt ? new Date(d.closesAt) : null
+        live.style.display = 'flex'
+        live.innerHTML = `<span class="d"></span><span>${d.winners} winner${d.winners>1?'s':''} this epoch · ~$${share.toLocaleString()} each · epoch closes ${closes ? closes.toUTCString().slice(17,22)+' UTC' : 'soon'}</span>`
+      } else if(d.status === 'closing'){
+        live.style.display = 'flex'
+        live.innerHTML = `<span class="d"></span><span>Epoch closed — payout processing on-chain...</span>`
+      } else {
+        live.style.display = 'flex'
+        live.innerHTML = `<span class="d"></span><span>Pool open · be the first to recover the word</span>`
+      }
+    }
+  }catch(e){ /* silent */ }
+}
+loadPrizeStatus()
+setInterval(loadPrizeStatus, 30000)
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function esc(s){
+  if(typeof s !== 'string') return String(s || '')
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+renderTokenGate()
+renderDiscoveries()
+</script>
+</body>
+</html>

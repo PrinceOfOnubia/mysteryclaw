@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#001a0d"/>
+      <stop offset="60%" stop-color="#000000"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <linearGradient id="acc" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00ff88"/>
+      <stop offset="100%" stop-color="#00aa55"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- grid background -->
+  <g stroke="#00ff88" stroke-opacity="0.07" stroke-width="1">
+    <line x1="0" y1="128" x2="512" y2="128"/>
+    <line x1="0" y1="256" x2="512" y2="256"/>
+    <line x1="0" y1="384" x2="512" y2="384"/>
+    <line x1="128" y1="0" x2="128" y2="512"/>
+    <line x1="256" y1="0" x2="256" y2="512"/>
+    <line x1="384" y1="0" x2="384" y2="512"/>
+  </g>
+  <!-- outer ring -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#00ff88" stroke-opacity="0.15" stroke-width="2"/>
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#00ff88" stroke-opacity="0.3" stroke-width="1"/>
+  <!-- big pi -->
+  <text x="256" y="340" text-anchor="middle" font-family="Georgia, serif" font-size="320" font-weight="700" fill="url(#acc)" filter="url(#glow)">π</text>
+  <!-- bottom label -->
+  <text x="256" y="455" text-anchor="middle" font-family="monospace" font-size="22" font-weight="700" fill="#00ff88" letter-spacing="8">PIVERSE</text>
+  <!-- top corner mark -->
+  <text x="36" y="50" font-family="monospace" font-size="13" fill="#00ff88" opacity="0.6" letter-spacing="2">π // INFRA</text>
+  <text x="476" y="50" text-anchor="end" font-family="monospace" font-size="13" fill="#00ff88" opacity="0.6" letter-spacing="2">v4.0.1</text>
+</svg>

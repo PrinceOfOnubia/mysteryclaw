@@ -1,0 +1,27 @@
+{
+  "name": "piverse-agent-runtime",
+  "version": "1.0.0",
+  "description": "Autonomous agent runtime for Pi — wallet, token launch, ClawPump integration, autonomous loop",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "create-wallet": "node scripts/01-create-wallet.js",
+    "fund-check": "node scripts/02-check-balance.js",
+    "launch-token": "node scripts/03-launch-token.js",
+    "loop": "node scripts/04-autonomous-loop.js",
+    "earnings": "node scripts/05-check-earnings.js",
+    "agent": "node scripts/06-agent-loop.js"
+  },
+  "keywords": ["solana", "pump.fun", "clawpump", "ai-agent", "piverse"],
+  "license": "ISC",
+  "dependencies": {
+    "@solana/web3.js": "^1.95.0",
+    "axios": "^1.7.0",
+    "bs58": "^6.0.0",
+    "dotenv": "^16.4.5",
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.3.2",
+    "openai": "^6.32.0",
+    "tweetnacl": "^1.0.3"
+  }
+}

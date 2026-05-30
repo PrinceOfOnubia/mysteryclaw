@@ -1,0 +1,28 @@
+.env
+.env.*
+!.env.example
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Local OS/editor noise
+.DS_Store
+
+# Wallets, token launch state, and prize ledgers
+pi-wallet.json
+treasury.json
+*-wallet.json
+wallet*.json
+token-launch.json
+autonomous-log.json
+winners.json
+backend/winners.json
+backend/winners.json.tmp
+
+# Dependency/build output
+dist/
+build/
+coverage/

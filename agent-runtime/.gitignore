@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+pi-wallet.json
+treasury.json
+*-wallet.json
+wallet*.json
+token-launch.json
+autonomous-log.json
+winners.json
+*.log
+.DS_Store

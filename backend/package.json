@@ -1,0 +1,34 @@
+{
+  "name": "piverse-backend",
+  "version": "2.0.0",
+  "description": "PiVerse — Infrastructure for Adversarial AI Experiences",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "ai",
+    "adversarial",
+    "piverse",
+    "pi",
+    "agent"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@solana/spl-token": "^0.4.6",
+    "@solana/web3.js": "^1.95.0",
+    "bs58": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "openai": "^6.32.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
