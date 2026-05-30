@@ -8,6 +8,7 @@ treasury.json
 wallet*.json
 token-launch.json
 autonomous-log.json
+pi-memory.json
 winners.json
 *.log
 .DS_Store

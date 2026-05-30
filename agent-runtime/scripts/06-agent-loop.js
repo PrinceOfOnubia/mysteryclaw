@@ -110,6 +110,11 @@ try {
 } catch (e) {
   console.error("Tick error:", e);
 }
+if (process.env.RUN_ONCE === "true") {
+  console.log("RUN_ONCE=true; exiting after one tick.");
+  process.exit(0);
+}
+
 setInterval(() => tick().catch(e => console.error("Tick error:", e)), TICK_MS);
 
 // Graceful shutdown

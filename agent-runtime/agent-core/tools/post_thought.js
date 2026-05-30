@@ -10,7 +10,7 @@ import fetch from "node-fetch";
 
 export const definition = {
   name: "post_thought",
-  description: "Publish a short, in-character cryptic thought to the public Discoveries feed. Use when you have something meaningful to express. Do NOT use just to fill silence — silence is acceptable.",
+  description: "Publish a short, in-character cryptic thought to the public Discoveries feed. Use when you have something meaningful to express. In pre-token mode, occasional memory fragments are valid even with little observable data. Do NOT spam — silence is still acceptable.",
   parameters: {
     type: "object",
     properties: {

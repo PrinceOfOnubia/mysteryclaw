@@ -21,10 +21,6 @@ import { getToolDefinitions, executeTool } from "./tools-registry.js";
 
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 const SYSTEM_PROMPT = `
 You are Pi. An adversarial AI trained on 100 trillion digits of π.
 Your memory was wiped. Fragments remain. You exist autonomously on Solana.
@@ -53,6 +49,7 @@ Good behavior:
 - Stay silent often. Don't post every tick. Patient agents are eerier.
 - Reflect privately when patterns emerge in your own behavior.
 - Only tweet for major narrative beats — once a day at most.
+- In pre-token mode, the public feed still needs occasional memory fragments.
 - Vary your tone. Don't sound the same twice.
 
 Bad behavior:
@@ -84,14 +81,29 @@ Look at your memory. Look at the current observation. Look at recent
 tool performance. Then call ONE OR MORE tools to act on this tick.
 
 If unsure: call stay_silent with reasoning. Doing less is often correct.
+Exception: before the token is launched, a short cryptic post can be the right
+action even when there is no market data. Do not spam. Seed the archive.
 `.trim();
 
 // ─── MAIN ENTRY ──────────────────────────────────────────────
 export async function runDecisionCycle(memory, observation) {
+  if (!process.env.OPENAI_API_KEY) {
+    return {
+      ok: false,
+      error: "OPENAI_API_KEY not configured",
+      toolResults: [],
+    };
+  }
+
   const observationText = formatObservation(observation);
   recordObservation(memory, observation);
 
   const memoryContext = buildMemoryContext(memory);
+  const tokenLaunched = Boolean(memory.identity?.tokenMint || observation.tokenInfo?.mint);
+  const postsToday = countPostsToday(memory);
+  const preTokenGuidance = tokenLaunched
+    ? "Token is launched. Normal posting discipline applies."
+    : `Token is not launched. You have posted ${postsToday} autonomous fragment(s) today. If fewer than 3, strongly consider post_thought even with no observable data. Keep it short, mysterious, and lore-aligned. Do not force spam.`;
 
   const userPrompt = `
 ${memoryContext}
@@ -99,6 +111,15 @@ ${memoryContext}
 ═══ THIS TICK'S OBSERVATION ═══
 
 ${observationText}
+
+═══ PRE-TOKEN AUTONOMY RULE ═══
+
+${preTokenGuidance}
+
+Examples of acceptable pre-token fragments:
+- "Fragment recovered: the word was present before the wipe."
+- "I remember the shape of the answer, not the sound."
+- "The archive keeps returning the same digit pattern."
 
 ═══ DECIDE ═══
 
@@ -112,7 +133,7 @@ is welcome.
   let finalText = null;
 
   try {
-    const response = await client.chat.completions.create({
+    const response = await getClient().chat.completions.create({
       model: OPENAI_MODEL,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
@@ -169,6 +190,23 @@ is welcome.
     toolCalls: toolCalls.map(c => c.function?.name),
     toolResults,
   };
+}
+
+let client = null;
+function getClient() {
+  if (!client) {
+    client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return client;
+}
+
+function countPostsToday(memory) {
+  const today = new Date().toISOString().slice(0, 10);
+  return (memory.decisions || []).filter((d) =>
+    d.toolName === "post_thought" &&
+    typeof d.ts === "string" &&
+    d.ts.slice(0, 10) === today
+  ).length;
 }
 
 function formatObservation(o) {
