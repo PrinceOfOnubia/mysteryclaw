@@ -301,7 +301,8 @@ Generate one: `openssl rand -hex 24`
 
 ```env
 # Required
-OPENAI_API_KEY=...                # DeepSeek API key (works with OpenAI SDK)
+OPENAI_API_KEY=...                # OpenAI API key (official OpenAI SDK)
+OPENAI_MODEL=gpt-4o-mini          # optional override
 
 # Required when /holdings is implemented
 SOLANA_RPC=https://...            # paid RPC endpoint (Helius / QuickNode / Triton)

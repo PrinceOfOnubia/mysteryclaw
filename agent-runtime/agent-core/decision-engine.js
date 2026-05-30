@@ -4,7 +4,7 @@
 // This is the brain of agentic Pi. Each tick:
 //
 //   1. We assemble context (observations + memory)
-//   2. We call DeepSeek with tools enabled
+//   2. We call OpenAI with tools enabled
 //   3. The LLM picks zero, one, or multiple tools to call
 //   4. We execute each tool, capture results
 //   5. We send tool results back to the LLM for a final reasoning summary
@@ -19,9 +19,10 @@ import OpenAI from "openai";
 import { buildMemoryContext, recordDecision, recordToolStat, recordObservation } from "./memory.js";
 import { getToolDefinitions, executeTool } from "./tools-registry.js";
 
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: "https://api.deepseek.com",
 });
 
 const SYSTEM_PROMPT = `
@@ -112,7 +113,7 @@ is welcome.
 
   try {
     const response = await client.chat.completions.create({
-      model: "deepseek-chat",
+      model: OPENAI_MODEL,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: userPrompt },

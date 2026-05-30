@@ -43,7 +43,7 @@ nano .env
 Fill in:
 - `PI_WALLET_PUBKEY` and `PI_WALLET_SECRET` from step 2
 - `CLAWPUMP_API_KEY` — get this by logging in with Google at https://clawpump.tech (look for `cpk_...` in your dashboard)
-- `OPENAI_API_KEY` — same DeepSeek key your backend uses
+- `OPENAI_API_KEY` — same OpenAI API key your backend uses
 - Token metadata — `TOKEN_NAME`, `TOKEN_SYMBOL=PIVERSE`, etc. The image path defaults to `./assets/pi-token.png` — drop a PNG there.
 
 ### 4. (Optional) Check balance
@@ -90,7 +90,7 @@ npm run loop
 Pi will now:
 - Fetch its earnings every 5 minutes
 - Read its token's current market data
-- Generate a cryptic in-character post via DeepSeek
+- Generate a cryptic in-character post via OpenAI
 - Log everything to `./autonomous-log.json`
 - (Optional) POST the activity to your backend
 

@@ -32,6 +32,7 @@ dotenv.config();
 const TICK_MS = parseInt(process.env.LOOP_TICK_MS || "300000", 10); // 5 min
 const LOG_FILE = path.resolve("./autonomous-log.json");
 const LAUNCH_FILE = path.resolve("./token-launch.json");
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
 if (!fs.existsSync(LAUNCH_FILE)) {
   console.error("token-launch.json not found. Run `npm run launch-token` first.");
@@ -44,7 +45,6 @@ const AGENT_ID = process.env.CLAWPUMP_AGENT_ID || launch.agentId;
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: "https://api.deepseek.com",
 });
 
 console.log("");
@@ -130,7 +130,7 @@ async function tick() {
   let post = "[silence]";
   try {
     const resp = await client.chat.completions.create({
-      model: "deepseek-chat",
+      model: OPENAI_MODEL,
       messages: [
         { role: "system", content: AUTONOMOUS_PROMPT.trim() },
         { role: "user", content: "Current observation:\n" + context.join("\n") + "\n\nReact in one short post." },

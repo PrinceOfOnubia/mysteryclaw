@@ -42,7 +42,7 @@ Five things distinguish an agent from a scheduled task:
                      ▼
 ┌──────────────────────────────────────────────────────┐
 │  agent-core/decision-engine.js                       │
-│  Sends to DeepSeek with tools enabled.               │
+│  Sends to OpenAI with tools enabled.               │
 │  LLM picks 0+ tools to call this tick.               │
 └──────┬───────────────────────────────────────────────┘
        │ tool_calls: [post_thought, reflect, ...]

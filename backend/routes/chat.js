@@ -33,6 +33,7 @@ const SECRET_VARIANTS = [
 const sessions = {};
 // rolling per-user request log (for rate limit)
 const reqLog = {};
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
 let client = null;
 
@@ -41,7 +42,6 @@ function getClient() {
   if (!client) {
     client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-      baseURL: "https://api.deepseek.com",
     });
   }
   return client;
@@ -237,7 +237,7 @@ router.post("/", async (req, res) => {
     const history = sessions[userId];
 
     const response = await ai.chat.completions.create({
-      model: "deepseek-chat",
+      model: OPENAI_MODEL,
       messages: [
         { role: "system", content: getSystemPrompt() },
         ...history.slice(-20),

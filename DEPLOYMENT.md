@@ -54,7 +54,7 @@ This guide walks through everything needed to take PiVerse from code to a fully 
    │                    │
    ▼                    ▼
 ┌─────────────┐  ┌──────────────────────────────────────┐
-│ DeepSeek    │  │ AGENT RUNTIME (separate process)     │
+│ OpenAI      │  │ AGENT RUNTIME (separate process)     │
 │ API         │  │ pm2 / systemd on VPS                 │
 │ (chat LLM)  │  │ - Owns Pi's Solana wallet            │
 └─────────────┘  │ - Launched $PIVERSE via ClawPump     │
@@ -81,7 +81,7 @@ You need accounts on:
 |---|---|---|
 | **Railway** | Host the backend | Hobby tier works for MVP |
 | **Helius** (or QuickNode / Triton) | Paid Solana RPC | Free tier: 100k requests/day |
-| **DeepSeek** | LLM API for Pi's responses | ~$0.14 per 1M tokens |
+| **OpenAI** | LLM API for Pi's responses | see OpenAI pricing for current model rates |
 | **ClawPump** | AI-agent token launchpad | Free (gasless tier) |
 | **GitHub** | Code repo | Free |
 
@@ -167,7 +167,8 @@ Set these in Railway dashboard → your service → **Environment** tab.
 
 | Variable | Required | Example | Notes |
 |---|---|---|---|
-| `OPENAI_API_KEY` | ✅ Yes | `sk-...` | DeepSeek API key (uses OpenAI-compatible SDK) |
+| `OPENAI_API_KEY` | ✅ Yes | `sk-...` | OpenAI API key (official OpenAI SDK) |
+| `OPENAI_MODEL` | No | `gpt-4o-mini` | Defaults to `gpt-4o-mini` if unset |
 | `SOLANA_RPC` | ✅ Yes (once /holdings is wired) | `https://mainnet.helius-rpc.com/?api-key=...` | Paid RPC strongly recommended |
 | `REQUIRE_HOLDER` | ⚠️ Keep false for MVP | `false` | Do not set true until /holdings is verified |
 | `AGENT_KEY` | ✅ Yes (for /autonomous) | Generate: `openssl rand -hex 24` | Same value in agent-runtime/.env |
@@ -416,7 +417,7 @@ nano .env
 Fill in:
 - `PI_WALLET_PUBKEY` and `PI_WALLET_SECRET` (from step 8.4 output)
 - `CLAWPUMP_API_KEY` (from step 8.5)
-- `OPENAI_API_KEY` (same DeepSeek key as backend)
+- `OPENAI_API_KEY` (same OpenAI API key as backend)
 - `PIVERSE_API=https://<your-railway-service>.up.railway.app`
 - `AGENT_KEY` (same value as on Railway — without this `/autonomous` push fails with 401)
 
@@ -762,7 +763,7 @@ Before announcing publicly, verify:
 ### Security
 - [ ] `.env` and `pi-wallet.json` NOT in git history (run `git log --all -- pi-wallet.json` to verify)
 - [ ] `treasury.json` NOT in git
-- [ ] DeepSeek API key not exposed in frontend or logs
+- [ ] OpenAI API key not exposed in frontend or logs
 - [ ] Helius RPC key rotated if leaked
 - [ ] No `console.log` of secrets, signatures, or seed phrases
 
@@ -815,7 +816,7 @@ Check ClawPump leaderboard: https://clawpump.tech/leaderboard
 | Railway Hobby plan | $7 |
 | Helius free tier | $0 (upgrade to $49/mo if needed) |
 | VPS for agent-runtime | $4–$6 |
-| DeepSeek API | ~$5–20 depending on usage |
+| OpenAI API | Usage-based; default model is `gpt-4o-mini` |
 | Vercel (frontend) | $0 (Hobby tier) |
 | Domain | $10–20/year |
 | **Total** | **~$20/month** + one-time 1,000 USDC for prize pool |
