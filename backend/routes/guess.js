@@ -2,6 +2,7 @@ import express from "express";
 import { isHolder } from "../_access.js";
 import { recordGuess, recordWinner } from "../_winners.js";
 import { normalizePubkey, verifyWalletAuth } from "../_walletAuth.js";
+import { booleanSetting } from "../_settings.js";
 
 const router = express.Router();
 
@@ -70,6 +71,9 @@ router.post("/", async (req, res) => {
     // ─── GATE 1: must be connected & valid pubkey ────────
     if (!rawWallet) {
       return res.status(401).json({ error: "wallet_required" });
+    }
+    if (await booleanSetting("prize_submissions_paused", false)) {
+      return res.status(423).json({ error: "prize_submissions_paused" });
     }
     const wallet = normalizePubkey(rawWallet);
 

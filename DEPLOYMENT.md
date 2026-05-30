@@ -657,12 +657,53 @@ Connect a custom domain in Vercel dashboard → Settings → Domains. Recommende
 
 ---
 
+### 11.4 Private Admin Panel
+
+The admin panel is hidden at:
+
+```text
+https://piverse.fun/admin
+```
+
+There is no public nav link. It requires the configured `ADMIN_WALLET` in Phantom. The browser asks the backend for a nonce, Phantom signs the exact admin login message, and the backend verifies the Solana signature before returning a short-lived admin session token.
+
+Admin API calls send:
+
+```http
+Authorization: Bearer <admin-session-jwt>
+```
+
+`ADMIN_KEY` remains available only as an emergency/manual API fallback:
+
+```http
+Authorization: Bearer <ADMIN_KEY>
+```
+
+Admin API routes live under `/admin/api` on the backend. They never return private keys, treasury keys, OpenAI keys, ClawPump keys, or agent control secrets.
+
+Optional server-side env vars for admin visibility/control:
+
+```env
+ADMIN_WALLET=
+ADMIN_SESSION_SECRET=
+PI_WALLET_PUBKEY=
+PIVERSE_TOKEN_MINT=
+AGENT_CONTROL_URL=
+AGENT_CONTROL_KEY=
+```
+
+`AGENT_CONTROL_URL` and `AGENT_CONTROL_KEY` are only for a future private AWS control bridge. Without them, token launch and agent restart buttons refuse safely.
+
+---
+
 ## 12. Production Checklist
 
 Before announcing publicly, verify:
 
 ### Backend
 - [ ] All env vars set in Railway
+- [ ] `ADMIN_WALLET` set and `/admin/api/status` rejects without verified admin session auth
+- [ ] `ADMIN_KEY` stored only as emergency/manual fallback
 - [ ] `/chat` returns Pi's adversarial responses (not generic "I'm an AI")
 - [ ] `/guess` rejects without pubkey (401)
 - [ ] `/guess` enforces 10/24h rate limit per wallet
@@ -676,6 +717,7 @@ Before announcing publicly, verify:
 
 ### Frontend
 - [ ] `API_BASE` matches deployed backend URL
+- [ ] `/admin` loads privately and has no public nav link
 - [ ] Wallet connect works (Phantom)
 - [ ] Holdings panel updates after connect
 - [ ] Terminal gates non-wallet users with `WALLET REQUIRED` modal
@@ -702,6 +744,7 @@ Before announcing publicly, verify:
 ### Security
 - [ ] `.env` and `pi-wallet.json` NOT in git history (run `git log --all -- pi-wallet.json` to verify)
 - [ ] `treasury.json` NOT in git
+- [ ] Admin panel does not expose private keys or API keys in responses
 - [ ] OpenAI API key not exposed in frontend or logs
 - [ ] Helius RPC key rotated if leaked
 - [ ] No `console.log` of secrets, signatures, or seed phrases

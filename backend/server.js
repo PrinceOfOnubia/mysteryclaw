@@ -63,7 +63,7 @@ app.use(helmet({
 
 app.use(cors({
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "x-agent-key", "x-admin-key"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-agent-key"],
   origin(origin, callback) {
     if (isAllowedOrigin(origin)) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
@@ -125,7 +125,8 @@ app.get("/", (req, res) => {
       "POST /autonomous":    "agent-runtime pushes new post (requires x-agent-key)",
       "GET  /prize":         "current prize epoch status",
       "GET  /prize/history": "past epoch payouts (transparency)",
-      "POST /admin/payout":  "admin-only payout trigger"
+      "GET  /admin/api/status": "admin system status (requires Authorization)",
+      "POST /admin/api/payout": "admin-only payout trigger"
     }
   });
 });

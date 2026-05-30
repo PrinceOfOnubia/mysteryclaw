@@ -1,5 +1,6 @@
 import express from "express";
 import { hasDatabase, query } from "../_db.js";
+import { booleanSetting } from "../_settings.js";
 
 const router = express.Router();
 
@@ -35,6 +36,9 @@ router.post("/", async (req, res) => {
     const provided = req.header("x-agent-key");
     if (expected && provided !== expected) {
       return res.status(401).json({ error: "unauthorized" });
+    }
+    if (await booleanSetting("agent_actions_paused", false)) {
+      return res.status(423).json({ error: "agent_actions_paused" });
     }
 
   const { post, context, ts, earnings, tokenInfo } = req.body || {};

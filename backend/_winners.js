@@ -120,6 +120,7 @@ export async function getPayableEpochs() {
        and e.closes_at <= now()
        and e.paid_out_at is null
        and w.paid_at is null
+       and w.approved_at is not null
      group by e.id
      order by e.epoch_number`
   );
@@ -148,6 +149,82 @@ export async function markEpochPaid(epochId) {
        )`,
     [epochId]
   );
+}
+
+export async function approveWinner(winnerId, approvedBy = "admin") {
+  if (!hasDatabase) {
+    const err = new Error("database_not_configured");
+    err.status = 503;
+    throw err;
+  }
+  const result = await query(
+    `update winners
+     set approved_at = coalesce(approved_at, now()),
+         approved_by = coalesce(approved_by, $2)
+     where id = $1
+     returning id, wallet_pubkey, approved_at, approved_by, paid_at`,
+    [winnerId, approvedBy]
+  );
+  if (!result.rows[0]) {
+    const err = new Error("winner_not_found");
+    err.status = 404;
+    throw err;
+  }
+  return result.rows[0];
+}
+
+export async function adminPrizeOverview() {
+  if (!hasDatabase) {
+    return {
+      database: "not_configured",
+      epochs: [],
+      guesses: [],
+      winners: [],
+      payouts: [],
+    };
+  }
+
+  const [epochs, guesses, winners, payouts] = await Promise.all([
+    query(
+      `select e.id, e.epoch_number, e.status, e.pool_usdc, e.started_at, e.closes_at,
+          e.paid_out_at, count(w.id)::int as winners
+       from prize_epochs e
+       left join winners w on w.epoch_id = e.id
+       group by e.id
+       order by e.epoch_number desc
+       limit 20`
+    ),
+    query(
+      `select id, wallet_pubkey, guess, normalized_guess, correct, verified_wallet,
+          epoch_id, created_at
+       from guesses
+       order by created_at desc
+       limit 100`
+    ),
+    query(
+      `select w.id, w.wallet_pubkey, w.created_at, w.approved_at, w.approved_by,
+          w.paid_at, w.payout_signature, e.epoch_number, g.normalized_guess
+       from winners w
+       join prize_epochs e on e.id = w.epoch_id
+       left join guesses g on g.id = w.guess_id
+       order by w.created_at desc
+       limit 100`
+    ),
+    query(
+      `select id, winner_id, epoch_id, wallet_pubkey, amount_usdc, status,
+          signature, error, requested_by, created_at, confirmed_at
+       from payout_attempts
+       order by created_at desc
+       limit 100`
+    ),
+  ]);
+
+  return {
+    epochs: epochs.rows,
+    guesses: guesses.rows,
+    winners: winners.rows,
+    payouts: payouts.rows,
+  };
 }
 
 export async function publicStatus() {

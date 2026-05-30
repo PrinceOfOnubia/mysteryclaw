@@ -67,10 +67,15 @@ create table if not exists winners (
   guess_id uuid references guesses(id),
   verified_wallet_id uuid not null references verified_wallets(id),
   created_at timestamptz not null default now(),
+  approved_at timestamptz,
+  approved_by text,
   paid_at timestamptz,
   payout_signature text,
   unique (epoch_id, wallet_pubkey)
 );
+
+alter table winners add column if not exists approved_at timestamptz;
+alter table winners add column if not exists approved_by text;
 
 create index if not exists winners_unpaid_idx on winners (epoch_id, paid_at) where paid_at is null;
 
@@ -109,6 +114,19 @@ create table if not exists audit_logs (
   details jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+create table if not exists system_settings (
+  key text primary key,
+  value text not null,
+  updated_by text,
+  updated_at timestamptz not null default now()
+);
+
+insert into system_settings (key, value)
+values
+  ('prize_submissions_paused', 'false'),
+  ('agent_actions_paused', 'false')
+on conflict (key) do nothing;
 
 insert into prize_epochs (epoch_number, status)
 values (1, 'open')
