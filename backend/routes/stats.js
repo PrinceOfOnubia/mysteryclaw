@@ -3,7 +3,7 @@ import express from "express";
 const router = express.Router();
 
 // ═══════════════════════════════════════════════════════════════
-// PIVERSE LIVE STATS ENDPOINT
+// MYST LIVE STATS ENDPOINT
 // ═══════════════════════════════════════════════════════════════
 //
 // Returns aggregated stats shown on the landing page hero.
@@ -11,7 +11,7 @@ const router = express.Router();
 //
 // FRONTEND EXPECTS:
 //   {
-//     investigators: 1247,    // unique wallets that have chatted with Pi (all time)
+//     investigators: 1247,    // unique wallets that have chatted with Mysterio (all time)
 //     conversations: 38402,   // total messages sent to /chat
 //     clues: 182              // total saved fragments (if you store them server-side)
 //   }

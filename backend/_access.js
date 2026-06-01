@@ -1,16 +1,16 @@
 // ═══════════════════════════════════════════════════════════════
 // SHARED — ACCESS TOKENS + HOLDER CHECK
 // ═══════════════════════════════════════════════════════════════
-// Single source of truth for the PiVerse access-token list and the
+// Single source of truth for the MysteryClaw access-token list and the
 // on-chain holder check. Both routes/holdings.js and routes/guess.js
 // import from here, so there's no risk of them drifting apart.
 //
-// ⚠ After Pi launches $PIVERSE via ClawPump (agent-runtime), replace
-// the PIVERSE placeholder mint below with the real mint address.
+// ⚠ After Mysterio launches $MYST via ClawPump (agent-runtime), replace
+// the MYST placeholder mint below with the real mint address.
 // ═══════════════════════════════════════════════════════════════
 
 export const ACCESS_TOKENS = {
-  PIVERSE: "PIVERSE_MINT_TBD_AFTER_LAUNCH",
+  MYST: "MYST_MINT_TBD_AFTER_LAUNCH",
   CLAW:    "739dnZEG4yaBWFsY8L8ZwrfhGG6dhtCSercW8Umspump",
   SQUIRE:  "EN2nnxrg8uUi6x2sJkzNPd2eT6rB9rdSoQNNaENA4RZA",
   SAID:    "4rWuWZei2iFNHYpnz5wjMeSvimsJcj5EgpSNvNS1pump",
@@ -60,7 +60,7 @@ export async function getHoldings(pubkey) {
     await Promise.all(
       Object.entries(ACCESS_TOKENS).map(async ([name, mint]) => {
         // skip unlaunched placeholder mints
-        if (mint.startsWith("PIVERSE_MINT_TBD")) {
+        if (mint.startsWith("MYST_MINT_TBD")) {
           holdings[name] = 0;
           return;
         }

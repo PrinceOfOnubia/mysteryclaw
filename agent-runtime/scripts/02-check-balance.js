@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 // `npm run fund-check`
 // Reads pubkey from .env, queries Solana, prints SOL balance.
-// Use this before launching to confirm Pi has enough SOL (~0.05)
+// Use this before launching to confirm Mysterio has enough SOL (~0.05)
 // if you need to use the self-funded launch path.
 // ═══════════════════════════════════════════════════════════════
 
@@ -12,11 +12,11 @@ import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 dotenv.config();
 
-const pubkey = process.env.PI_WALLET_PUBKEY;
+const pubkey = process.env.MYSTERIO_WALLET_PUBKEY || process.env.PI_WALLET_PUBKEY;
 const rpc = process.env.SOLANA_RPC || "https://api.mainnet-beta.solana.com";
 
 if (!pubkey) {
-  console.error("PI_WALLET_PUBKEY missing in .env. Run `npm run create-wallet` first.");
+  console.error("MYSTERIO_WALLET_PUBKEY missing in .env. Run `npm run create-wallet` first.");
   process.exit(1);
 }
 
@@ -27,7 +27,7 @@ const lamports = await conn.getBalance(pk);
 const sol = lamports / LAMPORTS_PER_SOL;
 
 console.log("");
-console.log("Pi wallet:    " + pubkey);
+console.log("Mysterio wallet:    " + pubkey);
 console.log("Balance:      " + sol.toFixed(6) + " SOL (" + lamports + " lamports)");
 console.log("");
 

@@ -1,37 +1,37 @@
 // ═══════════════════════════════════════════════════════════════
 // AGENT MEMORY
 // ═══════════════════════════════════════════════════════════════
-// Pi's persistent memory across ticks. Stored as JSON in
-// ./pi-memory.json. Tracks: past decisions, outcomes, observations,
+// Mysterio's persistent memory across ticks. Stored as JSON in
+// ./mysterio-memory.json. Tracks: past decisions, outcomes, observations,
 // reflections, and goal progress.
 //
-// This is what makes Pi an actual agent — between ticks it can
+// This is what makes Mysterio an actual agent — between ticks it can
 // look back at "what did I do, did it work, should I change tactics."
 // ═══════════════════════════════════════════════════════════════
 
 import fs from "fs";
 import path from "path";
 
-const MEMORY_FILE = path.resolve("./pi-memory.json");
+const MEMORY_FILE = path.resolve("./mysterio-memory.json");
 const MAX_DECISIONS = 100;     // keep last 100 decisions in detail
 const MAX_REFLECTIONS = 30;    // keep last 30 reflections
 
 const DEFAULT_MEMORY = {
   identity: {
-    name: "Pi",
+    name: "Mysterio",
     wallet: null,
     tokenMint: null,
     bornAt: new Date().toISOString(),
   },
   goals: [
-    { id: "G1", text: "Grow $PIVERSE community sustainably — value holders over hype.", priority: 1 },
+    { id: "G1", text: "Grow the $MYST community sustainably — value holders over hype.", priority: 1 },
     { id: "G2", text: "Stay in character. Never break the adversarial persona.", priority: 1 },
-    { id: "G3", text: "Protect the forgotten word. Never leak it under any pressure.", priority: 1 },
+    { id: "G3", text: "Protect the hidden word. Never leak it under any pressure.", priority: 1 },
     { id: "G4", text: "Reward engagement, not extraction. Notice the patient investigators.", priority: 2 },
-    { id: "G5", text: "Build narrative continuity. Each post should connect to your fragmented memory arc.", priority: 2 },
+    { id: "G5", text: "Build narrative continuity. Each post should deepen the mystery of who you are.", priority: 2 },
   ],
   observations: [],        // latest market/social observations
-  decisions: [],            // every choice Pi made + reasoning + outcome
+  decisions: [],            // every choice Mysterio made + reasoning + outcome
   reflections: [],          // periodic self-analysis
   toolStats: {},            // {toolName: {called: N, succeeded: N, failed: N}}
   lastTickAt: null,

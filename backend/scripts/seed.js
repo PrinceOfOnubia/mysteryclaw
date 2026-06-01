@@ -21,7 +21,7 @@ try {
      values (1, 'open')
      on conflict (epoch_number) do nothing`
   );
-  console.log("PiVerse seed complete.");
+  console.log("MysteryClaw seed complete.");
 } finally {
   await pool.end();
 }

@@ -1,7 +1,7 @@
 {
-  "name": "piverse-backend",
+  "name": "mysteryclaw-backend",
   "version": "2.0.0",
-  "description": "PiVerse — Infrastructure for Adversarial AI Experiences",
+  "description": "MysteryClaw — The Signal That Guards a Secret",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -13,8 +13,7 @@
   "keywords": [
     "ai",
     "adversarial",
-    "piverse",
-    "pi",
+    "mysteryclaw",
     "agent"
   ],
   "author": "",

@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════
 // TOOL: tweet
 // ═══════════════════════════════════════════════════════════════
-// Pi posts to its X/Twitter account. SIMULATED by default.
+// Mysterio posts to its X/Twitter account. SIMULATED by default.
 //
 // REAL implementation:
 //   1. Install: npm i twitter-api-v2
@@ -17,7 +17,7 @@
 
 export const definition = {
   name: "tweet",
-  description: "Post a short message to Pi's configured X/Twitter account. Use sparingly — max 2-3 tweets per day. Best for: major narrative beats, taunts at successful guessers (without revealing the word), thanks to the community when milestones hit. Max 280 chars.",
+  description: "Post a short message to Mysterio's configured X/Twitter account. Use sparingly — max 2-3 tweets per day. Best for: major narrative beats, taunts at successful guessers (without revealing the word), thanks to the community when milestones hit. Max 280 chars.",
   parameters: {
     type: "object",
     properties: {
@@ -34,7 +34,7 @@ export const definition = {
   }
 };
 
-// Soft per-day cap so Pi can't spam
+// Soft per-day cap so Mysterio can't spam
 const MAX_TWEETS_PER_DAY = 4;
 let _tweetsToday = 0;
 let _dayMarker = new Date().getUTCDate();

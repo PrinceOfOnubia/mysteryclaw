@@ -15,11 +15,11 @@ export function createAdminNonce(pubkey) {
   const issuedAt = new Date();
   const expiresAt = new Date(issuedAt.getTime() + ADMIN_NONCE_TTL_MS);
   const message = [
-    "PiVerse admin login",
+    "MysteryClaw admin login",
     `Wallet: ${wallet}`,
     `Nonce: ${nonce}`,
     `Issued At: ${issuedAt.toISOString()}`,
-    "Purpose: access private PiVerse admin controls.",
+    "Purpose: access private MysteryClaw admin controls.",
   ].join("\n");
 
   adminNonces.set(hash(nonce), {
@@ -105,8 +105,8 @@ export function verifyAdminRequest(req) {
 function createAdminSession(wallet) {
   const now = Math.floor(Date.now() / 1000);
   const payload = {
-    iss: "piverse-admin",
-    aud: "piverse-admin",
+    iss: "mysteryclaw-admin",
+    aud: "mysteryclaw-admin",
     sub: wallet,
     iat: now,
     exp: now + ADMIN_SESSION_TTL_SECONDS,
@@ -126,7 +126,7 @@ function verifyAdminSession(token) {
   if (!safeEqual(signature, expected)) return null;
   try {
     const payload = JSON.parse(Buffer.from(encodedPayload, "base64url").toString("utf8"));
-    if (payload.iss !== "piverse-admin" || payload.aud !== "piverse-admin") return null;
+    if (payload.iss !== "mysteryclaw-admin" || payload.aud !== "mysteryclaw-admin") return null;
     if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) return null;
     return payload;
   } catch {

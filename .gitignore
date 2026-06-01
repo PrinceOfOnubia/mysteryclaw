@@ -21,6 +21,8 @@ autonomous-log.json
 winners.json
 backend/winners.json
 backend/winners.json.tmp
+pi-memory.json
+mysterio-memory.json
 
 # Dependency/build output
 dist/

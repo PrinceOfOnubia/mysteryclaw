@@ -2,13 +2,13 @@ node_modules/
 .env
 .env.*
 !.env.example
-pi-wallet.json
+agent-wallet.json
 treasury.json
 *-wallet.json
 wallet*.json
 token-launch.json
 autonomous-log.json
-pi-memory.json
+mysterio-memory.json
 winners.json
 *.log
 .DS_Store

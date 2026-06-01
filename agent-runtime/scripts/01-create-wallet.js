@@ -1,17 +1,17 @@
 // ═══════════════════════════════════════════════════════════════
-// STEP 01 — CREATE PI'S SOLANA WALLET
+// STEP 01 — CREATE MYSTERIO'S SOLANA WALLET
 // ═══════════════════════════════════════════════════════════════
 // Run once: `npm run create-wallet`
-// Generates a fresh Solana keypair that becomes Pi's identity.
-// Saves the private key to ./pi-wallet.json (mode 600) AND prints
+// Generates a fresh Solana keypair that becomes Mysterio's identity.
+// Saves the private key to ./agent-wallet.json (mode 600) AND prints
 // .env-ready variables to paste into .env.
 //
 // SECURITY:
-//   - This wallet receives ALL Pi's earnings from ClawPump (65% of
-//     creator fees from PiVerse token trading)
+//   - This wallet receives ALL Mysterio's earnings from ClawPump (65% of
+//     creator fees from MysteryClaw token trading)
 //   - The private key has full custody — never share, never push to
 //     git, never log to public chat
-//   - Back up pi-wallet.json to a safe location (encrypted USB,
+//   - Back up agent-wallet.json to a safe location (encrypted USB,
 //     password manager, hardware wallet recovery flow)
 // ═══════════════════════════════════════════════════════════════
 
@@ -20,10 +20,10 @@ import bs58 from "bs58";
 import fs from "fs";
 import path from "path";
 
-const WALLET_FILE = path.resolve("./pi-wallet.json");
+const WALLET_FILE = path.resolve("./agent-wallet.json");
 
 if (fs.existsSync(WALLET_FILE)) {
-  console.error("⚠  pi-wallet.json already exists. Refusing to overwrite.");
+  console.error("⚠  agent-wallet.json already exists. Refusing to overwrite.");
   console.error("   Delete it first if you really want a fresh wallet.");
   process.exit(1);
 }
@@ -49,23 +49,23 @@ fs.writeFileSync(
 
 console.log("");
 console.log("═══════════════════════════════════════════════════════════════");
-console.log("  PI WALLET CREATED");
+console.log("  MYSTERIO WALLET CREATED");
 console.log("═══════════════════════════════════════════════════════════════");
 console.log("");
-console.log("  Public key (this is Pi's address):");
+console.log("  Public key (this is Mysterio's address):");
 console.log("  " + pubkey);
 console.log("");
 console.log("  Private key saved to: " + WALLET_FILE + "  (mode 600)");
 console.log("");
-console.log("  ⚠  BACK UP THIS FILE. If you lose it, Pi's funds are gone.");
-console.log("  ⚠  DO NOT COMMIT pi-wallet.json TO GIT.");
+console.log("  ⚠  BACK UP THIS FILE. If you lose it, Mysterio's funds are gone.");
+console.log("  ⚠  DO NOT COMMIT agent-wallet.json TO GIT.");
 console.log("");
 console.log("───────────────────────────────────────────────────────────────");
 console.log("  Paste these into your .env file:");
 console.log("───────────────────────────────────────────────────────────────");
 console.log("");
-console.log("PI_WALLET_PUBKEY=" + pubkey);
-console.log("PI_WALLET_SECRET=" + secretBase58);
+console.log("MYSTERIO_WALLET_PUBKEY=" + pubkey);
+console.log("MYSTERIO_WALLET_SECRET=" + secretBase58);
 console.log("");
 console.log("───────────────────────────────────────────────────────────────");
 console.log("");

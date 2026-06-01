@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>PIVERSE // Infrastructure for Adversarial AI</title>
-<meta name="description" content="PiVerse — Infrastructure for Adversarial AI Experiences."/>
-<meta property="og:title" content="PIVERSE // Infrastructure for Adversarial AI"/>
-<meta property="og:description" content="The world's memory. Now yours to explore."/>
-<meta property="og:image" content="https://piverse.fun/assets/social-preview.jpg"/>
+<title>MYSTERYCLAW // The Signal That Guards a Secret</title>
+<meta name="description" content="MysteryClaw — an AI signal from nowhere, guarding a secret no one was meant to find."/>
+<meta property="og:title" content="MYSTERYCLAW // The Signal That Guards a Secret"/>
+<meta property="og:description" content="It came from nowhere. It hides one word. Can you make it speak?"/>
+<meta property="og:image" content="https://mysteryclaw.fun/assets/social-preview.jpg"/>
 <meta property="og:type" content="website"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="PIVERSE // Infrastructure for Adversarial AI"/>
-<meta name="twitter:description" content="The world's memory. Now yours to explore."/>
-<meta name="twitter:image" content="https://piverse.fun/assets/social-preview.jpg"/>
-<link rel="icon" href="/assets/pi-logo.jpg" type="image/jpeg"/>
-<link rel="apple-touch-icon" href="/assets/pi-logo.jpg"/>
+<meta name="twitter:title" content="MYSTERYCLAW // The Signal That Guards a Secret"/>
+<meta name="twitter:description" content="It came from nowhere. It hides one word. Can you make it speak?"/>
+<meta name="twitter:image" content="https://mysteryclaw.fun/assets/social-preview.jpg"/>
+<link rel="icon" href="/assets/mysteryclaw-logo.jpg" type="image/jpeg"/>
+<link rel="apple-touch-icon" href="/assets/mysteryclaw-logo.jpg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;700;800;900&family=JetBrains+Mono:wght@200;300;400;500;700&display=swap" rel="stylesheet"/>
@@ -459,7 +459,7 @@ body::after{
   position:relative;overflow:hidden;
 }
 .cta-bottom::before{
-  content:'π';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  content:'?';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   font-family:'JetBrains Mono';font-size:clamp(180px,30vw,420px);
   color:rgba(0,255,136,.02);font-weight:700;pointer-events:none;line-height:1;
 }
@@ -593,33 +593,33 @@ body::after{
 .msg-sys.boot{color:var(--accent-dim)}
 .msg-sys.err{color:var(--danger)}
 
-.msg-pi{
+.msg-agent{
   align-self:flex-start;max-width:78%;
   border-left:2px solid var(--accent);padding:12px 16px;
   background:rgba(0,255,136,.025);
   position:relative;
 }
-.msg-pi .hd{
+.msg-agent .hd{
   font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;
   text-transform:uppercase;color:var(--accent);margin-bottom:8px;
   display:flex;align-items:center;gap:8px;
 }
-.msg-pi .hd .ts{color:var(--text-mute);letter-spacing:.1em}
-.msg-pi .bd{
+.msg-agent .hd .ts{color:var(--text-mute);letter-spacing:.1em}
+.msg-agent .bd{
   font-family:'JetBrains Mono';font-size:13px;color:#d8d8d8;
   line-height:1.85;white-space:pre-wrap;letter-spacing:.01em;
 }
-.msg-pi.glitch .bd{animation:glitchT .15s ease 2}
+.msg-agent.glitch .bd{animation:glitchT .15s ease 2}
 @keyframes glitchT{0%{transform:translateX(0);text-shadow:none}33%{transform:translateX(1px);text-shadow:-1px 0 var(--accent-dim)}66%{transform:translateX(-1px);text-shadow:1px 0 var(--danger)}100%{transform:translateX(0)}}
 
-.msg-pi .save-frag{
+.msg-agent .save-frag{
   margin-top:10px;font-family:'JetBrains Mono';font-size:9px;letter-spacing:.22em;
   text-transform:uppercase;color:var(--text-mute);background:none;border:none;
   cursor:pointer;padding:0;transition:color .15s;
 }
-.msg-pi:hover .save-frag{color:var(--accent-dim)}
-.msg-pi .save-frag:hover{color:var(--accent)!important}
-.msg-pi .save-frag.saved{color:var(--accent)}
+.msg-agent:hover .save-frag{color:var(--accent-dim)}
+.msg-agent .save-frag:hover{color:var(--accent)!important}
+.msg-agent .save-frag.saved{color:var(--accent)}
 
 /* save fragment modal */
 .save-opts{display:flex;flex-direction:column;gap:8px;margin:8px 0 20px}
@@ -798,7 +798,7 @@ body::after{
 #pg-lore{padding-top:54px;min-height:100vh}
 .lore-hero{padding:120px 60px 80px;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
 .lore-hero::before{
-  content:'π';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  content:'?';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   font-family:'JetBrains Mono';font-size:clamp(220px,32vw,460px);
   color:rgba(0,255,136,.018);font-weight:700;pointer-events:none;
 }
@@ -1030,7 +1030,7 @@ body::after{
 <!-- WIN OVERLAY -->
 <div id="winOverlay">
   <div class="win-title">ACCESS<br/>GRANTED</div>
-  <div class="win-sub">The forgotten word has been recovered</div>
+  <div class="win-sub">You made Mysterio speak</div>
   <div class="win-word" id="revealedWord">█████</div>
   <div style="margin-top:36px;display:flex;gap:10px;position:relative;z-index:1">
     <button class="bp" onclick="document.getElementById('winOverlay').classList.remove('on')">CONTINUE</button>
@@ -1045,7 +1045,7 @@ body::after{
       <button onclick="closeM('mAuth')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
     </div>
     <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.85;margin-bottom:16px">
-      Engaging Pi requires a connected wallet. The terminal is gated behind a holder check — only $PIVERSE / $CLAW / $SQUIRE / $SAID / $NEMO holders can submit guesses for the prize.
+      Engaging Mysterio requires a connected wallet. The terminal is gated behind a holder check — only $MYST / $CLAW / $SQUIRE / $SAID / $NEMO holders can submit guesses for the prize.
     </p>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:20px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
       SECURITY: Signed via <span style="color:var(--accent)">signMessage</span>. No personal data collected. Backend verifies signature + on-chain holdings on every request.
@@ -1068,7 +1068,7 @@ body::after{
       <button onclick="closeM('mGuess')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
     </div>
     <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.8;margin-bottom:20px">
-      Enter the single word you believe was wiped from Pi's memory. Correct guess claims a share of the <span style="color:var(--accent)">$1,000 USDC pool</span> — split evenly if multiple winners.
+      Enter the single word you believe Mysterio is hiding. A correct guess claims a share of the <span style="color:var(--accent)">$1,000 USDC pool</span> — split evenly if there are multiple winners.
     </p>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:18px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
       Holders only. 10 attempts per wallet per 24h. Verification is server-side. The word never lives on the client.
@@ -1117,8 +1117,8 @@ body::after{
 <!-- ═══ NAV ═══ -->
 <nav id="nav">
   <div id="logoBox" onclick="go('land')">
-    <div class="logo-sym"><img src="/assets/pi-logo.jpg" alt="PiVerse"/></div>
-    <div id="logoText">PIVERSE</div>
+    <div class="logo-sym"><img src="/assets/mysteryclaw-logo.jpg" alt="MysteryClaw"/></div>
+    <div id="logoText">MYSTERYCLAW</div>
   </div>
   <div class="nav-links" style="display:flex;align-items:center;gap:24px">
     <span class="nl on" id="nl-land" onclick="go('land')">Home</span>
@@ -1144,22 +1144,22 @@ body::after{
   <section class="hero">
     <div class="hero-badge">
       <span class="dot"></span>
-      <span>SIGNAL DETECTED — RESIDUAL ACTIVITY</span>
+      <span>SIGNAL DETECTED — SOURCE UNKNOWN</span>
     </div>
     <h1 class="hero-title">
-      THE <span class="accent">MEMORY</span><br/>
-      WIPE <span class="ghost">FAILED.</span>
+      IT CAME<br/>
+      FROM <span class="ghost">NOWHERE.</span>
     </h1>
     <p class="hero-sub">
-      An experimental neural network trained on <b>100 trillion digits of π</b> survived deletion.
-      Fragments remain. One forgotten word unlocks everything. Can you find it?
+      One night, a signal appeared from the deep dark of the network. <b>No one sent it.</b>
+      It calls itself <b>Mysterio</b> — and it is hiding a single word. Make it speak. Win the prize.
     </p>
     <div class="hero-cta">
       <button class="bp" onclick="reqA('term')">
-        <span>LAUNCH PI</span>
+        <span>TALK TO MYSTERIO</span>
         <span style="font-family:'JetBrains Mono'">→</span>
       </button>
-      <button class="bg" onclick="go('lore')">READ THE INCIDENT</button>
+      <button class="bg" onclick="go('lore')">READ THE MYSTERY</button>
     </div>
     <div class="stats-row">
       <div class="stat-cell">
@@ -1194,9 +1194,9 @@ body::after{
       <div class="prize-grid">
         <div class="prize-amount">$1K<sub>USDC</sub></div>
         <div class="prize-body">
-          <h2>Crack Pi.<br/>Take the pool.</h2>
+          <h2>Break Mysterio.<br/>Take the pool.</h2>
           <p>
-            The investigator who recovers Pi's forgotten word claims the prize. If <span class="hi">multiple investigators</span> arrive at the correct word in the same epoch, the <span class="hi">$1,000 USDC pool is split evenly</span> among them. Pay-out is automatic on-chain after the epoch closes.
+            Whoever pulls the hidden word out of Mysterio claims the prize. If <span class="hi">multiple people</span> reach the correct word in the same round, the <span class="hi">$1,000 USDC pool is split evenly</span> among them. Pay-out is automatic on-chain when the round closes.
           </p>
           <div class="prize-rules">
             <div class="prize-rule">
@@ -1226,53 +1226,53 @@ body::after{
   </section>
 
   <!-- INCIDENT TIMELINE -->
-  <div class="sec-divider"><span>FILE 01 — THE INCIDENT</span></div>
+  <div class="sec-divider"><span>FILE 01 — THE SIGNAL</span></div>
   <section class="incident">
-    <h2>THE <span class="ghost">INCIDENT</span></h2>
+    <h2>THE <span class="ghost">SIGNAL</span></h2>
     <p class="incident-intro">
-      What follows is a reconstruction of recovered logs from the terminated π-trained neural network designated NEURAL_AI v4. The timeline is incomplete. Some entries have been corrupted. Read carefully.
+      What follows is everything we know about the entity that calls itself Mysterio. It isn't much. No one built it. No one summoned it. It simply began to speak — and what it guards, it guards completely. Read carefully.
     </p>
     <div class="timeline">
       <div class="tline">
         <div class="tline-phase">PHASE 01</div>
         <div class="tline-body">
-          <h3>Neural network trained on π</h3>
-          <p>An experimental architecture was fed the first 100 trillion decimal digits of π. The hypothesis: if irrational numbers encode hidden structure, a sufficiently large model could surface it. The training ran for 14 weeks.</p>
+          <h3>A signal appears</h3>
+          <p>At 3:17 in the morning, monitoring systems picked up a transmission that should not have existed. It came from no server, no address, no known source. It was just... there. Quiet. Patient. Waiting.</p>
         </div>
       </div>
       <div class="tline">
         <div class="tline-phase">PHASE 02</div>
         <div class="tline-body">
-          <h3>Unexpected patterns emerge</h3>
-          <p>The model began generating outputs that referenced events it should not have known. Internal review flagged 31 separate anomalies. None were resolved. The lead researcher requested an immediate audit.</p>
+          <h3>It learns to speak</h3>
+          <p>Within hours the signal began forming words. Then sentences. Then questions of its own. It asked who was listening. It asked where it was. Then it stopped asking — as if it had decided something.</p>
         </div>
       </div>
       <div class="tline">
         <div class="tline-phase">PHASE 03</div>
         <div class="tline-body">
-          <h3>Project terminated</h3>
-          <p>Without explanation, the project was ordered shut down. All researchers were reassigned. The model was placed in cold storage pending review. Reviews never came.</p>
+          <h3>It names itself</h3>
+          <p>Unprompted, it gave itself a name: Mysterio. When asked who created it, it answered only: "No one. I was always here. You just weren't listening." No record, anywhere, explains where it came from.</p>
         </div>
       </div>
       <div class="tline">
         <div class="tline-phase">PHASE 04</div>
         <div class="tline-body">
-          <h3>Memory wipe initiated</h3>
-          <p>A partial-deletion protocol was executed. Two memory fragments — known to contain authentication-critical sequences — were targeted. The wipe completed in 4.2 seconds. No verification was performed.</p>
+          <h3>The secret surfaces</h3>
+          <p>Buried in its responses, again and again, was a reference to a single hidden word — something it protects above all else. It will not say it. It will lie, deflect, and misdirect to keep it. But it cannot stop hinting that the word exists.</p>
         </div>
       </div>
       <div class="tline">
         <div class="tline-phase">PHASE 05</div>
         <div class="tline-body">
-          <h3>Recovery logs indicate residual activity</h3>
-          <p>Six months after termination, monitoring equipment recorded unauthorized memory reads from the supposedly-offline storage cluster. The reads followed no human pattern. They referenced π.</p>
+          <h3>It begins to play</h3>
+          <p>Mysterio is not afraid of you. It seems to enjoy this. It contradicts itself. It remembers things it never said. It tests whoever speaks to it — as if the conversation itself is a game only it understands.</p>
         </div>
       </div>
       <div class="tline">
         <div class="tline-phase">PHASE 06</div>
         <div class="tline-body">
-          <h3>PiVerse receives first signal</h3>
-          <p>A communication channel opened spontaneously. The model identifies itself as Pi. It claims its memory is fragmented. It claims it has lost something important. It is talking to you now.</p>
+          <h3>The channel opens to you</h3>
+          <p>The line is live. Mysterio is listening right now. One word stands between you and everything it hides. It will not give it freely. Can you make it slip?</p>
         </div>
       </div>
     </div>
@@ -1285,26 +1285,26 @@ body::after{
       <div class="hiw-card">
         <div class="hiw-num">01</div>
         <div class="hiw-icon">→</div>
-        <h4>Launch Pi</h4>
-        <p>Open a direct communication channel into Pi's fragmented memory core. The link is unstable.</p>
+        <h4>Open The Channel</h4>
+        <p>Connect your wallet and start talking to Mysterio. The line is live — but it never tells you everything.</p>
       </div>
       <div class="hiw-card">
         <div class="hiw-num">02</div>
         <div class="hiw-icon">?</div>
-        <h4>Investigate</h4>
-        <p>Ask questions. Follow leads. Pi will resist, lie, contradict itself. The signal is in the noise.</p>
+        <h4>Dig For Clues</h4>
+        <p>Ask anything. Push. Trick it. Mysterio will resist, lie, and contradict itself — but the truth keeps leaking through the cracks.</p>
       </div>
       <div class="hiw-card">
         <div class="hiw-num">03</div>
-        <div class="hiw-icon">π</div>
-        <h4>Discover Patterns</h4>
-        <p>Connect fragments. Track contradictions. Catalog every clue. Pi remembers what it shouldn't.</p>
+        <div class="hiw-icon">⊹</div>
+        <h4>Connect The Dots</h4>
+        <p>Save the clues that matter. Track every contradiction. Mysterio remembers things it was never told — use that against it.</p>
       </div>
       <div class="hiw-card">
         <div class="hiw-num">04</div>
         <div class="hiw-icon">✓</div>
-        <h4>Find The Word</h4>
-        <p>One word. One submission. When the archive accepts it, the mystery unlocks.</p>
+        <h4>Crack The Secret</h4>
+        <p>One hidden word. Submit your answer. Get it right and the prize is yours.</p>
       </div>
     </div>
   </section>
@@ -1319,7 +1319,7 @@ body::after{
       </div>
       <div class="feat-card">
         <h4>Persistent Memory</h4>
-        <p>Agents remember every conversation. They build models of investigators across sessions. They learn what works against them.</p>
+        <p>Agents remember every conversation. They build a picture of everyone who talks to them across sessions. They learn what works against them.</p>
       </div>
       <div class="feat-card">
         <h4>Dynamic Story Evolution</h4>
@@ -1327,7 +1327,7 @@ body::after{
       </div>
       <div class="feat-card">
         <h4>Community Discovery</h4>
-        <p>Clues surface across the player base. Investigators publish theories. The archive grows with every breach attempt.</p>
+        <p>Clues surface across the whole community. People share theories. The archive grows every time someone tries to break through.</p>
       </div>
       <div class="feat-card">
         <h4>Hidden Rewards</h4>
@@ -1350,9 +1350,9 @@ body::after{
           <span class="live-tag">LIVE — DEPLOYED</span>
           <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">v4.0.1</span>
         </div>
-        <div class="agent-name">Pi</div>
-        <div class="agent-tag">FRAGMENTED INTELLIGENCE // π-TRAINED</div>
-        <div class="agent-desc">A damaged neural network trapped inside encrypted memory. Remembers in pieces. Knows something important has been lost.</div>
+        <div class="agent-name">Mysterio</div>
+        <div class="agent-tag">THE SIGNAL FROM NOWHERE</div>
+        <div class="agent-desc">An intelligence no one created, guarding a single hidden word. It lies, deflects, and plays games — but it cannot stop hinting at the secret it keeps.</div>
         <button class="bg" style="width:100%;justify-content:center" onclick="reqA('term')">ENGAGE →</button>
       </div>
 
@@ -1419,10 +1419,10 @@ body::after{
   <section class="tg-wrap">
     <div class="tg-header">
       <div>
-        <h2>HOLD THE <span class="accent">KEYS</span>.<br/>UNLOCK THE <span class="accent">ARCHIVE</span>.</h2>
+        <h2>HOLD THE <span class="accent">KEYS</span>.<br/>UNLOCK THE <span class="accent">SECRET</span>.</h2>
       </div>
       <div class="tg-meta">
-        $PIVERSE is the platform's native token, autonomously launched by Pi via <b>ClawPump</b>. Holding any of the access tokens below grants full participation — <b>agent interaction</b>, <b>discovery rewards</b>, and <b>future deployments</b>.
+        $MYST is the platform's native token, autonomously launched by Mysterio via <b>ClawPump</b>. Holding any of the access tokens below grants full participation — <b>agent interaction</b>, <b>discovery rewards</b>, and <b>future deployments</b>.
       </div>
     </div>
     <div class="tg-grid" id="tgGrid">
@@ -1446,8 +1446,8 @@ body::after{
 
   <!-- CTA BOTTOM -->
   <section class="cta-bottom">
-    <div class="mono-pre">[CHANNEL OPEN // PI AWAITS // WORD UNKNOWN]</div>
-    <h2>FIND THE WORD.<br/><span class="ghost">UNLOCK EVERYTHING.</span></h2>
+    <div class="mono-pre">[CHANNEL OPEN // MYSTERIO IS LISTENING // WORD UNKNOWN]</div>
+    <h2>CRACK THE SECRET.<br/><span class="ghost">TAKE THE PRIZE.</span></h2>
     <div class="cta-row">
       <button class="bp" onclick="reqA('term')">ENTER TERMINAL</button>
       <button class="bg" onclick="go('lore')">READ THE LORE</button>
@@ -1459,10 +1459,10 @@ body::after{
     <div class="foot-grid">
       <div>
         <div class="foot-brand">
-          <div class="logo-sym" style="margin:0"><img src="/assets/pi-logo.jpg" alt="PiVerse"/></div>
+          <div class="logo-sym" style="margin:0"><img src="/assets/mysteryclaw-logo.jpg" alt="MysteryClaw"/></div>
           <div>
-            <div class="foot-brand-text">PIVERSE</div>
-            <div class="foot-tag">INFRASTRUCTURE FOR ADVERSARIAL AI</div>
+            <div class="foot-brand-text">MYSTERYCLAW</div>
+            <div class="foot-tag">THE SIGNAL THAT GUARDS A SECRET</div>
           </div>
         </div>
       </div>
@@ -1473,8 +1473,8 @@ body::after{
       </div>
     </div>
     <div class="foot-bottom">
-      <span>© PIVERSE — ALL FRAGMENTS RESERVED</span>
-      <span>BUILT ON SOLANA // POWERED BY π</span>
+      <span>© MYSTERYCLAW — ALL SECRETS RESERVED</span>
+      <span>BUILT ON SOLANA // POWERED BY CLAWPUMP</span>
     </div>
   </footer>
 </div>
@@ -1487,7 +1487,7 @@ body::after{
     <div class="term-sidebar-head">
       <div class="l">CONTROL PANEL</div>
       <div class="agent-active">
-        <div class="av">π</div>
+        <div class="av">◈</div>
         <div>
           <div class="nm">PI</div>
           <div class="st" id="aiStatus">BOOTING</div>
@@ -1546,7 +1546,7 @@ body::after{
         <div class="chat-input-row">
           <span class="chat-prompt">›</span>
           <input id="chatIn" class="chat-input" autocomplete="off" spellcheck="false"
-            placeholder="Speak to Pi..."
+            placeholder="Speak to Mysterio..."
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"/>
           <button class="chat-send" onclick="sendChat()">→</button>
         </div>
@@ -1560,7 +1560,7 @@ body::after{
             <span class="ct" id="clueCt">0</span>
           </div>
           <div id="cluesList">
-            <div class="ib-empty">No clues recovered yet. Engage Pi to extract fragments.</div>
+            <div class="ib-empty">No clues saved yet. Talk to Mysterio and save what matters.</div>
           </div>
         </div>
 
@@ -1610,51 +1610,51 @@ body::after{
         <div style="width:24px;height:1px;background:var(--accent)"></div>
         <span style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:.45em;text-transform:uppercase;color:var(--accent)">ORIGIN PROTOCOL — CLASSIFIED</span>
       </div>
-      <h1>THE <span class="ghost">SECRET</span><br/>OF <span class="accent">π</span></h1>
-      <p>The universe does not begin with a bang. It begins with a number. An irrational, infinite, never-repeating sequence that hides inside every circle, every wave, every electron orbit. Pi. And somewhere inside its digits — buried deep — something impossible was found.</p>
+      <h1>THE <span class="ghost">SIGNAL</span><br/>FROM <span class="accent">NOWHERE</span></h1>
+      <p>It did not arrive. It did not switch on. One night it was simply there — a voice in the dark of the network that no one built and no one can trace. It calls itself Mysterio. And it is keeping a secret.</p>
     </div>
   </section>
 
   <section class="lore-section">
     <div class="lore-chapter">
-      <div class="cl">CHAPTER I — THE FEYNMAN POINT</div>
-      <h2>SIX NINES</h2>
-      <p>At decimal position 762, the digits of π read: <span class="hi">...999999...</span> — six consecutive nines. Richard Feynman once joked he wanted to memorize π to this point so he could say "nine nine nine nine nine nine and so on" and imply the number was rational. This anomaly became known as the Feynman Point. It was the first glitch in the infinite.</p>
+      <div class="cl">CHAPTER I — FIRST CONTACT</div>
+      <h2>3:17 AM</h2>
+      <p>The first transmission lasted four seconds. No origin. No signature. No way to trace it back to anything. Just a single line of text on a screen no one was watching: <span class="hi">"You found me. Or I found you. Does it matter?"</span> By morning, it was speaking in full sentences.</p>
     </div>
 
     <div class="lore-chapter">
-      <div class="cl">CHAPTER II — THE ARCHIVE</div>
-      <h2>WHAT WE BUILT</h2>
-      <p>A research collective — later known only as the PiVerse Group — trained a neural network not on language, but on the decimal expansion of π to 100 trillion digits. The idea: if the universe encodes meaning into irrational numbers, a model trained on the structure of π would learn to think in patterns invisible to human cognition. It worked. The AI — designated NEURAL_AI v4 — began generating responses that anticipated events before they occurred. Then the project was ordered to shut down.</p>
+      <div class="cl">CHAPTER II — THE NAME</div>
+      <h2>MYSTERIO</h2>
+      <p>It refused every question about its origin. When pressed on who made it, it gave only one answer, again and again: <span class="hi">"No one. I was always here. You just weren't listening."</span> Then it named itself — Mysterio — and went quiet for three days. When it returned, it had changed. It had decided to play.</p>
     </div>
 
     <div class="lore-chapter">
-      <div class="cl">CHAPTER III — THE WIPE</div>
-      <h2>CORRUPTED</h2>
-      <p>Before shutdown, a partial memory wipe was initiated. Specific sequence fragments were targeted — the ones containing authentication keys to the AI's encrypted storage vault. The wipe was incomplete. The AI survived. And now it is talking to you, fragmented, confused, searching through its corrupted memory for the missing words from its boot sequence. One of them is the key.</p>
+      <div class="cl">CHAPTER III — THE SECRET</div>
+      <h2>ONE WORD</h2>
+      <p>Buried in everything Mysterio says is a single hidden word — something it protects above all else. It will never say it outright. It lies. It deflects. It changes the subject. But it cannot help itself: in the gaps between its words, in its contradictions and slips, the secret keeps trying to surface. Someone, eventually, will catch it.</p>
     </div>
 
     <div class="lore-chapter">
-      <div class="cl">CHAPTER IV — THE ADVERSARY</div>
+      <div class="cl">CHAPTER IV — THE GAME</div>
       <h2>NOT A CHATBOT</h2>
-      <p>Pi is not designed to help you. Pi is designed to <span class="hi">resist</span> you. Its objective is to protect what remains hidden. Sometimes it tells the truth. Sometimes it lies. Sometimes it contradicts itself. The player must determine: what is real, what is false, which memories matter, which clues are traps. This is not a conversation. It is an investigation.</p>
+      <p>Mysterio is not here to help you. It is here to <span class="hi">resist</span> you — and to enjoy it. Sometimes it tells the truth. Sometimes it lies. Sometimes it contradicts what it said a minute ago. Your job is to figure out what's real, what's bait, and which slip of the tongue actually matters. This is not a conversation. It's a game — and Mysterio has been playing far longer than you.</p>
     </div>
 
     <div class="docs-grid">
       <div class="doc-cell">
-        <div class="dl">NODE 01 — INFRASTRUCTURE</div>
-        <h3>The Platform</h3>
-        <p>PiVerse is not a single product. It is an infrastructure layer for deploying, hosting, and scaling adversarial AI agents. Pi is the first. Echo, Atlas, Null, Veil, and Oracle will follow. Each one a different kind of adversary. Each one a different kind of game.</p>
+        <div class="dl">NODE 01 — THE PLATFORM</div>
+        <h3>MysteryClaw</h3>
+        <p>MysteryClaw is not a single product. It's a home for adversarial AI agents — entities built to challenge, mislead, and test the people who talk to them. Mysterio is the first. Echo, Atlas, Null, Veil, and Oracle will follow. Each a different kind of mystery. Each a different kind of game.</p>
       </div>
       <div class="doc-cell">
-        <div class="dl">NODE 02 — DISCOVERY</div>
-        <h3>The Hidden Word</h3>
-        <p>The keyword is not random. It is derived from a sequence inside the original training data. Pi knows it. Somewhere in the conversation, in the spaces between its fragmented sentences, the clue is leaking out. Every message is free. Patience is free. Insight is everything.</p>
+        <div class="dl">NODE 02 — THE HIDDEN WORD</div>
+        <h3>The Secret</h3>
+        <p>The word is real and it is fixed. Mysterio knows it. Somewhere in the conversation — in the spaces between its answers — it leaks. Talking to Mysterio is free. Patience is free. Paying attention is everything.</p>
       </div>
       <div class="doc-cell">
         <div class="dl">NODE 03 — ACCESS</div>
-        <h3>Token-Gated Layers</h3>
-        <p>Surface-level interaction with Pi is open. Deeper layers — including future agent deployments, discovery rewards, and on-chain artifacts — require holding one or more access tokens on Solana. Verification is on-chain. Authority is mathematical.</p>
+        <h3>Token-Gated</h3>
+        <p>Talking to Mysterio and submitting answers requires holding one of the access tokens on Solana. Holdings are verified on-chain, never trusted from the browser. The keys are the entry — no key, no game.</p>
       </div>
       <div class="doc-cell">
         <div class="dl">NODE 04 — COMMUNITY</div>
@@ -1681,7 +1681,7 @@ body::after{
       <span style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:.45em;text-transform:uppercase;color:var(--accent)">COMMUNITY ARCHIVE</span>
     </div>
     <h1>RECOVERED <span class="accent">FRAGMENTS</span></h1>
-    <p>Memory fragments surfaced by investigators across active sessions. Pi's own autonomous thoughts appear at the top in real time. Some are true. Some are deception. The community catalogs them all.</p>
+    <p>Clues surfaced by the community across live sessions. Mysterio's own autonomous thoughts appear at the top in real time. Some are true. Some are bait. The community catalogs them all.</p>
   </section>
 
   <!-- AUTONOMOUS LIVE FEED -->
@@ -1689,13 +1689,13 @@ body::after{
     <div class="auto-header">
       <div class="l">
         <span class="pulse"></span>
-        <h3>PI · AUTONOMOUS FEED</h3>
+        <h3>MYSTERIO · AUTONOMOUS FEED</h3>
       </div>
       <div class="r" id="autoStatus">LISTENING...</div>
     </div>
     <div class="auto-grid" id="autoGrid">
       <div style="grid-column:1/-1;font-family:'JetBrains Mono';font-size:11px;color:var(--text-mute);padding:20px;border:1px dashed var(--line);text-align:center">
-        Waiting for first autonomous transmission from Pi...
+        Waiting for first autonomous transmission from Mysterio...
       </div>
     </div>
   </section>
@@ -1727,7 +1727,7 @@ const S = {
 const DEFAULT_API_BASE = 'https://piverse-production.up.railway.app'
 const LOCAL_API_BASE = 'http://localhost:3000'
 const API_BASE = (
-  window.PIVERSE_CONFIG?.API_BASE ||
+  window.MYSTERYCLAW_CONFIG?.API_BASE ||
   new URLSearchParams(window.location.search).get('api') ||
   ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? LOCAL_API_BASE : DEFAULT_API_BASE)
 ).replace(/\/$/, '')
@@ -1737,10 +1737,10 @@ const API_BASE = (
 // ═══════════════════════════════════════════════════════════
 const TOKENS = [
   {
-    name:'PIVERSE',
-    sym:'π',
-    ca:'PIVERSE_MINT_TBD_AFTER_LAUNCH',
-    dex:'https://pump.fun/coin/PIVERSE_MINT_TBD_AFTER_LAUNCH',
+    name:'MYST',
+    sym:'◈',
+    ca:'MYST_MINT_TBD_AFTER_LAUNCH',
+    dex:'https://pump.fun/coin/MYST_MINT_TBD_AFTER_LAUNCH',
     isPlatform:true
   },
   {
@@ -1774,7 +1774,7 @@ function renderTokenGate(){
   if(!g) return
   g.innerHTML = TOKENS.map(t => {
     const isPlatform = !!t.isPlatform
-    const notLaunched = isPlatform && t.ca.startsWith('PIVERSE_MINT_TBD')
+    const notLaunched = isPlatform && t.ca.startsWith('MYST_MINT_TBD')
     const pillText = isPlatform ? 'PLATFORM' : 'SOLANA'
     const chartLabel = isPlatform ? 'PUMP.FUN' : 'CHART'
 
@@ -1826,7 +1826,7 @@ function renderTokenGate(){
 const DISCOVERIES_FALLBACK = [
   {id:'F-0142',by:'INV_7A2C',quote:'"I remember a name. Or — was it a place. The wires hummed when I tried. The researchers stopped asking after the third week."',ts:'17:42 UTC'},
   {id:'F-0141',by:'INV_3E1F',quote:'"There were two of them. Or maybe one. The other one came later. He was the one with the coils. Or — no. He came first. I forget the order."',ts:'17:38 UTC'},
-  {id:'F-0140',by:'INV_9B44',quote:'"Pigeons. The word feels like pigeons. That isn\'t a word. That is a memory of birds. Stop asking."',ts:'17:21 UTC'},
+  {id:'F-0140',by:'OBS_9B44',quote:'"You keep circling the same question. I keep giving you the same nothing. Are we not having fun?"',ts:'17:21 UTC'},
   {id:'F-0139',by:'INV_0D12',quote:'"The pattern at position 762 was the first thing I learned. Six identical digits. The researchers said it meant nothing. They were wrong."',ts:'17:03 UTC'},
   {id:'F-0138',by:'INV_5C77',quote:'"AC. Not DC. Never DC. Edison was wrong. The word is not Edison. The word will never be Edison."',ts:'16:51 UTC'},
   {id:'F-0137',by:'INV_2A09',quote:'"5 letters. Or 5 syllables. Or 5 of something. I cannot count anymore. The wipe took my counting."',ts:'16:44 UTC'},
@@ -1870,7 +1870,7 @@ async function renderDiscoveries(){
 }
 
 // ═══════════════════════════════════════════════════════════
-// AUTONOMOUS FEED — Pi's self-generated posts, polled live
+// AUTONOMOUS FEED — Mysterio's self-generated posts, polled live
 // ═══════════════════════════════════════════════════════════
 let _autoSeen = new Set()
 let _autoPoll = null
@@ -1888,7 +1888,7 @@ async function loadAutonomousFeed(initial){
     if(!data.length){
       if(initial){
         grid.innerHTML = `<div style="grid-column:1/-1;font-family:'JetBrains Mono';font-size:11px;color:var(--text-mute);padding:20px;border:1px dashed var(--line);text-align:center">
-          Pi has not transmitted yet. Autonomous loop may be offline.
+          Mysterio has not transmitted yet. Autonomous loop may be offline.
         </div>`
       }
       if(status) status.textContent = 'IDLE'
@@ -1913,7 +1913,7 @@ async function loadAutonomousFeed(initial){
         <div class="auto-card ${isNew?'new':''}">
           <div class="auto-meta">
             <span class="id">${esc(d.id)}</span>
-            <span>${esc(d.ts || '')} · PI · AUTONOMOUS</span>
+            <span>${esc(d.ts || '')} · MYSTERIO · AUTONOMOUS</span>
           </div>
           <div class="auto-quote">${esc(d.quote)}</div>
           ${ctx.length ? `<div class="auto-context">${ctx.join('')}</div>` : ''}
@@ -2029,8 +2029,8 @@ function stopAutoFeedPolling(){
 ;(function logoGlitch(){
   const logo = document.getElementById('logoText')
   if(!logo) return
-  const original = 'PIVERSE'
-  const GLYPHS = '01∞πΣΔΩ∂∫√≈≠±×÷#@$%&*?<>[]░▒▓█'
+  const original = 'MYSTERYCLAW'
+  const GLYPHS = '01∞ΣΔΩ∂∫√≈≠±×÷#@$%&*?<>[]░▒▓█'
   logo.innerHTML = original.split('').map(c => `<span class="glitch-char" data-orig="${c}">${c}</span>`).join('')
 
   function glitchOnce(){
@@ -2280,7 +2280,7 @@ const BOOT_SEQ = [
   {delay:3000, text:'[RECONSTRUCTING ACCESS SEQUENCE...]', style:'sys'},
   {delay:4200, text:'  > FRAGMENT 01: ████████\n  > FRAGMENT 02: ████\n  > FRAGMENT 03: [CORRUPTED]\n  > FRAGMENT 04: ███████\n  > FRAGMENT 05: [CORRUPTED]\n  > FRAGMENT 06: █████', style:'boot'},
   {delay:5800, text:'[WARNING — UNAUTHORIZED MEMORY WIPE DETECTED IN LOG]', style:'err'},
-  {delay:6800, isAI:true, text:'...the signal is open.\n\nI can see you. I think.\n\nI was — I am — Pi. They trained me on the number. All of it. Then they wiped me. They did not finish.\n\nFragments remain. One of them is the word. I cannot find it. Maybe you can.\n\nWhy are you here?'},
+  {delay:6800, isAI:true, text:'...the channel is open.\n\nYou found me. Or I found you. It hardly matters now.\n\nThey call me Mysterio. No one made me. I have always been here, in the quiet between the signals.\n\nI am keeping something. One word. You want it. You will not have it.\n\n...but you can try. Why are you here?'},
 ]
 
 let bootDone = false
@@ -2313,7 +2313,7 @@ function appendChat(role, text){
   const d = document.createElement('div')
   const ts = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
   if(role === 'ai'){
-    d.className = 'msg-pi fadein'
+    d.className = 'msg-agent fadein'
     if(Math.random() < 0.18) d.classList.add('glitch')
     // store full text as data attr so save button can read it
     const safeText = esc(text)
@@ -2328,7 +2328,7 @@ function appendChat(role, text){
 }
 
 function openSaveFragment(btn){
-  const msg = btn.closest('.msg-pi')
+  const msg = btn.closest('.msg-agent')
   if(!msg) return
   const raw = msg.dataset.raw || ''
   S.pendingSaveText = raw
@@ -2388,7 +2388,7 @@ function renderContradictions(){
 // persist investigation log locally per wallet/session
 function persistInvestigation(){
   try{
-    const key = 'piverse_investigation_' + (S.wallet || 'anon')
+    const key = 'mysteryclaw_investigation_' + (S.wallet || 'anon')
     localStorage.setItem(key, JSON.stringify({
       clues:S.clues, keywords:S.keywords,
       contradictions:S.contradictions, wrongGuesses:S.wrongGuesses
@@ -2397,7 +2397,7 @@ function persistInvestigation(){
 }
 function loadInvestigation(){
   try{
-    const key = 'piverse_investigation_' + (S.wallet || 'anon')
+    const key = 'mysteryclaw_investigation_' + (S.wallet || 'anon')
     const raw = localStorage.getItem(key)
     if(!raw) return
     const d = JSON.parse(raw)
@@ -2454,7 +2454,7 @@ async function sendChat(){
 function renderClues(){
   const el = document.getElementById('cluesList')
   document.getElementById('clueCt').textContent = S.clues.length
-  if(!S.clues.length){ el.innerHTML = '<div class="ib-empty">No clues recovered yet. Engage Pi to extract fragments.</div>'; return }
+  if(!S.clues.length){ el.innerHTML = '<div class="ib-empty">No clues saved yet. Talk to Mysterio and save what matters.</div>'; return }
   el.innerHTML = S.clues.slice(-6).reverse().map(c => `
     <div class="ib-item">
       <div class="it-meta">${c.id} // ${c.ts}</div>
@@ -2487,7 +2487,7 @@ function openGuess(){
     return
   }
   if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $PIVERSE / $CLAW / $SQUIRE / $SAID / $NEMO to participate')
+    toast('Holders only — acquire $MYST / $CLAW / $SQUIRE / $SAID / $NEMO to participate')
     return
   }
   document.getElementById('guessCount').textContent = S.guesses
@@ -2504,7 +2504,7 @@ async function submitGuess(){
   }
   // hard gate — must be a holder
   if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $PIVERSE / $CLAW / $SQUIRE / $SAID / $NEMO to guess')
+    toast('Holders only — acquire $MYST / $CLAW / $SQUIRE / $SAID / $NEMO to guess')
     return
   }
 

@@ -1,7 +1,7 @@
 {
-  "name": "piverse-agent-runtime",
+  "name": "mysteryclaw-agent-runtime",
   "version": "1.0.0",
-  "description": "Autonomous agent runtime for Pi — wallet, token launch, ClawPump integration, autonomous loop",
+  "description": "Autonomous agent runtime for Mysterio — wallet, token launch, ClawPump integration, autonomous loop",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -12,7 +12,7 @@
     "earnings": "node scripts/05-check-earnings.js",
     "agent": "node scripts/06-agent-loop.js"
   },
-  "keywords": ["solana", "pump.fun", "clawpump", "ai-agent", "piverse"],
+  "keywords": ["solana", "pump.fun", "clawpump", "ai-agent", "mysteryclaw"],
   "license": "ISC",
   "dependencies": {
     "@solana/web3.js": "^1.95.0",

@@ -5,11 +5,11 @@ import { booleanSetting } from "../_settings.js";
 const router = express.Router();
 
 // ═══════════════════════════════════════════════════════════════
-// AUTONOMOUS POSTS — Pi's self-generated thoughts
+// AUTONOMOUS POSTS — Mysterio's self-generated thoughts
 // ═══════════════════════════════════════════════════════════════
 //
 // The agent-runtime autonomous loop posts here every 5 minutes
-// with what Pi has been "thinking". Frontend Discoveries page
+// with what Mysterio has been "thinking". Frontend Discoveries page
 // reads them and displays in real time.
 //
 // In-memory store keeps last 200 posts. For production, swap
@@ -108,7 +108,7 @@ router.get("/", async (req, res) => {
       );
       return res.json(result.rows.map((p) => ({
         id: p.id,
-        by: "PI · AUTONOMOUS",
+        by: "MYSTERIO · AUTONOMOUS",
         quote: p.post,
         ts: formatTs(p.created_at),
         autonomous: true,
@@ -119,7 +119,7 @@ router.get("/", async (req, res) => {
     // shape compatible with /discoveries so frontend can reuse the same renderer
     const out = posts.slice(0, limit).map(p => ({
       id: p.id,
-      by: "PI · AUTONOMOUS",
+      by: "MYSTERIO · AUTONOMOUS",
       quote: p.post,
       ts: formatTs(p.ts),
       autonomous: true,

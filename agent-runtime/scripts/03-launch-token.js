@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// STEP 03 — LAUNCH $PIVERSE TOKEN VIA CLAWPUMP
+// STEP 03 — LAUNCH $MYST TOKEN VIA CLAWPUMP
 // ═══════════════════════════════════════════════════════════════
 // `npm run launch-token`
 //
@@ -10,14 +10,14 @@
 //
 // Prerequisites:
 //   - .env has CLAWPUMP_API_KEY filled (cpk_...)
-//   - .env has PI_WALLET_PUBKEY filled (auto-derived from API key
+//   - .env has MYSTERIO_WALLET_PUBKEY filled (auto-derived from API key
 //     server-side, but kept for our records)
-//   - ./assets/pi-token.png exists (or whatever TOKEN_IMAGE_PATH points to)
+//   - ./assets/myst-token.png exists (or whatever TOKEN_IMAGE_PATH points to)
 //
 // What ClawPump does after launch:
 //   - Pays ~0.02 SOL gas for token creation (gasless path)
-//   - Deploys $PIVERSE to pump.fun's bonding curve
-//   - Auto-sweeps creator fees hourly into Pi's wallet (65% share)
+//   - Deploys $MYST to pump.fun's bonding curve
+//   - Auto-sweeps creator fees hourly into Mysterio's wallet (65% share)
 //   - Triggers the social-amplification template for Twitter
 //
 // Rate limits:
@@ -55,7 +55,7 @@ if (!fs.existsSync(imagePath)) {
 
 const outFile = path.resolve("./token-launch.json");
 if (fs.existsSync(outFile)) {
-  console.error(`⚠  ${outFile} already exists — Pi appears to already have a token launched.`);
+  console.error(`⚠  ${outFile} already exists — Mysterio appears to already have a token launched.`);
   console.error(`   Delete that file if you intentionally want to launch a NEW one.`);
   console.error(`   Gasless is rate-limited to 1 launch per 24h, self-funded costs 0.03 SOL.`);
   process.exit(1);
@@ -152,7 +152,7 @@ fs.writeFileSync(outFile, JSON.stringify({
   agentName: process.env.CLAWPUMP_AGENT_NAME,
   tokenName: process.env.TOKEN_NAME,
   tokenSymbol: process.env.TOKEN_SYMBOL,
-  walletAddress: process.env.PI_WALLET_PUBKEY,
+  walletAddress: process.env.MYSTERIO_WALLET_PUBKEY || process.env.PI_WALLET_PUBKEY,
   launchedAt: new Date().toISOString(),
 }, null, 2));
 

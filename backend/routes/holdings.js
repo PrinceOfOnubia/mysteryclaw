@@ -5,10 +5,10 @@ import { normalizePubkey } from "../_walletAuth.js";
 const router = express.Router();
 
 // ═══════════════════════════════════════════════════════════════
-// PIVERSE TOKEN HOLDINGS ENDPOINT
+// MYST TOKEN HOLDINGS ENDPOINT
 // ═══════════════════════════════════════════════════════════════
 //
-// Verify that a Phantom wallet holds at least one PiVerse access
+// Verify that a Phantom wallet holds at least one MysteryClaw access
 // token. Frontend calls this after wallet connect.
 //
 // All the heavy lifting (Solana RPC, caching, the token list) lives
@@ -16,7 +16,7 @@ const router = express.Router();
 // never drift apart.
 //
 // Response:
-//   { holdings: { PIVERSE:0, CLAW:12000, SQUIRE:0, SAID:5000, NEMO:0 },
+//   { holdings: { MYST:0, CLAW:12000, SQUIRE:0, SAID:5000, NEMO:0 },
 //     hasAccess: true }
 //
 // Requires SOLANA_RPC env var. Without it, returns all-zeros +

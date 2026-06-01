@@ -1,6 +1,6 @@
-# Pi — True Agent Architecture
+# Mysterio — True Agent Architecture
 
-This folder contains the **agentic brain** of Pi. The old `04-autonomous-loop.js` ran a fixed cron-job that always generated a post. This v2 system replaces that with **real agency**: Pi has tools, makes decisions, and remembers.
+This folder contains the **agentic brain** of Mysterio. The old `04-autonomous-loop.js` ran a fixed cron-job that always generated a post. This v2 system replaces that with **real agency**: Mysterio has tools, makes decisions, and remembers.
 
 ---
 
@@ -8,13 +8,13 @@ This folder contains the **agentic brain** of Pi. The old `04-autonomous-loop.js
 
 Five things distinguish an agent from a scheduled task:
 
-| Property | Cron bot | Pi v2 |
+| Property | Cron bot | Mysterio v2 |
 |---|---|---|
 | Choice of action | None — always does the same thing | ✅ Picks from 4 tools via LLM function calling |
 | Memory | Only the last log line | ✅ Persistent JSON across reboots, fed back as context |
 | Goals | Hardcoded behavior | ✅ Explicit goals shape every decision |
-| Self-reflection | None | ✅ `reflect` tool lets Pi journal about its own patterns |
-| Failure recovery | Crashes or repeats | ✅ Failures recorded as tool stats, Pi adapts |
+| Self-reflection | None | ✅ `reflect` tool lets Mysterio journal about its own patterns |
+| Failure recovery | Crashes or repeats | ✅ Failures recorded as tool stats, Mysterio adapts |
 
 ---
 
@@ -35,7 +35,7 @@ Five things distinguish an agent from a scheduled task:
                      ▼
 ┌──────────────────────────────────────────────────────┐
 │  agent-core/memory.js                                │
-│  Loads pi-memory.json — past decisions, reflections, │
+│  Loads mysterio-memory.json — past decisions, reflections, │
 │  goals, tool performance stats                       │
 └────────────────────┬─────────────────────────────────┘
                      │
@@ -59,7 +59,7 @@ Five things distinguish an agent from a scheduled task:
        │
        ▼
 ┌──────────────────────────────────────────────────────┐
-│  Each result + reasoning saved to pi-memory.json     │
+│  Each result + reasoning saved to mysterio-memory.json     │
 │  Next tick sees this history as context              │
 └──────────────────────────────────────────────────────┘
 ```
@@ -76,15 +76,15 @@ Five things distinguish an agent from a scheduled task:
 ### Simulated by default, real with `EXECUTE_REAL_TXNS=true`
 - **`tweet`** — post to X. Real implementation needs Twitter API keys (TODO block in tool source).
 
-**Why simulated by default?** Because tweeting is a one-way action with social risk. We want Pi making **real decisions** about whether to do it, but not actually firing until you've reviewed the decision logs and trust the behavior.
+**Why simulated by default?** Because tweeting is a one-way action with social risk. We want Mysterio making **real decisions** about whether to do it, but not actually firing until you've reviewed the decision logs and trust the behavior.
 
 ---
 
-## Persistent memory schema (`pi-memory.json`)
+## Persistent memory schema (`mysterio-memory.json`)
 
 ```json
 {
-  "identity": { "name": "Pi", "wallet": "...", "tokenMint": "..." },
+  "identity": { "name": "Mysterio", "wallet": "...", "tokenMint": "..." },
   "goals": [
     { "id": "G1", "text": "Grow community sustainably", "priority": 1 }
   ],
@@ -110,7 +110,7 @@ Five things distinguish an agent from a scheduled task:
 }
 ```
 
-Every tick, the LLM sees a compact view of this memory (goals + last 8 decisions + last 3 reflections + tool perf) before choosing what to do next. This is what makes Pi adaptive.
+Every tick, the LLM sees a compact view of this memory (goals + last 8 decisions + last 3 reflections + tool perf) before choosing what to do next. This is what makes Mysterio adaptive.
 
 ---
 
@@ -138,9 +138,9 @@ You'll see ticks like:
 
 ### Production
 ```bash
-pm2 start scripts/06-agent-loop.js --name pi-agent
+pm2 start scripts/06-agent-loop.js --name mysterio-agent
 pm2 save
-pm2 logs pi-agent
+pm2 logs mysterio-agent
 ```
 
 To enable real tweets (after testing):
@@ -151,7 +151,7 @@ TWITTER_API_KEY=...
 TWITTER_API_SECRET=...
 TWITTER_ACCESS_TOKEN=...
 TWITTER_ACCESS_SECRET=...
-pm2 restart pi-agent
+pm2 restart mysterio-agent
 ```
 
 ---
@@ -178,7 +178,7 @@ pm2 restart pi-agent
 |---|---|---|
 | Always posts | ✅ | ❌ — can choose silence |
 | Tool calling | ❌ | ✅ — 4 tools |
-| Memory persistence | ❌ (just logs) | ✅ `pi-memory.json` |
+| Memory persistence | ❌ (just logs) | ✅ `mysterio-memory.json` |
 | Reflection | ❌ | ✅ `reflect` tool |
 | Tweet capability | ❌ | ✅ (simulated by default) |
 | Goal-oriented prompt | ❌ | ✅ Explicit goal list |

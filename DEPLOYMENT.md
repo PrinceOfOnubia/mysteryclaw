@@ -1,10 +1,10 @@
-# PiVerse — Production Deployment Guide
+# MysteryClaw — Production Deployment Guide
 
 **For: Backend Developer**
 **Stack:** Node.js (Express) backend + static frontend (already deployed on Vercel) + autonomous agent runtime
 **Estimated setup time:** 60–90 minutes
 
-This guide walks through everything needed to take PiVerse from code to a fully working production deployment.
+This guide walks through everything needed to take MysteryClaw from code to a fully working production deployment.
 
 ---
 
@@ -31,7 +31,7 @@ This guide walks through everything needed to take PiVerse from code to a fully 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  FRONTEND (Vercel)                                       │
-│  https://piverse.fun                                     │
+│  https://mysteryclaw.fun                                     │
 │  Static index.html — talks to backend via API_BASE       │
 └────────────┬─────────────────────────────────────────────┘
              │ HTTPS
@@ -41,13 +41,13 @@ This guide walks through everything needed to take PiVerse from code to a fully 
 │  https://piverse-production.up.railway.app              │
 │                                                          │
 │  Express app with production safety endpoints:           │
-│    POST /chat        — Pi adversarial chat               │
+│    POST /chat        — Mysterio adversarial chat               │
 │    POST /auth/nonce  — wallet signature challenge        │
 │    POST /guess       — signed word verification          │
 │    POST /holdings    — Solana RPC token check  [TODO]    │
 │    GET  /stats       — live counters           [TODO]    │
 │    GET  /discoveries — community fragments     [TODO]    │
-│    POST /autonomous  — Pi's self-posts (auth)            │
+│    POST /autonomous  — Mysterio's self-posts (auth)            │
 │    GET  /autonomous  — read autonomous feed              │
 └────────────┬─────────────────────────────────────────────┘
              │
@@ -57,8 +57,8 @@ This guide walks through everything needed to take PiVerse from code to a fully 
 ┌─────────────┐  ┌──────────────────────────────────────┐
 │ OpenAI      │  │ AGENT RUNTIME (separate process)     │
 │ API         │  │ pm2 / systemd on VPS                 │
-│ (chat LLM)  │  │ - Owns Pi's Solana wallet            │
-└─────────────┘  │ - Can launch $PIVERSE later via ClawPump │
+│ (chat LLM)  │  │ - Owns Mysterio's Solana wallet            │
+└─────────────┘  │ - Can launch $MYST later via ClawPump │
                  │ - Runs autonomous loop 24/7          │
                  │ - Posts to /autonomous every 5 min   │
                  └─────────┬────────────────────────────┘
@@ -66,7 +66,7 @@ This guide walks through everything needed to take PiVerse from code to a fully 
                            ▼
                  ┌──────────────────────────┐
                  │ Solana mainnet           │
-                 │ - $PIVERSE on pump.fun   │
+                 │ - $MYST on pump.fun   │
                  │ - Token gate verification│
                  │ - Prize payouts (USDC)   │
                  └──────────────────────────┘
@@ -82,7 +82,7 @@ You need accounts on:
 |---|---|---|
 | **Railway** | Host the backend | Hobby tier works for MVP |
 | **Helius** (or QuickNode / Triton) | Paid Solana RPC | Free tier: 100k requests/day |
-| **OpenAI** | LLM API for Pi's responses | see OpenAI pricing for current model rates |
+| **OpenAI** | LLM API for Mysterio's responses | see OpenAI pricing for current model rates |
 | **ClawPump** | AI-agent token launchpad | Free (gasless tier) |
 | **GitHub** | Code repo | Free |
 
@@ -101,8 +101,8 @@ Local tooling:
 cd backend
 git init
 git add .
-git commit -m "Initial PiVerse backend"
-git remote add origin https://github.com/<your-org>/piverse-backend.git
+git commit -m "Initial MysteryClaw backend"
+git remote add origin https://github.com/<your-org>/mysteryclaw-backend.git
 git push -u origin main
 ```
 
@@ -135,7 +135,7 @@ After the deploy finishes, hit the Railway URL in a browser — you should see:
 
 ```json
 {
-  "name": "PiVerse",
+  "name": "MysteryClaw",
   "tagline": "Infrastructure for Adversarial AI Experiences",
   "endpoints": { ... }
 }
@@ -144,7 +144,7 @@ After the deploy finishes, hit the Railway URL in a browser — you should see:
 ### 3.3 Test endpoints
 
 ```bash
-# Pi chat
+# Mysterio chat
 curl -X POST https://<your-railway-service>.up.railway.app/chat \
   -H "Content-Type: application/json" \
   -d '{"message":"who are you","userId":"test"}'
@@ -175,12 +175,16 @@ Set these in Railway dashboard → your service → **Environment** tab.
 | `SOLANA_CLUSTER` | ✅ Yes | `mainnet` | Mainnet-only deployment |
 | `REQUIRE_HOLDER` | ⚠️ Keep false for MVP | `false` | Do not set true until /holdings is verified |
 | `AGENT_KEY` | ✅ Yes (for /autonomous) | Generate: `openssl rand -hex 24` | Same value in agent-runtime/.env |
-| `ADMIN_KEY` | ✅ Yes | Generate: `openssl rand -hex 32` | Required for admin-only payout trigger |
+| `ADMIN_WALLET` | ✅ Yes | Phantom wallet pubkey | Normal `/admin` login signer |
+| `ADMIN_SESSION_SECRET` | ✅ Yes | Generate: `openssl rand -hex 32` | Signs short-lived admin sessions |
+| `ADMIN_KEY` | Emergency fallback | Generate: `openssl rand -hex 32` | Manual API fallback only; do not use as normal frontend auth |
 | `PORT` | No | `3000` | Railway sets this automatically |
-| `CORS_ORIGIN` | ✅ Recommended | `https://piverse.fun,https://www.piverse.fun,https://piverse.vercel.app` | Comma-separated for multiple; whitespace is trimmed |
+| `CORS_ORIGIN` | ✅ Recommended | `https://mysteryclaw.fun,https://www.mysteryclaw.fun,https://mysteryclaw.vercel.app` | Comma-separated for multiple; whitespace is trimmed |
 | `PAYOUTS_ENABLED` | ✅ Yes | `false` | Keep false until final real-money review |
 | `TREASURY_PRIVKEY` | Only when enabling payouts | empty | Base58 treasury secret, never commit |
 | `USDC_MINT` | ✅ Yes | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | Mainnet USDC |
+| `AGENT_WALLET_PUBKEY` | Optional | Mysterio wallet pubkey | Shows wallet address in admin status |
+| `MYST_TOKEN_MINT` | Optional until launch | Mint pubkey | Shows token launch status after launch |
 
 **To generate AGENT_KEY:**
 ```bash
@@ -305,7 +309,7 @@ curl -X POST https://<your-railway-service>.up.railway.app/holdings \
   -d '{"pubkey":"<real_phantom_pubkey>"}'
 
 # Expected:
-# { "holdings": {"PIVERSE":0,"CLAW":12000,"SQUIRE":0,"SAID":0,"NEMO":0}, "hasAccess": true }
+# { "holdings": {"MYST":0,"CLAW":12000,"SQUIRE":0,"SAID":0,"NEMO":0}, "hasAccess": true }
 ```
 
 ---
@@ -367,7 +371,7 @@ The frontend has a fallback array of mock fragments, so this is not blocking. Wh
 
 ## 8. Agent Runtime Deployment
 
-This is **a separate deployment** from the backend. It owns Pi's Solana wallet, launched the `$PIVERSE` token, and runs the autonomous loop 24/7.
+This is **a separate deployment** from the backend. It owns Mysterio's Solana wallet, launched the `$MYST` token, and runs the autonomous loop 24/7.
 
 **Recommended host:** a small VPS (DigitalOcean $4/mo, Hetzner €3/mo, AWS Lightsail $3.50/mo). Railway works too but introduces unnecessary HTTP layer.
 
@@ -390,19 +394,19 @@ sudo npm install -g pm2
 
 ```bash
 git clone https://github.com/PrinceOfOnubia/piverse.git
-cd piverse/agent-runtime
+cd mysteryclaw/agent-runtime
 npm install
 ```
 
-### 8.4 Generate Pi's wallet
+### 8.4 Generate Mysterio's wallet
 
 ```bash
 npm run create-wallet
 ```
 
-This generates `pi-wallet.json` and prints `.env`-ready variables.
+This generates `agent-wallet.json` and prints `.env`-ready variables.
 
-**⚠️ CRITICAL:** back up `pi-wallet.json` to an encrypted location (1Password, encrypted USB, etc). If lost, Pi's funds are unrecoverable.
+**⚠️ CRITICAL:** back up `agent-wallet.json` to an encrypted location (1Password, encrypted USB, etc). If lost, Mysterio's funds are unrecoverable.
 
 ### 8.5 Get ClawPump API key
 
@@ -419,10 +423,10 @@ nano .env
 ```
 
 Fill in:
-- `PI_WALLET_PUBKEY` and `PI_WALLET_SECRET` (from step 8.4 output)
+- `MYSTERIO_WALLET_PUBKEY` and `MYSTERIO_WALLET_SECRET` (from step 8.4 output)
 - `CLAWPUMP_API_KEY` (from step 8.5)
 - `OPENAI_API_KEY` (same OpenAI API key as backend)
-- `PIVERSE_API=https://<your-railway-service>.up.railway.app`
+- `MYSTERYCLAW_API=https://<your-railway-service>.up.railway.app`
 - `AGENT_KEY` (same value as on Railway — without this `/autonomous` push fails with 401)
 
 ### 8.7 Convert token image
@@ -431,10 +435,10 @@ ClawPump needs PNG/JPG, not SVG:
 
 ```bash
 sudo apt install librsvg2-bin
-rsvg-convert -w 1024 -h 1024 assets/pi-token.svg -o assets/pi-token.png
+rsvg-convert -w 1024 -h 1024 assets/myst-token.svg -o assets/myst-token.png
 ```
 
-### 8.8 Launch $PIVERSE on pump.fun later
+### 8.8 Launch $MYST on pump.fun later
 
 ```bash
 npm run launch-token
@@ -451,24 +455,24 @@ Do not run this until the token launch is intentionally approved.
 
 After successful launch, copy the `mintAddress` from `token-launch.json` and update:
 
-1. **`frontend/index.html`** — find `PIVERSE_MINT_TBD_AFTER_LAUNCH` (appears twice in `TOKENS` array), replace both
+1. **`frontend/index.html`** — find `MYST_MINT_TBD_AFTER_LAUNCH` (appears twice in `TOKENS` array), replace both
 2. **`backend/routes/holdings.js`** — find the same placeholder in `ACCESS_TOKENS`, replace
 3. Commit and redeploy frontend (`vercel --prod`) and backend (auto-deploys on push to main)
 
 ### 8.10 Start the autonomous loop
 
 ```bash
-pm2 start scripts/04-autonomous-loop.js --name pi-loop
+pm2 start scripts/04-autonomous-loop.js --name mysterio-loop
 pm2 save
 pm2 startup  # makes pm2 survive reboots — follow the printed instructions
 ```
 
 Check it's running:
 ```bash
-pm2 logs pi-loop
+pm2 logs mysterio-loop
 ```
 
-You should see a tick every 5 minutes. Within 30 seconds the first post should appear at https://piverse.fun/discoveries.
+You should see a tick every 5 minutes. Within 30 seconds the first post should appear at https://mysteryclaw.fun/discoveries.
 
 ---
 
@@ -493,9 +497,9 @@ const configuredOrigins = (process.env.CORS_ORIGIN || "")
   .filter(Boolean);
 
 const allowedOrigins = new Set([
-  "https://piverse.fun",
-  "https://www.piverse.fun",
-  "https://piverse.vercel.app",
+  "https://mysteryclaw.fun",
+  "https://www.mysteryclaw.fun",
+  "https://mysteryclaw.vercel.app",
   ...configuredOrigins,
 ]);
 
@@ -513,7 +517,7 @@ app.use(cors({
 }));
 ```
 
-Set `CORS_ORIGIN=https://piverse.fun,https://www.piverse.fun,https://piverse.vercel.app` on Railway. Vercel preview URLs are allowed by pattern.
+Set `CORS_ORIGIN=https://mysteryclaw.fun,https://www.mysteryclaw.fun,https://mysteryclaw.vercel.app` on Railway. Vercel preview URLs are allowed by pattern.
 
 ### 9.2 Add IP-based rate limit
 
@@ -626,13 +630,13 @@ The frontend is already deployed on Vercel. After your backend is working:
 ### 11.1 Update API_BASE if URL changed
 
 After Railway gives you a backend URL, point the frontend at it. The current frontend supports:
-- `window.PIVERSE_CONFIG.API_BASE`
+- `window.MYSTERYCLAW_CONFIG.API_BASE`
 - `?api=https://<your-railway-service>.up.railway.app`
 - the `DEFAULT_API_BASE` constant in `frontend/index.html`
 
 For production, set the backend URL to your generated Railway domain:
 ```js
-window.PIVERSE_CONFIG = {
+window.MYSTERYCLAW_CONFIG = {
   API_BASE: "https://<your-railway-service>.up.railway.app"
 }
 ```
@@ -645,15 +649,15 @@ vercel --prod
 
 ### 11.2 Update token mint address
 
-After `$PIVERSE` is launched (section 8), update both files with the real mint:
-- `frontend/index.html` → `TOKENS` array (2 occurrences of `PIVERSE_MINT_TBD_AFTER_LAUNCH`)
+After `$MYST` is launched (section 8), update both files with the real mint:
+- `frontend/index.html` → `TOKENS` array (2 occurrences of `MYST_MINT_TBD_AFTER_LAUNCH`)
 - `backend/routes/holdings.js` → `ACCESS_TOKENS` object
 
 Commit and push.
 
 ### 11.3 Domain (optional)
 
-Connect a custom domain in Vercel dashboard → Settings → Domains. Recommended: `piverse.app` or `piverse.xyz`. Vercel handles SSL automatically.
+Connect a custom domain in Vercel dashboard → Settings → Domains. Recommended: `mysteryclaw.app` or `mysteryclaw.xyz`. Vercel handles SSL automatically.
 
 ---
 
@@ -662,7 +666,7 @@ Connect a custom domain in Vercel dashboard → Settings → Domains. Recommende
 The admin panel is hidden at:
 
 ```text
-https://piverse.fun/admin
+https://mysteryclaw.fun/admin
 ```
 
 There is no public nav link. It requires the configured `ADMIN_WALLET` in Phantom. The browser asks the backend for a nonce, Phantom signs the exact admin login message, and the backend verifies the Solana signature before returning a short-lived admin session token.
@@ -686,8 +690,8 @@ Optional server-side env vars for admin visibility/control:
 ```env
 ADMIN_WALLET=
 ADMIN_SESSION_SECRET=
-PI_WALLET_PUBKEY=
-PIVERSE_TOKEN_MINT=
+AGENT_WALLET_PUBKEY=
+MYST_TOKEN_MINT=
 AGENT_CONTROL_URL=
 AGENT_CONTROL_KEY=
 ```
@@ -704,7 +708,7 @@ Before announcing publicly, verify:
 - [ ] All env vars set in Railway
 - [ ] `ADMIN_WALLET` set and `/admin/api/status` rejects without verified admin session auth
 - [ ] `ADMIN_KEY` stored only as emergency/manual fallback
-- [ ] `/chat` returns Pi's adversarial responses (not generic "I'm an AI")
+- [ ] `/chat` returns Mysterio's adversarial responses (not generic "I'm an AI")
 - [ ] `/guess` rejects without pubkey (401)
 - [ ] `/guess` enforces 10/24h rate limit per wallet
 - [ ] `/holdings` returns real on-chain balances (not stub `{...:0}`)
@@ -725,12 +729,12 @@ Before announcing publicly, verify:
 - [ ] Discoveries page polls `/autonomous` and shows live posts when loop is active
 
 ### Agent Runtime
-- [ ] Pi's wallet generated and `pi-wallet.json` backed up offline
-- [ ] `$PIVERSE` token launch intentionally approved
+- [ ] Mysterio's wallet generated and `agent-wallet.json` backed up offline
+- [ ] `$MYST` token launch intentionally approved
 - [ ] Mint address updated in frontend + backend
 - [ ] `npm run earnings` returns real data
-- [ ] `pm2 list` shows `pi-loop` as `online`
-- [ ] `pm2 logs pi-loop` shows successful ticks
+- [ ] `pm2 list` shows `mysterio-loop` as `online`
+- [ ] `pm2 logs mysterio-loop` shows successful ticks
 - [ ] Frontend `/discoveries` shows posts appearing every ~5 min
 
 ### Prize Pool (if enabled)
@@ -742,7 +746,7 @@ Before announcing publicly, verify:
 - [ ] No `winners.json` dependency in production
 
 ### Security
-- [ ] `.env` and `pi-wallet.json` NOT in git history (run `git log --all -- pi-wallet.json` to verify)
+- [ ] `.env` and `agent-wallet.json` NOT in git history (run `git log --all -- agent-wallet.json` to verify)
 - [ ] `treasury.json` NOT in git
 - [ ] Admin panel does not expose private keys or API keys in responses
 - [ ] OpenAI API key not exposed in frontend or logs
@@ -765,12 +769,12 @@ Before announcing publicly, verify:
 ### pm2 (Agent Runtime)
 ```bash
 pm2 status               # see all processes
-pm2 logs pi-loop         # tail logs
-pm2 restart pi-loop      # restart after code change
+pm2 logs mysterio-loop         # tail logs
+pm2 restart mysterio-loop      # restart after code change
 pm2 monit                # real-time CPU/memory dashboard
 ```
 
-### Pi's earnings
+### Mysterio's earnings
 ```bash
 cd agent-runtime
 npm run earnings
@@ -808,7 +812,7 @@ Check ClawPump leaderboard: https://clawpump.tech/leaderboard
 ## Final notes
 
 - **`backend/`** code is in this folder
-- **`agent-runtime/`** is the separate process for Pi's eternal-agent layer
+- **`agent-runtime/`** is the separate process for Mysterio's eternal-agent layer
 - **`frontend/`** is already deployed on Vercel — no changes needed unless API_BASE or token mint changes
 - See `BACKEND_CONTRACT.md` for full API specs of every endpoint
 - See `agent-runtime/README.md` for token launch details

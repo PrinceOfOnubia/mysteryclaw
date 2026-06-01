@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════════════════════════════
 // TOOL: stay_silent
 // ═══════════════════════════════════════════════════════════════
-// Pi consciously chooses to do nothing this tick. This is a REAL
+// Mysterio consciously chooses to do nothing this tick. This is a REAL
 // agent decision — most cron bots can't do this. Adds narrative
-// scarcity (Pi doesn't spam) and lets Pi conserve compute.
+// scarcity (Mysterio doesn't spam) and lets Mysterio conserve compute.
 // ═══════════════════════════════════════════════════════════════
 
 export const definition = {

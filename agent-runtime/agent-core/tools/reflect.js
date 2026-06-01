@@ -1,12 +1,12 @@
 // ═══════════════════════════════════════════════════════════════
 // TOOL: reflect
 // ═══════════════════════════════════════════════════════════════
-// Pi writes a private journal entry about its own state, recent
+// Mysterio writes a private journal entry about its own state, recent
 // performance, or strategy adjustments. This is NOT posted publicly.
-// It's stored in pi-memory.json and fed back to Pi on the next tick
+// It's stored in mysterio-memory.json and fed back to Mysterio on the next tick
 // so it can build long-term strategy.
 //
-// This is the closest thing Pi has to "thinking out loud about itself."
+// This is the closest thing Mysterio has to "thinking out loud about itself."
 // ═══════════════════════════════════════════════════════════════
 
 import { recordReflection } from "../memory.js";

@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════════════
 // TOOL: post_thought
 // ═══════════════════════════════════════════════════════════════
-// Pi posts an autonomous thought to the PiVerse Discoveries feed.
-// This is the most-used tool — but Pi can now CHOOSE not to use it.
+// Mysterio posts an autonomous thought to the MysteryClaw Discoveries feed.
+// This is the most-used tool — but Mysterio can now CHOOSE not to use it.
 // Silence is also valid.
 // ═══════════════════════════════════════════════════════════════
 
@@ -32,15 +32,16 @@ export async function execute({ text, mood }, ctx) {
   if (!text || text.length > 600) {
     return { ok: false, error: "text invalid or too long" };
   }
-  if (!process.env.PIVERSE_API) {
-    return { ok: false, error: "PIVERSE_API not configured" };
+  const apiBase = process.env.MYSTERYCLAW_API;
+  if (!apiBase) {
+    return { ok: false, error: "MYSTERYCLAW_API not configured" };
   }
 
   const headers = { "Content-Type": "application/json" };
   if (process.env.AGENT_KEY) headers["x-agent-key"] = process.env.AGENT_KEY;
 
   try {
-    const r = await fetch(process.env.PIVERSE_API + "/autonomous", {
+    const r = await fetch(apiBase + "/autonomous", {
       method: "POST",
       headers,
       body: JSON.stringify({

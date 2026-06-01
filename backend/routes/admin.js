@@ -56,7 +56,7 @@ router.get("/api/status", async (req, res) => {
       payoutsEnabled: process.env.PAYOUTS_ENABLED === "true",
       requireHolder: process.env.REQUIRE_HOLDER === "true",
       agent: {
-        wallet: process.env.PI_WALLET_PUBKEY || null,
+        wallet: process.env.AGENT_WALLET_PUBKEY || process.env.MYSTERIO_WALLET_PUBKEY || process.env.PI_WALLET_PUBKEY || null,
         actionsPaused: settings.agent_actions_paused === "true",
         controlConfigured: Boolean(process.env.AGENT_CONTROL_URL),
       },
@@ -141,7 +141,7 @@ router.post("/api/payout", async (req, res) => {
 
 router.post("/api/token/launch", async (req, res) => {
   try {
-    if (req.body?.confirm !== "LAUNCH PIVERSE") {
+    if (req.body?.confirm !== "LAUNCH MYST") {
       return res.status(400).json({ error: "confirmation_required" });
     }
 
@@ -165,7 +165,7 @@ router.post("/api/token/launch", async (req, res) => {
     const response = await fetch(`${process.env.AGENT_CONTROL_URL.replace(/\/$/, "")}/launch-token`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ confirm: "LAUNCH PIVERSE" }),
+      body: JSON.stringify({ confirm: "LAUNCH MYST" }),
     });
     const text = await response.text();
     await auditLog("admin_token_launch_forwarded", {
@@ -214,7 +214,7 @@ router.post("/api/agent/restart", async (req, res) => {
     const response = await fetch(`${process.env.AGENT_CONTROL_URL.replace(/\/$/, "")}/restart`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ confirm: "RESTART PI AGENT" }),
+      body: JSON.stringify({ confirm: "RESTART MYSTERIO AGENT" }),
     });
     const text = await response.text();
     await auditLog("admin_agent_restart_forwarded", { actor: req.adminActor, status: response.status });
@@ -250,7 +250,7 @@ function requireAdmin(req, res, next) {
 }
 
 function getTokenLaunchStatus() {
-  const mint = process.env.PIVERSE_TOKEN_MINT || process.env.TOKEN_MINT || null;
+  const mint = process.env.MYST_TOKEN_MINT || process.env.TOKEN_MINT || null;
   const fileExists = fs.existsSync(TOKEN_LAUNCH_FILE);
   return {
     launched: Boolean(mint || fileExists),

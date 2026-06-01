@@ -23,7 +23,7 @@ export async function createWalletChallenge(pubkey) {
   const issuedAt = new Date();
   const expiresAt = new Date(issuedAt.getTime() + NONCE_TTL_MS);
   const message = [
-    "PiVerse wallet verification",
+    "MysteryClaw wallet verification",
     `Wallet: ${wallet}`,
     `Nonce: ${nonce}`,
     `Issued At: ${issuedAt.toISOString()}`,

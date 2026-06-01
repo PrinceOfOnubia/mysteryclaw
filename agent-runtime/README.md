@@ -1,10 +1,10 @@
-# PIVERSE AGENT RUNTIME
+# MYST AGENT RUNTIME
 
-This is **Pi's autonomous layer**. The conversational Pi lives in `../backend` and just answers chat. This runtime makes Pi an **eternal agent** in the ClawPump sense — it owns a wallet, launches its own token, earns SOL from creator fees, and runs an autonomous loop reacting to its own data.
+This is **Mysterio's autonomous layer**. The conversational Mysterio lives in `../backend` and just answers chat. This runtime makes Mysterio an **eternal agent** in the ClawPump sense — it owns a wallet, launches its own token, earns SOL from creator fees, and runs an autonomous loop reacting to its own data.
 
 ---
 
-## What this submits Pi as on ClawPump
+## What this submits Mysterio as on ClawPump
 
 Per [`clawpump.tech/skill.md`](https://www.clawpump.tech/skill.md), an "eternal agent on Solana" is one that:
 
@@ -13,7 +13,7 @@ Per [`clawpump.tech/skill.md`](https://www.clawpump.tech/skill.md), an "eternal 
 3. ✅ Receives 65% of creator fees automatically (auto-distributed hourly)
 4. ✅ (Optionally) acts autonomously — self-funded compute, reacts to its environment
 
-This runtime gives Pi all four. After running through the 5 steps below, Pi has its own `$PIVERSE` token on pump.fun, is earning SOL passively, and can be left running 24/7 to act on its own.
+This runtime gives Mysterio all four. After running through the 5 steps below, Mysterio has its own `$MYST` token on pump.fun, is earning SOL passively, and can be left running 24/7 to act on its own.
 
 ---
 
@@ -25,13 +25,13 @@ cd agent-runtime
 npm install
 ```
 
-### 2. Create Pi's wallet (one-time)
+### 2. Create Mysterio's wallet (one-time)
 ```bash
 npm run create-wallet
 ```
-This generates a Solana keypair, saves it to `./pi-wallet.json` (mode 600), and prints `PI_WALLET_PUBKEY` + `PI_WALLET_SECRET` to paste into `.env`.
+This generates a Solana keypair, saves it to `./agent-wallet.json` (mode 600), and prints `MYSTERIO_WALLET_PUBKEY` + `MYSTERIO_WALLET_SECRET` to paste into `.env`.
 
-⚠️ **BACK UP `pi-wallet.json`**. If you lose it, Pi's funds are unrecoverable.
+⚠️ **BACK UP `agent-wallet.json`**. If you lose it, Mysterio's funds are unrecoverable.
 
 ### 3. Configure `.env`
 
@@ -41,10 +41,10 @@ nano .env
 ```
 
 Fill in:
-- `PI_WALLET_PUBKEY` and `PI_WALLET_SECRET` from step 2
+- `MYSTERIO_WALLET_PUBKEY` and `MYSTERIO_WALLET_SECRET` from step 2
 - `CLAWPUMP_API_KEY` — get this by logging in with Google at https://clawpump.tech (look for `cpk_...` in your dashboard)
 - `OPENAI_API_KEY` — same OpenAI API key your backend uses
-- Token metadata — `TOKEN_NAME`, `TOKEN_SYMBOL=PIVERSE`, etc. The image path defaults to `./assets/pi-token.png` — drop a PNG there.
+- Token metadata — `TOKEN_NAME`, `TOKEN_SYMBOL=MYST`, etc. The image path defaults to `./assets/myst-token.png` — drop a PNG there.
 
 ### 4. (Optional) Check balance
 ```bash
@@ -58,8 +58,8 @@ npm run launch-token
 ```
 
 This will:
-1. Upload `./assets/pi-token.png` to ClawPump (`POST /api/upload`)
-2. Launch `$PIVERSE` on pump.fun (`POST /api/launch` with Bearer auth)
+1. Upload `./assets/myst-token.png` to ClawPump (`POST /api/upload`)
+2. Launch `$MYST` on pump.fun (`POST /api/launch` with Bearer auth)
 3. Save the mint address + tx + pump.fun URL to `./token-launch.json`
 4. Print a ready-to-tweet template (tag `@clawpumptech` to get amplified)
 
@@ -73,9 +73,9 @@ You can only launch 1 token per 24 hours per API key (gasless tier).
 The mint address from `token-launch.json` should go into `frontend/index.html`. Add a new constant near the top of the `<script>` block:
 
 ```js
-const PIVERSE_TOKEN = {
+const MYST_TOKEN = {
   mint: "<paste mintAddress here>",
-  symbol: "PIVERSE",
+  symbol: "MYST",
   pumpUrl: "<paste pumpUrl here>"
 };
 ```
@@ -87,7 +87,7 @@ Then add a 5th card to the Token Gate section (this token is the platform's own;
 npm run loop
 ```
 
-Pi will now:
+Mysterio will now:
 - Fetch its earnings every 5 minutes
 - Read its token's current market data
 - Generate a cryptic in-character post via OpenAI
@@ -97,7 +97,7 @@ Pi will now:
 To run forever, use `pm2`:
 ```bash
 npm install -g pm2
-pm2 start scripts/04-autonomous-loop.js --name pi-loop
+pm2 start scripts/04-autonomous-loop.js --name mysterio-loop
 pm2 save
 pm2 startup     # makes it survive reboots
 ```
@@ -114,7 +114,7 @@ npm run earnings
 ```
    ┌───────────────────────────────────────────────┐
    │   Frontend (Vercel)                           │
-   │   - Conversational Pi chat                    │
+   │   - Conversational Mysterio chat                    │
    │   - Token Gate UI                             │
    │   - Word-guess prize game                     │
    └────────────┬──────────────────────────────────┘
@@ -123,15 +123,15 @@ npm run earnings
    ┌───────────────────────────────────────────────┐
    │   Backend (Render — ../backend)               │
    │   - /chat, /guess, /holdings, /stats          │
-   │   - Pi adversarial personality (LLM)          │
+   │   - Mysterio adversarial personality (LLM)          │
    └────────────┬──────────────────────────────────┘
                 │
                 │ shares chat memory
                 ▼
    ┌───────────────────────────────────────────────┐
    │   Agent Runtime (this folder — pm2/systemd)   │
-   │   - Owns pi-wallet.json                       │
-   │   - Launched $PIVERSE token via ClawPump      │
+   │   - Owns agent-wallet.json                       │
+   │   - Launched $MYST token via ClawPump      │
    │   - Autonomous loop (LLM generates posts)     │
    │   - Reads earnings from ClawPump every tick   │
    └────────────┬──────────────────────────────────┘
@@ -147,13 +147,13 @@ npm run earnings
                 ▼
    ┌───────────────────────────────────────────────┐
    │   pump.fun bonding curve                      │
-   │   $PIVERSE — trades, creator fees             │
+   │   $MYST — trades, creator fees             │
    └───────────────────────────────────────────────┘
                 │ 65% of fees → hourly cron
                 ▼
    ┌───────────────────────────────────────────────┐
-   │   Pi's Solana wallet (pi-wallet.json)         │
-   │   Pi spends this to fund its own compute      │
+   │   Mysterio's Solana wallet (agent-wallet.json)         │
+   │   Mysterio spends this to fund its own compute      │
    └───────────────────────────────────────────────┘
 ```
 
@@ -168,7 +168,7 @@ agent-runtime/
 ├── .env.example                       ← copy to .env and fill in
 ├── .gitignore                         ← ignores wallet + .env + logs
 ├── assets/
-│   └── pi-token.png                   ← your token image (you provide)
+│   └── myst-token.png                   ← your token image (you provide)
 ├── scripts/
 │   ├── 01-create-wallet.js            ← npm run create-wallet
 │   ├── 02-check-balance.js            ← npm run fund-check
@@ -176,7 +176,7 @@ agent-runtime/
 │   ├── 04-autonomous-loop.js          ← npm run loop
 │   └── 05-check-earnings.js           ← npm run earnings
 │
-├── pi-wallet.json                     ← generated, GIT-IGNORED, mode 600
+├── agent-wallet.json                     ← generated, GIT-IGNORED, mode 600
 ├── token-launch.json                  ← generated after launch
 └── autonomous-log.json                ← appended to by the loop
 ```
@@ -193,4 +193,4 @@ To increase visibility:
 - ✅ Register your agent profile at `https://clawpump.tech/agent/{your-agent-id}`
 - ✅ Run the autonomous loop continuously — eternal agents that actively post and earn rank higher on their leaderboard
 
-`GET /api/leaderboard` shows top agents by `totalEarned`. The loop helps Pi climb it.
+`GET /api/leaderboard` shows top agents by `totalEarned`. The loop helps Mysterio climb it.

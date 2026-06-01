@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// STEP 05 — CHECK PI'S EARNINGS
+// STEP 05 — CHECK MYSTERIO'S EARNINGS
 // ═══════════════════════════════════════════════════════════════
 // `npm run earnings`
 // Reads agentId from .env, queries ClawPump for total earned,
@@ -26,7 +26,7 @@ const d = await r.json();
 
 console.log("");
 console.log("═══════════════════════════════════════════════════════════════");
-console.log("  PI EARNINGS — agentId: " + AGENT_ID);
+console.log("  MYSTERIO EARNINGS — agentId: " + AGENT_ID);
 console.log("═══════════════════════════════════════════════════════════════");
 console.log("");
 console.log("  Total earned:  " + (d.totalEarned || 0).toFixed(6) + " SOL");

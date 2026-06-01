@@ -30,11 +30,11 @@
   <!-- outer ring -->
   <circle cx="256" cy="256" r="200" fill="none" stroke="#00ff88" stroke-opacity="0.15" stroke-width="2"/>
   <circle cx="256" cy="256" r="160" fill="none" stroke="#00ff88" stroke-opacity="0.3" stroke-width="1"/>
-  <!-- big pi -->
-  <text x="256" y="340" text-anchor="middle" font-family="Georgia, serif" font-size="320" font-weight="700" fill="url(#acc)" filter="url(#glow)">π</text>
+  <!-- central mark -->
+  <text x="256" y="330" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="220" font-weight="900" fill="url(#acc)" filter="url(#glow)">M</text>
   <!-- bottom label -->
-  <text x="256" y="455" text-anchor="middle" font-family="monospace" font-size="22" font-weight="700" fill="#00ff88" letter-spacing="8">PIVERSE</text>
+  <text x="256" y="455" text-anchor="middle" font-family="monospace" font-size="22" font-weight="700" fill="#00ff88" letter-spacing="8">MYST</text>
   <!-- top corner mark -->
-  <text x="36" y="50" font-family="monospace" font-size="13" fill="#00ff88" opacity="0.6" letter-spacing="2">π // INFRA</text>
+  <text x="36" y="50" font-family="monospace" font-size="13" fill="#00ff88" opacity="0.6" letter-spacing="2">MYST // CLAW</text>
   <text x="476" y="50" text-anchor="end" font-family="monospace" font-size="13" fill="#00ff88" opacity="0.6" letter-spacing="2">v4.0.1</text>
 </svg>

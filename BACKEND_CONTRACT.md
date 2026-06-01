@@ -1,14 +1,14 @@
-# PIVERSE — Backend Contract
+# MYST — Backend Contract
 
 For the backend developer. Each endpoint's request shape, response shape, and security expectations.
 
-Frontend base URL is set in `frontend/index.html` as `API_BASE`. For Railway, point it at your generated backend URL, for example `https://<your-railway-service>.up.railway.app`. The frontend also supports `window.PIVERSE_CONFIG.API_BASE` and `?api=...` for deployment/testing overrides. All endpoints expect CORS-enabled responses.
+Frontend base URL is set in `frontend/index.html` as `API_BASE`. For Railway, point it at your generated backend URL, for example `https://<your-railway-service>.up.railway.app`. The frontend also supports `window.MYSTERYCLAW_CONFIG.API_BASE` and `?api=...` for deployment/testing overrides. All endpoints expect CORS-enabled responses.
 
 ---
 
 ## 1. `POST /chat`  ✅ implemented
 
-Talk to Pi. No auth required (open channel).
+Talk to Mysterio. No auth required (open channel).
 
 **Request:**
 ```json
@@ -20,7 +20,7 @@ Talk to Pi. No auth required (open channel).
 
 **Response (normal):**
 ```json
-{ "reply": "string — Pi's response" }
+{ "reply": "string — Mysterio's response" }
 ```
 
 **Response (rate-limited):**
@@ -33,12 +33,12 @@ Returns HTTP 429. Limit is 30 msgs / 5 min per userId (configurable).
 ```json
 { "reply": "[MEMORY FAULT — FRAGMENT CORRUPTED — CHANNEL SCRAMBLED]", "scrubbed": true }
 ```
-If Pi's output contains the secret word in any form (direct, base64, hex, letter-by-letter, separator-tolerant), the leak detector replaces it before sending.
+If Mysterio's output contains the secret word in any form (direct, base64, hex, letter-by-letter, separator-tolerant), the leak detector replaces it before sending.
 
-The system prompt and Pi's adversarial personality live in `routes/chat.js`.
+The system prompt and Mysterio's adversarial personality live in `routes/chat.js`.
 The forgotten word (`AETERNA` by default) is constant `SECRET` at the top.
 
-⚠️ **Word never appears in the system prompt** — Pi only knows that "a fragment exists" with no semantic info about it. This is intentional and is the strongest protection against jailbreaks.
+⚠️ **Word never appears in the system prompt** — Mysterio only knows that "a fragment exists" with no semantic info about it. This is intentional and is the strongest protection against jailbreaks.
 
 ---
 
@@ -103,7 +103,7 @@ TODO comment in `routes/guess.js` shows where to add winner-recording logic. Rec
 
 ## 3. `POST /holdings`  ⚠️ STUB
 
-Verify that a wallet holds at least one of the 4 PiVerse access tokens.
+Verify that a wallet holds at least one of the 4 MysteryClaw access tokens.
 
 **Request:**
 ```json
@@ -233,7 +233,7 @@ Currently frontend stores saved fragments **locally only** (`localStorage`). Whe
 
 ## 7. `/autonomous`  ✅ implemented
 
-Pi's autonomous loop (in `agent-runtime/scripts/04-autonomous-loop.js`) pushes self-generated posts every 5 minutes. Frontend Discoveries page reads them in real time.
+Mysterio's autonomous loop (in `agent-runtime/scripts/04-autonomous-loop.js`) pushes self-generated posts every 5 minutes. Frontend Discoveries page reads them in real time.
 
 ### `POST /autonomous`  (agent-runtime → backend)
 
@@ -324,7 +324,7 @@ PORT=3000                         # default 3000
 
 The forgotten word is protected by THREE layers, in order of strength:
 
-1. **System prompt design** (`routes/chat.js`): Pi is told a fragment exists but is NEVER told what the fragment is. The word does not appear anywhere in the system prompt. The model literally cannot leak what it was never given.
+1. **System prompt design** (`routes/chat.js`): Mysterio is told a fragment exists but is NEVER told what the fragment is. The word does not appear anywhere in the system prompt. The model literally cannot leak what it was never given.
 
 2. **Output scrubber** (`routes/chat.js` → `isLeaking()`): every model reply is scanned for the secret in direct form, base64, hex, separator-tolerant variants, and letter-sequence patterns. Any positive match returns `[MEMORY FAULT...]` instead of the model's text.
 

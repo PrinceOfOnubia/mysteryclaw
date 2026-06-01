@@ -1,13 +1,13 @@
 // ═══════════════════════════════════════════════════════════════
 // OBSERVATION GATHERER
 // ═══════════════════════════════════════════════════════════════
-// Each tick, this collects what Pi can "see" of the world:
+// Each tick, this collects what Mysterio can "see" of the world:
 //   - Earnings from ClawPump
 //   - Wallet SOL balance
 //   - Token market data (mcap, vol, holders)
 //   - Recent trades
 //
-// Failures are silent — Pi just sees less data. Like a damaged
+// Failures are silent — Mysterio just sees less data. Like a damaged
 // sensor array. This is in-character.
 // ═══════════════════════════════════════════════════════════════
 
@@ -58,12 +58,13 @@ export async function gatherObservation() {
 
   // ─── Wallet balance from Solana ──────────────────────────────
   try {
-    if (process.env.PI_WALLET_PUBKEY) {
+    const walletPubkey = process.env.MYSTERIO_WALLET_PUBKEY || process.env.PI_WALLET_PUBKEY;
+    if (walletPubkey) {
       const conn = new Connection(
         process.env.SOLANA_RPC || "https://api.mainnet-beta.solana.com",
         "confirmed"
       );
-      const lamports = await conn.getBalance(new PublicKey(process.env.PI_WALLET_PUBKEY));
+      const lamports = await conn.getBalance(new PublicKey(walletPubkey));
       obs.walletBalance = lamports / LAMPORTS_PER_SOL;
     }
   } catch {}

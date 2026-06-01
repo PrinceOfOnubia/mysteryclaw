@@ -4,11 +4,11 @@
 // `npm run agent`
 //
 // What's different from 04-autonomous-loop.js:
-//   - Pi has TOOLS it chooses between (post, silent, react, buyback,
+//   - Mysterio has TOOLS it chooses between (post, silent, react, buyback,
 //     tweet, reflect) — not a hardcoded "generate post" flow
-//   - Pi has PERSISTENT MEMORY across ticks (pi-memory.json)
-//   - Pi has GOALS that bias every decision
-//   - Pi has REFLECTION — it analyzes its own behavior periodically
+//   - Mysterio has PERSISTENT MEMORY across ticks (mysterio-memory.json)
+//   - Mysterio has GOALS that bias every decision
+//   - Mysterio has REFLECTION — it analyzes its own behavior periodically
 //   - Decisions are LOGGED with full reasoning trail
 //
 // Use this instead of 04-autonomous-loop.js for v2+ deployments.
@@ -29,12 +29,12 @@ const LAUNCH_FILE = path.resolve("./token-launch.json");
 
 console.log("");
 console.log("═══════════════════════════════════════════════════════════════");
-console.log("  PI AGENT v2 — TRUE AGENCY EDITION");
+console.log("  MYSTERIO AGENT v2 — TRUE AGENCY EDITION");
 console.log("═══════════════════════════════════════════════════════════════");
 
 // Load or initialize memory
 const memory = loadMemory();
-if (!memory.identity.wallet) memory.identity.wallet = process.env.PI_WALLET_PUBKEY || null;
+if (!memory.identity.wallet) memory.identity.wallet = process.env.MYSTERIO_WALLET_PUBKEY || process.env.PI_WALLET_PUBKEY || null;
 if (!memory.identity.tokenMint && fs.existsSync(LAUNCH_FILE)) {
   try {
     const l = JSON.parse(fs.readFileSync(LAUNCH_FILE, "utf-8"));
@@ -119,6 +119,6 @@ setInterval(() => tick().catch(e => console.error("Tick error:", e)), TICK_MS);
 
 // Graceful shutdown
 process.on("SIGINT", () => {
-  console.log("\nAgent loop stopped. Memory preserved at ./pi-memory.json");
+  console.log("\nAgent loop stopped. Memory preserved at ./mysterio-memory.json");
   process.exit(0);
 });

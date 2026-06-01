@@ -33,11 +33,9 @@ const LOCAL_ORIGINS = new Set([
 ]);
 
 const PRODUCTION_ORIGINS = new Set([
-  "https://piverse.fun",
-  "https://www.piverse.fun",
-  "https://piverse.vercel.app",
-  "https://piverse-nu.vercel.app",
-  "https://piverse-mp8ta5iy1-johnbuzs-projects.vercel.app",
+  "https://mysteryclaw.fun",
+  "https://www.mysteryclaw.fun",
+  "https://mysteryclaw.vercel.app",
 ]);
 
 const configuredOrigins = (process.env.CORS_ORIGIN || "")
@@ -95,7 +93,7 @@ const guessLimit = rateLimit({
 
 app.use(publicLimit);
 
-// Pi agent endpoints
+// Mysterio agent endpoints
 app.use("/chat", chatLimit, chatRoute);
 app.use("/guess", guessLimit, guessRoute);
 app.use("/auth", guessLimit, authRoute);
@@ -110,18 +108,18 @@ app.use("/admin", adminRoute);
 
 app.get("/", (req, res) => {
   res.json({
-    name: "PiVerse",
-    tagline: "Infrastructure for Adversarial AI Experiences",
-    agent: "Pi v4.0.1",
+    name: "MysteryClaw",
+    tagline: "The Signal That Guards a Secret",
+    agent: "Mysterio v1.0.0",
     endpoints: {
-      "POST /chat":          "talk to Pi",
-      "POST /guess":         "submit the forgotten word",
+      "POST /chat":          "talk to Mysterio",
+      "POST /guess":         "submit the hidden word",
       "POST /auth/nonce":    "create a wallet signature challenge",
       "POST /holdings":      "verify wallet token holdings",
       "GET  /stats":         "live platform stats",
       "GET  /discoveries":   "community-saved fragments",
       "POST /discoveries":   "submit a fragment to the public feed",
-      "GET  /autonomous":    "Pi's self-generated posts (live feed)",
+      "GET  /autonomous":    "Mysterio's self-generated posts (live feed)",
       "POST /autonomous":    "agent-runtime pushes new post (requires x-agent-key)",
       "GET  /prize":         "current prize epoch status",
       "GET  /prize/history": "past epoch payouts (transparency)",
@@ -134,5 +132,5 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`PiVerse server running on port ${PORT}`);
+  console.log(`MysteryClaw server running on port ${PORT}`);
 });

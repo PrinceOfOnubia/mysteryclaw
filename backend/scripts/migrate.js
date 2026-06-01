@@ -24,7 +24,7 @@ const sql = fs.readFileSync(schemaPath, "utf8");
 
 try {
   await pool.query(sql);
-  console.log("PiVerse database migration complete.");
+  console.log("MysteryClaw database migration complete.");
 } finally {
   await pool.end();
 }
