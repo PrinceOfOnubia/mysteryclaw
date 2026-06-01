@@ -101,6 +101,6 @@ To rotate: change `SECRET` constant in BOTH `backend/routes/chat.js` and `backen
 - Production: https://mysteryclaw.xyz
 - Vercel project: configure after creating the MysteryClaw Vercel project
 - Backend (when live): https://<your-railway-service>.up.railway.app
-- X/Twitter: https://x.com/MysteryClawTech
+- X/Twitter: https://x.com/mysteryclawpump?s=11
 - Token (after launch): `https://pump.fun/coin/{mint}`
 - Agent profile: `https://clawpump.tech/agent/mysteryclaw-mysterio`

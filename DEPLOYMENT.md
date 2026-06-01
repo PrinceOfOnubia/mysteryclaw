@@ -425,7 +425,7 @@ nano .env
 Fill in:
 - `MYSTERIO_WALLET_PUBKEY` and `MYSTERIO_WALLET_SECRET` (from step 8.4 output)
 - `CLAWPUMP_API_KEY` (from step 8.5)
-- `TOKEN_TWITTER=https://x.com/MysteryClawTech`
+- `TOKEN_TWITTER=https://x.com/mysteryclawpump?s=11`
 - `OPENAI_API_KEY` (same OpenAI API key as backend)
 - `MYSTERYCLAW_API=https://<your-railway-service>.up.railway.app`
 - `AGENT_KEY` (same value as on Railway — without this `/autonomous` push fails with 401)
