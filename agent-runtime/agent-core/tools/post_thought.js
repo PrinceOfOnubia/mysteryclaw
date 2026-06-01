@@ -32,7 +32,7 @@ export async function execute({ text, mood }, ctx) {
   if (!text || text.length > 600) {
     return { ok: false, error: "text invalid or too long" };
   }
-  const apiBase = process.env.MYSTERYCLAW_API;
+  const apiBase = process.env.MYSTERYCLAW_API || process.env.PIVERSE_API;
   if (!apiBase) {
     return { ok: false, error: "MYSTERYCLAW_API not configured" };
   }

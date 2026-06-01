@@ -165,7 +165,7 @@ async function tick() {
   // 6. Push to MysteryClaw backend → frontend Discoveries shows it live
   //    Requires AGENT_KEY in both backend .env AND agent-runtime .env
   //    (same value on both sides). Without it the endpoint 401s.
-  const apiBase = process.env.MYSTERYCLAW_API;
+  const apiBase = process.env.MYSTERYCLAW_API || process.env.PIVERSE_API;
   if (apiBase) {
     try {
       const headers = { "Content-Type": "application/json" };
