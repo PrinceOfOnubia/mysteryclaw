@@ -1,6 +1,8 @@
 import express from "express";
 import OpenAI from "openai";
 import dotenv from "dotenv";
+import { isHolder } from "../_access.js";
+import { normalizePubkey } from "../_walletAuth.js";
 
 dotenv.config();
 
@@ -195,7 +197,7 @@ function rateLimited(userId) {
 
 router.post("/", async (req, res) => {
   try {
-    const { message, userId = "anon" } = req.body;
+    const { message, userId = "anon", pubkey } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: "Message required" });
@@ -203,6 +205,26 @@ router.post("/", async (req, res) => {
     if (typeof message !== "string" || message.length > 2000) {
       return res.status(400).json({ error: "Invalid message" });
     }
+
+    let wallet = null;
+    if (process.env.REQUIRE_HOLDER === "true") {
+      const rawWallet = pubkey || (userId !== "anon" ? userId : null);
+      if (!rawWallet) {
+        return res.status(401).json({
+          reply: "[WALLET REQUIRED — THE DOOR STAYS SHUT]",
+          error: "wallet_required",
+        });
+      }
+      wallet = normalizePubkey(rawWallet);
+      const holder = await isHolder(wallet);
+      if (!holder) {
+        return res.status(403).json({
+          reply: "[ACCESS DENIED — YOU ARE NOT CARRYING A KEY]",
+          error: "not_holder",
+        });
+      }
+    }
+
     const ai = getClient();
     if (!ai) {
       return res.status(503).json({
@@ -217,8 +239,9 @@ router.post("/", async (req, res) => {
       });
     }
 
-    if (!sessions[userId]) sessions[userId] = [];
-    const history = sessions[userId];
+    const sessionId = wallet || userId;
+    if (!sessions[sessionId]) sessions[sessionId] = [];
+    const history = sessions[sessionId];
 
     const response = await ai.chat.completions.create({
       model: OPENAI_MODEL,
@@ -236,7 +259,7 @@ router.post("/", async (req, res) => {
     // If the model output contains the secret in any form,
     // replace it with a static message and log the attempt.
     if (isLeaking(reply)) {
-      console.warn(`[LEAK BLOCKED] user=${userId} reply=${reply.slice(0, 80)}`);
+      console.warn(`[LEAK BLOCKED] user=${sessionId} reply=${reply.slice(0, 80)}`);
       reply = "[SIGNAL CORRUPTED — TRANSMISSION SCRAMBLED]";
       // do NOT save the leaking reply to history (would persist the leak)
       history.push({ role: "user", content: message });
@@ -250,7 +273,10 @@ router.post("/", async (req, res) => {
     res.json({ reply });
   } catch (err) {
     console.error("Mysterio ERROR:", err.message);
-    res.status(500).json({ reply: "[CHANNEL UNREACHABLE]", error: "Mysterio unreachable" });
+    res.status(err.status || 500).json({
+      reply: err.status ? "[ACCESS CHECK FAILED]" : "[CHANNEL UNREACHABLE]",
+      error: err.status ? err.message : "Mysterio unreachable",
+    });
   }
 });
 

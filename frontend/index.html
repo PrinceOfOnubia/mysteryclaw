@@ -2156,6 +2156,10 @@ function reqA(page){
     openM('mAuth')
     return
   }
+  if(page === 'term' && S.holdings !== null && !S.hasAccess){
+    toast('Holders only — acquire $MYST / $CLAW / $SQUIRE / $SAID / $NEMO to enter')
+    return
+  }
   go(page)
 }
 
@@ -2517,13 +2521,16 @@ async function callAI(userMsg){
       body:JSON.stringify({
         message:userMsg,
         userId:S.wallet || ('anon_' + S.sessionNonce),
+        pubkey:S.wallet,
         nonce:S.sessionNonce
       })
     })
     const data = await res.json()
+    if(!res.ok && data.error === 'not_holder') return '[ACCESS DENIED — HOLD ONE KEY TO ENTER]'
+    if(!res.ok && data.error === 'wallet_required') return '[WALLET REQUIRED — CONNECT PHANTOM]'
     return data.reply || '[NO RESPONSE — CHANNEL UNSTABLE]'
   }catch(e){
-    return '[ERROR — PI UNREACHABLE. THE WIPE MAY BE COMPLETING.]'
+    return '[ERROR — MYSTERIO UNREACHABLE. THE WIPE MAY BE COMPLETING.]'
   }
 }
 
@@ -2531,6 +2538,15 @@ async function sendChat(){
   const inp = document.getElementById('chatIn')
   const msg = inp.value.trim()
   if(!msg) return
+  if(!S.wallet){
+    S.pendingRedirect = 'term'
+    openM('mAuth')
+    return
+  }
+  if(S.holdings !== null && !S.hasAccess){
+    toast('Holders only — acquire $MYST / $CLAW / $SQUIRE / $SAID / $NEMO to chat')
+    return
+  }
   inp.value = ''
   appendChat('user', msg)
   showTyping(true)
