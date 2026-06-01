@@ -31,7 +31,7 @@ This guide walks through everything needed to take MysteryClaw from code to a fu
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  FRONTEND (Vercel)                                       │
-│  https://mysteryclaw.fun                                     │
+│  https://mysteryclaw.xyz                                     │
 │  Static index.html — talks to backend via API_BASE       │
 └────────────┬─────────────────────────────────────────────┘
              │ HTTPS
@@ -179,7 +179,7 @@ Set these in Railway dashboard → your service → **Environment** tab.
 | `ADMIN_SESSION_SECRET` | ✅ Yes | Generate: `openssl rand -hex 32` | Signs short-lived admin sessions |
 | `ADMIN_KEY` | Emergency fallback | Generate: `openssl rand -hex 32` | Manual API fallback only; do not use as normal frontend auth |
 | `PORT` | No | `3000` | Railway sets this automatically |
-| `CORS_ORIGIN` | ✅ Recommended | `https://mysteryclaw.fun,https://www.mysteryclaw.fun,https://mysteryclaw.vercel.app` | Comma-separated for multiple; whitespace is trimmed |
+| `CORS_ORIGIN` | ✅ Recommended | `https://mysteryclaw.xyz,https://www.mysteryclaw.xyz,https://mysteryclaw.vercel.app` | Comma-separated for multiple; whitespace is trimmed |
 | `PAYOUTS_ENABLED` | ✅ Yes | `false` | Keep false until final real-money review |
 | `TREASURY_PRIVKEY` | Only when enabling payouts | empty | Base58 treasury secret, never commit |
 | `USDC_MINT` | ✅ Yes | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | Mainnet USDC |
@@ -472,7 +472,7 @@ Check it's running:
 pm2 logs mysterio-loop
 ```
 
-You should see a tick every 5 minutes. Within 30 seconds the first post should appear at https://mysteryclaw.fun/discoveries.
+You should see a tick every 5 minutes. Within 30 seconds the first post should appear at https://mysteryclaw.xyz/discoveries.
 
 ---
 
@@ -497,8 +497,8 @@ const configuredOrigins = (process.env.CORS_ORIGIN || "")
   .filter(Boolean);
 
 const allowedOrigins = new Set([
-  "https://mysteryclaw.fun",
-  "https://www.mysteryclaw.fun",
+  "https://mysteryclaw.xyz",
+  "https://www.mysteryclaw.xyz",
   "https://mysteryclaw.vercel.app",
   ...configuredOrigins,
 ]);
@@ -517,7 +517,7 @@ app.use(cors({
 }));
 ```
 
-Set `CORS_ORIGIN=https://mysteryclaw.fun,https://www.mysteryclaw.fun,https://mysteryclaw.vercel.app` on Railway. Vercel preview URLs are allowed by pattern.
+Set `CORS_ORIGIN=https://mysteryclaw.xyz,https://www.mysteryclaw.xyz,https://mysteryclaw.vercel.app` on Railway. Vercel preview URLs are allowed by pattern.
 
 ### 9.2 Add IP-based rate limit
 
@@ -666,7 +666,7 @@ Connect a custom domain in Vercel dashboard → Settings → Domains. Recommende
 The admin panel is hidden at:
 
 ```text
-https://mysteryclaw.fun/admin
+https://mysteryclaw.xyz/admin
 ```
 
 There is no public nav link. It requires the configured `ADMIN_WALLET` in Phantom. The browser asks the backend for a nonce, Phantom signs the exact admin login message, and the backend verifies the Solana signature before returning a short-lived admin session token.

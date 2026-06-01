@@ -54,7 +54,7 @@ mysteryclaw/
 ## Deployment flow
 
 ### 1. Frontend → Vercel
-Set this up in Vercel and attach `mysteryclaw.fun`.
+Set this up in Vercel and attach `mysteryclaw.xyz`.
 
 ### 2. Backend → Railway (backend dev)
 Push this repo to GitHub, connect Railway, and set the service root directory to `backend`. Use `npm install` as the build command and `npm start` as the start command. After Railway generates a public URL, point the frontend `API_BASE` at that URL via `window.MYSTERYCLAW_CONFIG.API_BASE`, `?api=...`, or the `DEFAULT_API_BASE` constant in `frontend/index.html`.
@@ -98,7 +98,7 @@ To rotate: change `SECRET` constant in BOTH `backend/routes/chat.js` and `backen
 
 ## Live URLs
 
-- Production: https://mysteryclaw.fun
+- Production: https://mysteryclaw.xyz
 - Vercel project: configure after creating the MysteryClaw Vercel project
 - Backend (when live): https://<your-railway-service>.up.railway.app
 - Twitter: configure the new MysteryClaw X account before launch
