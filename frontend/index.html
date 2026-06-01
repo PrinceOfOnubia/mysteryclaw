@@ -106,6 +106,39 @@ body::after{
   background:rgba(0,255,136,.05);box-shadow:0 0 18px rgba(0,255,136,.12);
 }
 .x-link svg{width:14px;height:14px;display:block;fill:currentColor}
+.nav-links{display:flex;align-items:center;gap:24px}
+.nav-actions{display:flex;align-items:center;gap:10px}
+.mobile-menu-btn{
+  width:34px;height:34px;border:1px solid var(--line-2);
+  display:none;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.02);color:var(--text-dim);
+  cursor:pointer;transition:all .2s ease;
+}
+.mobile-menu-btn:hover,.mobile-menu-btn.on{
+  color:var(--accent);border-color:var(--accent-dim);
+  background:rgba(0,255,136,.05);box-shadow:0 0 18px rgba(0,255,136,.12);
+}
+.mobile-menu-btn span,.mobile-menu-btn span::before,.mobile-menu-btn span::after{
+  content:'';display:block;width:15px;height:1px;background:currentColor;
+  transition:transform .2s ease,opacity .2s ease;
+}
+.mobile-menu-btn span{position:relative}
+.mobile-menu-btn span::before{position:absolute;top:-5px}
+.mobile-menu-btn span::after{position:absolute;top:5px}
+.mobile-menu-btn.on span{background:transparent}
+.mobile-menu-btn.on span::before{transform:translateY(5px) rotate(45deg)}
+.mobile-menu-btn.on span::after{transform:translateY(-5px) rotate(-45deg)}
+#mobileMenu{
+  position:fixed;top:54px;left:0;right:0;z-index:490;
+  display:none;flex-direction:column;padding:8px 16px 16px;
+  background:rgba(0,0,0,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--line);
+}
+#mobileMenu.on{display:flex}
+#mobileMenu .nl{
+  width:100%;padding:16px 4px;border-bottom:1px solid var(--line);
+}
+#mobileMenu .nl.on::after{display:none}
 
 /* === BUTTONS === */
 .bp{
@@ -1016,12 +1049,18 @@ body::after{
   .hiw-grid,.feat-grid,.agents-grid{grid-template-columns:1fr 1fr}
   .tg-grid{grid-template-columns:1fr 1fr}
   .nav-links{display:none}
+  .mobile-menu-btn{display:inline-flex}
 }
 @media(max-width:680px){
   #nav{padding:0 16px}
   #logoBox{gap:0}
   #logoText{display:none}
   .logo-sym{width:32px;height:32px}
+  .nav-actions{gap:8px}
+  .x-link,.mobile-menu-btn{width:32px;height:32px}
+  #nbtn{padding:8px 11px!important;letter-spacing:.18em}
+  #dbtn{padding:9px 10px;letter-spacing:.16em;font-size:8px}
+  #nwi{display:none!important}
   .hero{padding:80px 18px 60px}
   .sec-divider,.incident,.hiw,.tg-wrap,.cta-bottom,#footer,.lore-hero,.lore-section,.disc-hero,.disc-grid{padding-left:18px;padding-right:18px}
   .hiw-grid,.feat-grid,.agents-grid{grid-template-columns:1fr}
@@ -1131,13 +1170,14 @@ body::after{
     <div class="logo-sym"><img src="/assets/mysteryclaw-logo.jpg" alt="MysteryClaw"/></div>
     <div id="logoText">MYSTERYCLAW</div>
   </div>
-  <div class="nav-links" style="display:flex;align-items:center;gap:24px">
+  <div class="nav-links">
     <span class="nl on" id="nl-land" onclick="go('land')">Home</span>
     <span class="nl" id="nl-term" onclick="reqA('term')">Terminal</span>
     <span class="nl" id="nl-lore" onclick="go('lore')">Lore</span>
     <span class="nl" id="nl-disc" onclick="go('disc')">Discoveries</span>
   </div>
-  <div style="display:flex;align-items:center;gap:10px">
+  <div class="nav-actions">
+    <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" onclick="toggleMobileMenu()" aria-label="Open navigation menu" aria-controls="mobileMenu" aria-expanded="false"><span></span></button>
     <a class="x-link" href="https://x.com/MysteryClawTech" target="_blank" rel="noopener noreferrer" aria-label="MysteryClaw on X" title="MysteryClaw on X">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M18.9 2h3.3l-7.2 8.3L23.5 22h-6.7l-5.2-6.9L5.6 22H2.3l7.7-8.9L1.8 2h6.9l4.7 6.3L18.9 2Zm-1.2 17.9h1.8L7.7 4H5.8l11.9 15.9Z"/>
@@ -1152,6 +1192,12 @@ body::after{
     <button class="bd" id="dbtn" onclick="disconnect()" style="display:none">DISCONNECT</button>
   </div>
 </nav>
+<div id="mobileMenu" aria-hidden="true">
+  <span class="nl on" id="mnl-land" onclick="go('land')">Home</span>
+  <span class="nl" id="mnl-term" onclick="reqA('term')">Terminal</span>
+  <span class="nl" id="mnl-lore" onclick="go('lore')">Lore</span>
+  <span class="nl" id="mnl-disc" onclick="go('disc')">Discoveries</span>
+</div>
 
 <!-- ═══ PAGE: LANDING ═══ -->
 <div class="pg on" id="pg-land">
@@ -2078,6 +2124,7 @@ function stopAutoFeedPolling(){
 // ROUTER
 // ═══════════════════════════════════════════════════════════
 function go(page){
+  closeMobileMenu()
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'))
   const pg = document.getElementById('pg-' + page)
   if(!pg){ return }
@@ -2085,8 +2132,11 @@ function go(page){
   setTimeout(() => pg.classList.remove('fadein'), 400)
   S.page = page
   document.querySelectorAll('[id^="nl-"]').forEach(el => el.classList.remove('on'))
+  document.querySelectorAll('[id^="mnl-"]').forEach(el => el.classList.remove('on'))
   const nl = document.getElementById('nl-' + page)
   if(nl) nl.classList.add('on')
+  const mnl = document.getElementById('mnl-' + page)
+  if(mnl) mnl.classList.add('on')
   window.scrollTo(0, 0)
   if(page === 'term') bootChat()
   if(page === 'land') renderTokenGate()
@@ -2109,13 +2159,36 @@ function reqA(page){
   go(page)
 }
 
+function toggleMobileMenu(){
+  const menu = document.getElementById('mobileMenu')
+  const btn = document.getElementById('mobileMenuBtn')
+  const open = !menu.classList.contains('on')
+  menu.classList.toggle('on', open)
+  menu.setAttribute('aria-hidden', open ? 'false' : 'true')
+  btn.classList.toggle('on', open)
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false')
+}
+
+function closeMobileMenu(){
+  const menu = document.getElementById('mobileMenu')
+  const btn = document.getElementById('mobileMenuBtn')
+  if(!menu || !btn) return
+  menu.classList.remove('on')
+  menu.setAttribute('aria-hidden', 'true')
+  btn.classList.remove('on')
+  btn.setAttribute('aria-expanded', 'false')
+}
+
 // ═══════════════════════════════════════════════════════════
 // MODALS
 // ═══════════════════════════════════════════════════════════
 function openM(id){ document.getElementById(id).classList.add('on') }
 function closeM(id){ document.getElementById(id).classList.remove('on') }
 document.addEventListener('keydown', e => {
-  if(e.key === 'Escape'){ ['mAuth','mGuess'].forEach(closeM) }
+  if(e.key === 'Escape'){
+    ['mAuth','mGuess'].forEach(closeM)
+    closeMobileMenu()
+  }
 })
 
 // ═══════════════════════════════════════════════════════════
