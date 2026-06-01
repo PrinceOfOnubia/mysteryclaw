@@ -15,6 +15,7 @@
 // a fixed cron job.
 // ═══════════════════════════════════════════════════════════════
 
+import "dotenv/config";
 import OpenAI from "openai";
 import { buildMemoryContext, recordDecision, recordToolStat, recordObservation } from "./memory.js";
 import { getToolDefinitions, executeTool } from "./tools-registry.js";
