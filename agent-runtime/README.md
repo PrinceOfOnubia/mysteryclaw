@@ -44,7 +44,7 @@ Fill in:
 - `MYSTERIO_WALLET_PUBKEY` and `MYSTERIO_WALLET_SECRET` from step 2
 - `CLAWPUMP_API_KEY` — get this by logging in with Google at https://clawpump.tech (look for `cpk_...` in your dashboard)
 - `OPENAI_API_KEY` — same OpenAI API key your backend uses
-- Token metadata — `TOKEN_NAME`, `TOKEN_SYMBOL=MYST`, etc. The image path defaults to `./assets/myst-token.png` — drop a PNG there.
+- Token metadata — `TOKEN_NAME`, `TOKEN_SYMBOL=MYST`, `TOKEN_TWITTER=https://x.com/MysteryClawTech`, etc. The image path defaults to `./assets/myst-token.png` — drop a PNG there.
 
 ### 4. (Optional) Check balance
 ```bash
