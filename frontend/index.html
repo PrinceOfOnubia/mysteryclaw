@@ -95,6 +95,17 @@ body::after{
   text-transform:uppercase;color:#fff;
 }
 .glitch-char{display:inline-block;transition:color .05s}
+.x-link{
+  width:34px;height:34px;border:1px solid var(--line-2);
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--text-dim);background:rgba(255,255,255,.02);
+  transition:all .2s ease;text-decoration:none;
+}
+.x-link:hover{
+  color:var(--accent);border-color:var(--accent-dim);
+  background:rgba(0,255,136,.05);box-shadow:0 0 18px rgba(0,255,136,.12);
+}
+.x-link svg{width:14px;height:14px;display:block;fill:currentColor}
 
 /* === BUTTONS === */
 .bp{
@@ -1127,6 +1138,11 @@ body::after{
     <span class="nl" id="nl-disc" onclick="go('disc')">Discoveries</span>
   </div>
   <div style="display:flex;align-items:center;gap:10px">
+    <a class="x-link" href="https://x.com/MysteryClawTech" target="_blank" rel="noopener noreferrer" aria-label="MysteryClaw on X" title="MysteryClaw on X">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M18.9 2h3.3l-7.2 8.3L23.5 22h-6.7l-5.2-6.9L5.6 22H2.3l7.7-8.9L1.8 2h6.9l4.7 6.3L18.9 2Zm-1.2 17.9h1.8L7.7 4H5.8l11.9 15.9Z"/>
+      </svg>
+    </a>
     <div id="nwi" style="display:none;align-items:center;gap:10px;padding:6px 12px;border:1px solid var(--line-2)">
       <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);animation:pulse 1.6s ease infinite"></div>
       <span id="nwa" style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:.1em;color:#fff"></span>
