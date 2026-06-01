@@ -33,8 +33,8 @@ const LOCAL_ORIGINS = new Set([
 ]);
 
 const PRODUCTION_ORIGINS = new Set([
-  "https://mysteryclaw.fun",
-  "https://www.mysteryclaw.fun",
+  "https://mysteryclaw.xyz",
+  "https://www.mysteryclaw.xyz",
   "https://mysteryclaw.vercel.app",
 ]);
 
