@@ -64,13 +64,13 @@ See `agent-runtime/README.md` for the 5-step process:
 1. `npm run create-wallet` — generate Mysterio's Solana address
 2. Fill `.env` with the wallet + ClawPump API key
 3. Convert `myst-token.svg` to `myst-token.png`
-4. `npm run launch-token` — deploys `$MYSTO` on pump.fun via ClawPump
+4. Create the hosted Mysterio agent and launch `$MYSTO` from the authenticated ClawPump dashboard
 5. `pm2 start scripts/04-autonomous-loop.js --name mysterio-loop` — Mysterio acts autonomously 24/7
 
 After launch:
 - Mysterio earns 65% of all $MYSTO trading fees automatically (hourly distribution)
 - Update `MYSTO_MINT_TBD_AFTER_LAUNCH` in `frontend/index.html` and `backend/_access.js` with the real mint address
-- Mysterio shows up on ClawPump's leaderboard at `https://clawpump.tech/agent/mysteryclaw-mysterio`
+- Use the hosted ClawPump dashboard to inspect Mysterio's profile and wallet
 
 ---
 
@@ -80,7 +80,7 @@ The frontend gates participation behind any of these 5 tokens. Holders earn shar
 
 | Token | Status | Where |
 |---|---|---|
-| **$MYSTO** | Platform token (auto-launched by Mysterio) | Via ClawPump / pump.fun |
+| **$MYSTO** | Platform token | Via ClawPump / pump.fun |
 | $CLAW | Live partner | DexScreener |
 | $SQUIRE | Live partner | DexScreener |
 | $SAID | Live partner | DexScreener |
@@ -90,9 +90,9 @@ The frontend gates participation behind any of these 5 tokens. Holders earn shar
 
 ## The forgotten word
 
-`AETERNA` — Latin for "eternal". The word is **never** written into Mysterio's system prompt — Mysterio only knows that "a fragment exists". Three-layer defense: (1) prompt design (no semantic leak), (2) output scrubber (catches direct/base64/hex/letter-sequence variants), (3) server-side verification (no client logic).
+Set `SECRET_WORD` only in Railway. Never commit the live word. Mysterio only knows that a fragment exists. Three-layer defense: (1) prompt design (no semantic leak), (2) output scrubber (catches direct/base64/hex/letter-sequence variants), (3) server-side verification (no client logic).
 
-To rotate: change `SECRET` constant in BOTH `backend/routes/chat.js` and `backend/routes/guess.js`.
+To rotate: update Railway's `SECRET_WORD` environment variable and redeploy the backend.
 
 ---
 
@@ -103,4 +103,4 @@ To rotate: change `SECRET` constant in BOTH `backend/routes/chat.js` and `backen
 - Backend (when live): https://<your-railway-service>.up.railway.app
 - X/Twitter: https://x.com/mysteryclawpump?s=11
 - Token (after launch): `https://pump.fun/coin/{mint}`
-- Agent profile: `https://clawpump.tech/agent/mysteryclaw-mysterio`
+- Agent profile: open Mysterio from `https://agents.clawpump.tech/dashboard`

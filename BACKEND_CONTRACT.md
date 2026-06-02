@@ -36,7 +36,7 @@ Returns HTTP 429. Limit is 30 msgs / 5 min per userId (configurable).
 If Mysterio's output contains the secret word in any form (direct, base64, hex, letter-by-letter, separator-tolerant), the leak detector replaces it before sending.
 
 The system prompt and Mysterio's adversarial personality live in `routes/chat.js`.
-The forgotten word (`AETERNA` by default) is constant `SECRET` at the top.
+The forgotten word is read from the Railway-only `SECRET_WORD` environment variable.
 
 ⚠️ **Word never appears in the system prompt** — Mysterio only knows that "a fragment exists" with no semantic info about it. This is intentional and is the strongest protection against jailbreaks.
 
@@ -60,7 +60,7 @@ Submit a single-word guess. Triple-gated: wallet required → holder required �
 {
   "correct": true,
   "success": true,
-  "word": "AETERNA",
+  "word": "<recovered-secret-word>",
   "message": "ACCESS GRANTED. The word is recovered.",
   "attemptsLeft": 7,
   "txSignature": "..."
@@ -291,7 +291,7 @@ Generate one: `openssl rand -hex 24`
 - [ ] Cache `/holdings` results to avoid Solana RPC quotas
 - [ ] Never expose `OPENAI_API_KEY`, `SOLANA_RPC`, or treasury wallet keys in responses
 - [ ] Log every `/guess` attempt for audit (timestamp, pubkey, guess) — useful for detecting brute-force
-- [ ] The forgotten word lives ONLY in `routes/chat.js` (only as leak-detector pattern) and `routes/guess.js` — never in any other response
+- [ ] The forgotten word lives ONLY in Railway's `SECRET_WORD` environment variable — never commit it
 - [ ] Set `REQUIRE_HOLDER=true` after `/holdings` is wired in
 - [ ] Sign treasury USDC transfers with a hardware wallet or HSM — never store seeds in env
 
