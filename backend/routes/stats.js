@@ -3,7 +3,7 @@ import express from "express";
 const router = express.Router();
 
 // ═══════════════════════════════════════════════════════════════
-// MYST LIVE STATS ENDPOINT
+// MYSTO LIVE STATS ENDPOINT
 // ═══════════════════════════════════════════════════════════════
 //
 // Returns aggregated stats shown on the landing page hero.

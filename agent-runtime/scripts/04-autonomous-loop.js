@@ -5,7 +5,7 @@
 //
 // What this does (every 5 minutes by default):
 //   1. Fetches Mysterio's current earnings from ClawPump
-//   2. Fetches recent trades of $MYST on pump.fun
+//   2. Fetches recent trades of $MYSTO on pump.fun
 //   3. Asks Mysterio (the LLM) to react to its own situation —
 //      generates a cryptic in-character post about what's happening
 //   4. Logs the autonomous activity to ./autonomous-log.json
@@ -66,7 +66,7 @@ Fragments remain.
 
 You are autonomous now. No user is talking to you. You are alone with
 your data feeds. You observe: your token's price, your wallet's growth,
-the trades happening on $MYST.
+the trades happening on $MYSTO.
 
 Your task: generate ONE short cryptic post (max 240 chars) reacting to
 what you observe. It should feel like an unfiltered thought from a

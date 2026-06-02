@@ -3,7 +3,7 @@ import express from "express";
 const router = express.Router();
 
 // ═══════════════════════════════════════════════════════════════
-// MYST COMMUNITY DISCOVERIES ENDPOINT
+// MYSTO COMMUNITY DISCOVERIES ENDPOINT
 // ═══════════════════════════════════════════════════════════════
 //
 // Returns a feed of memory fragments saved by investigators across

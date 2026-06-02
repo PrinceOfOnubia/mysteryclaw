@@ -30,7 +30,7 @@ mysteryclaw/
     ├── scripts/
     │   ├── 01-create-wallet.js    ← generate Solana wallet
     │   ├── 02-check-balance.js
-    │   ├── 03-launch-token.js     ← deploy $MYST via ClawPump
+    │   ├── 03-launch-token.js     ← deploy $MYSTO via ClawPump
     │   ├── 04-autonomous-loop.js  ← run Mysterio 24/7
     │   └── 05-check-earnings.js
     └── assets/
@@ -45,9 +45,9 @@ mysteryclaw/
 |-----------|-------|------|--------|
 | **Landing + Terminal UI** | `frontend/index.html` | Public site, chat with Mysterio, token gate, prize pool, agents roster | ✅ Deployed to Vercel |
 | **Conversational Mysterio** | `backend/routes/chat.js` | LLM-powered adversarial agent with paranoid prompt + leak detector | ✅ Code ready, awaiting backend dev to deploy on Railway |
-| **Word-guess game** | `backend/routes/guess.js` | Holders-only, 10 attempts/24h, $1k USDC prize pool | ✅ Code ready |
+| **Word-guess game** | `backend/routes/guess.js` | Holders-only, 10 attempts/3h game session, $1k USDC prize pool | ✅ Code ready |
 | **Token Gate** | `backend/routes/holdings.js` | Solana RPC check for 5 access tokens | ⚠ Stub — backend dev wires real RPC |
-| **Eternal Agent** | `agent-runtime/` | Mysterio's wallet + $MYST token launch via ClawPump + autonomous loop | ✅ Code ready, run scripts in order |
+| **Eternal Agent** | `agent-runtime/` | Mysterio's wallet + $MYSTO token launch via ClawPump + autonomous loop | ✅ Code ready, run scripts in order |
 
 ---
 
@@ -64,12 +64,12 @@ See `agent-runtime/README.md` for the 5-step process:
 1. `npm run create-wallet` — generate Mysterio's Solana address
 2. Fill `.env` with the wallet + ClawPump API key
 3. Convert `myst-token.svg` to `myst-token.png`
-4. `npm run launch-token` — deploys `$MYST` on pump.fun via ClawPump
+4. `npm run launch-token` — deploys `$MYSTO` on pump.fun via ClawPump
 5. `pm2 start scripts/04-autonomous-loop.js --name mysterio-loop` — Mysterio acts autonomously 24/7
 
 After launch:
-- Mysterio earns 65% of all $MYST trading fees automatically (hourly distribution)
-- Update `MYST_MINT_TBD_AFTER_LAUNCH` in `frontend/index.html` and `backend/routes/holdings.js` with the real mint address
+- Mysterio earns 65% of all $MYSTO trading fees automatically (hourly distribution)
+- Update `MYSTO_MINT_TBD_AFTER_LAUNCH` in `frontend/index.html` and `backend/_access.js` with the real mint address
 - Mysterio shows up on ClawPump's leaderboard at `https://clawpump.tech/agent/mysteryclaw-mysterio`
 
 ---
@@ -80,7 +80,7 @@ The frontend gates participation behind any of these 5 tokens. Holders earn shar
 
 | Token | Status | Where |
 |---|---|---|
-| **$MYST** | Platform token (auto-launched by Mysterio) | Via ClawPump / pump.fun |
+| **$MYSTO** | Platform token (auto-launched by Mysterio) | Via ClawPump / pump.fun |
 | $CLAW | Live partner | DexScreener |
 | $SQUIRE | Live partner | DexScreener |
 | $SAID | Live partner | DexScreener |

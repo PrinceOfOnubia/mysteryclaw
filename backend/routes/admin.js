@@ -141,7 +141,7 @@ router.post("/api/payout", async (req, res) => {
 
 router.post("/api/token/launch", async (req, res) => {
   try {
-    if (req.body?.confirm !== "LAUNCH MYST") {
+    if (req.body?.confirm !== "LAUNCH MYSTO") {
       return res.status(400).json({ error: "confirmation_required" });
     }
 
@@ -165,7 +165,7 @@ router.post("/api/token/launch", async (req, res) => {
     const response = await fetch(`${process.env.AGENT_CONTROL_URL.replace(/\/$/, "")}/launch-token`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ confirm: "LAUNCH MYST" }),
+      body: JSON.stringify({ confirm: "LAUNCH MYSTO" }),
     });
     const text = await response.text();
     await auditLog("admin_token_launch_forwarded", {
@@ -250,7 +250,7 @@ function requireAdmin(req, res, next) {
 }
 
 function getTokenLaunchStatus() {
-  const mint = process.env.MYST_TOKEN_MINT || process.env.TOKEN_MINT || null;
+  const mint = process.env.MYSTO_TOKEN_MINT || process.env.MYST_TOKEN_MINT || process.env.TOKEN_MINT || null;
   const fileExists = fs.existsSync(TOKEN_LAUNCH_FILE);
   return {
     launched: Boolean(mint || fileExists),

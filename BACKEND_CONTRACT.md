@@ -1,4 +1,4 @@
-# MYST — Backend Contract
+# MysteryClaw — Backend Contract
 
 For the backend developer. Each endpoint's request shape, response shape, and security expectations.
 
@@ -86,15 +86,15 @@ Submit a single-word guess. Triple-gated: wallet required → holder required �
 { "error": "not_holder" }
 
 // HTTP 429
-{ "error": "rate_limited", "cooldownHours": 18, "minutesLeft": 1080 }
+{ "error": "rate_limited", "cooldownHours": 2, "minutesLeft": 120 }
 ```
 
-Rate limit: **10 attempts per wallet per rolling 24h window**. Both correct and incorrect attempts count.
+Rate limit: **10 attempts per wallet per rolling 3h game session**. Both correct and incorrect attempts count.
 
 ### Prize pool ($1,000 USDC, split among winners):
 TODO comment in `routes/guess.js` shows where to add winner-recording logic. Recommended flow:
 1. On correct guess, record `{ pubkey, timestamp, epoch }` in a `winners` table
-2. Epoch closes after N hours (e.g. 24h) from the first winner
+2. Epoch closes 3 hours after the first winner
 3. When epoch closes, sum winners, calculate `share = 1000_USDC / winnerCount`
 4. Trigger USDC transfer from treasury wallet to each winner pubkey
 5. Return tx signature in subsequent `/guess` calls or via a `/winnings/:pubkey` endpoint

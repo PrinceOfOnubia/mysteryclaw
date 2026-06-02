@@ -14,12 +14,12 @@ const SECRET = "AETERNA";
 
 // ═══════════════════════════════════════════════════════════════
 // RATE LIMITING
-// 10 attempts per wallet per rolling 24h window.
-// Resets 24h after the first attempt that hit the limit.
+// 10 attempts per wallet per 3-hour game session.
+// Resets 3h after the first attempt that hit the limit.
 // In-memory store — moves to Redis/Postgres for production.
 // ═══════════════════════════════════════════════════════════════
 const MAX_ATTEMPTS = 10;
-const WINDOW_MS = 24 * 60 * 60 * 1000;
+const WINDOW_MS = 3 * 60 * 60 * 1000;
 
 const guessLog = {}; // pubkey → array of timestamps
 
@@ -116,7 +116,7 @@ router.post("/", async (req, res) => {
     });
 
     if (correct) {
-      // Record into the current 24h epoch. Real payouts require a later
+      // Record into the current 3h epoch. Real payouts require a later
       // admin-only trigger and PAYOUTS_ENABLED=true.
       const winInfo = await recordWinner({
         wallet,

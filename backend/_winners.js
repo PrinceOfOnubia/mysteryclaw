@@ -1,7 +1,7 @@
 import { hasDatabase, pool, query, sha256 } from "./_db.js";
 
 export const POOL_USDC = 1000;
-export const EPOCH_HOURS = 24;
+export const EPOCH_HOURS = 3;
 
 const EPOCH_INTERVAL = `${EPOCH_HOURS} hours`;
 export function load() {

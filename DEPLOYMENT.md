@@ -58,7 +58,7 @@ This guide walks through everything needed to take MysteryClaw from code to a fu
 │ OpenAI      │  │ AGENT RUNTIME (separate process)     │
 │ API         │  │ pm2 / systemd on VPS                 │
 │ (chat LLM)  │  │ - Owns Mysterio's Solana wallet            │
-└─────────────┘  │ - Can launch $MYST later via ClawPump │
+└─────────────┘  │ - Can launch $MYSTO later via ClawPump │
                  │ - Runs autonomous loop 24/7          │
                  │ - Posts to /autonomous every 5 min   │
                  └─────────┬────────────────────────────┘
@@ -66,7 +66,7 @@ This guide walks through everything needed to take MysteryClaw from code to a fu
                            ▼
                  ┌──────────────────────────┐
                  │ Solana mainnet           │
-                 │ - $MYST on pump.fun   │
+                 │ - $MYSTO on pump.fun   │
                  │ - Token gate verification│
                  │ - Prize payouts (USDC)   │
                  └──────────────────────────┘
@@ -184,7 +184,7 @@ Set these in Railway dashboard → your service → **Environment** tab.
 | `TREASURY_PRIVKEY` | Only when enabling payouts | empty | Base58 treasury secret, never commit |
 | `USDC_MINT` | ✅ Yes | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | Mainnet USDC |
 | `AGENT_WALLET_PUBKEY` | Optional | Mysterio wallet pubkey | Shows wallet address in admin status |
-| `MYST_TOKEN_MINT` | Optional until launch | Mint pubkey | Shows token launch status after launch |
+| `MYSTO_TOKEN_MINT` | Optional until launch | Mint pubkey | Shows token launch status after launch |
 
 **To generate AGENT_KEY:**
 ```bash
@@ -309,7 +309,7 @@ curl -X POST https://<your-railway-service>.up.railway.app/holdings \
   -d '{"pubkey":"<real_phantom_pubkey>"}'
 
 # Expected:
-# { "holdings": {"MYST":0,"CLAW":12000,"SQUIRE":0,"SAID":0,"NEMO":0}, "hasAccess": true }
+# { "holdings": {"MYSTO":0,"CLAW":12000,"SQUIRE":0,"SAID":0,"NEMO":0}, "hasAccess": true }
 ```
 
 ---
@@ -371,7 +371,7 @@ The frontend has a fallback array of mock fragments, so this is not blocking. Wh
 
 ## 8. Agent Runtime Deployment
 
-This is **a separate deployment** from the backend. It owns Mysterio's Solana wallet, launched the `$MYST` token, and runs the autonomous loop 24/7.
+This is **a separate deployment** from the backend. It owns Mysterio's Solana wallet, launched the `$MYSTO` token, and runs the autonomous loop 24/7.
 
 **Recommended host:** a small VPS (DigitalOcean $4/mo, Hetzner €3/mo, AWS Lightsail $3.50/mo). Railway works too but introduces unnecessary HTTP layer.
 
@@ -439,7 +439,7 @@ sudo apt install librsvg2-bin
 rsvg-convert -w 1024 -h 1024 assets/myst-token.svg -o assets/myst-token.png
 ```
 
-### 8.8 Launch $MYST on pump.fun later
+### 8.8 Launch $MYSTO on pump.fun later
 
 ```bash
 npm run launch-token
@@ -456,8 +456,8 @@ Do not run this until the token launch is intentionally approved.
 
 After successful launch, copy the `mintAddress` from `token-launch.json` and update:
 
-1. **`frontend/index.html`** — find `MYST_MINT_TBD_AFTER_LAUNCH` (appears twice in `TOKENS` array), replace both
-2. **`backend/routes/holdings.js`** — find the same placeholder in `ACCESS_TOKENS`, replace
+1. **`frontend/index.html`** — find `MYSTO_MINT_TBD_AFTER_LAUNCH` in the `TOKENS` array and replace it
+2. **`backend/_access.js`** — find the same placeholder in `ACCESS_TOKENS` and replace it
 3. Commit and redeploy frontend (`vercel --prod`) and backend (auto-deploys on push to main)
 
 ### 8.10 Start the autonomous loop
@@ -650,9 +650,9 @@ vercel --prod
 
 ### 11.2 Update token mint address
 
-After `$MYST` is launched (section 8), update both files with the real mint:
-- `frontend/index.html` → `TOKENS` array (2 occurrences of `MYST_MINT_TBD_AFTER_LAUNCH`)
-- `backend/routes/holdings.js` → `ACCESS_TOKENS` object
+After `$MYSTO` is launched (section 8), update both files with the real mint:
+- `frontend/index.html` → `TOKENS` array (`MYSTO_MINT_TBD_AFTER_LAUNCH`)
+- `backend/_access.js` → `ACCESS_TOKENS` object
 
 Commit and push.
 
@@ -692,7 +692,9 @@ Optional server-side env vars for admin visibility/control:
 ADMIN_WALLET=
 ADMIN_SESSION_SECRET=
 AGENT_WALLET_PUBKEY=
-MYST_TOKEN_MINT=
+MYSTO_TOKEN_MINT=
+# Legacy fallback supported if it was already set before the ticker update:
+# MYST_TOKEN_MINT=
 AGENT_CONTROL_URL=
 AGENT_CONTROL_KEY=
 ```
@@ -711,7 +713,7 @@ Before announcing publicly, verify:
 - [ ] `ADMIN_KEY` stored only as emergency/manual fallback
 - [ ] `/chat` returns Mysterio's adversarial responses (not generic "I'm an AI")
 - [ ] `/guess` rejects without pubkey (401)
-- [ ] `/guess` enforces 10/24h rate limit per wallet
+- [ ] `/guess` enforces 10 attempts per 3h game session per wallet
 - [ ] `/holdings` returns real on-chain balances (not stub `{...:0}`)
 - [ ] `REQUIRE_HOLDER=false` for MVP; only enable after wallet signature verification and /holdings validation
 - [ ] `/autonomous POST` rejects without `x-agent-key`
@@ -731,7 +733,7 @@ Before announcing publicly, verify:
 
 ### Agent Runtime
 - [ ] Mysterio's wallet generated and `agent-wallet.json` backed up offline
-- [ ] `$MYST` token launch intentionally approved
+- [ ] `$MYSTO` token launch intentionally approved
 - [ ] Mint address updated in frontend + backend
 - [ ] `npm run earnings` returns real data
 - [ ] `pm2 list` shows `mysterio-loop` as `online`

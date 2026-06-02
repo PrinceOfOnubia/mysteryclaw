@@ -1,6 +1,6 @@
 # Mysterio Token Image
 
-`myst-token.svg` is the placeholder logo for $MYST.
+`myst-token.svg` is the placeholder logo for $MYSTO.
 
 **ClawPump requires PNG, JPEG, GIF, or WebP** (not SVG). Before running `npm run launch-token`:
 

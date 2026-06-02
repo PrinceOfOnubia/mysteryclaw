@@ -33,8 +33,8 @@
   <!-- central mark -->
   <text x="256" y="330" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="220" font-weight="900" fill="url(#acc)" filter="url(#glow)">M</text>
   <!-- bottom label -->
-  <text x="256" y="455" text-anchor="middle" font-family="monospace" font-size="22" font-weight="700" fill="#00ff88" letter-spacing="8">MYST</text>
+  <text x="256" y="455" text-anchor="middle" font-family="monospace" font-size="22" font-weight="700" fill="#00ff88" letter-spacing="8">MYSTO</text>
   <!-- top corner mark -->
-  <text x="36" y="50" font-family="monospace" font-size="13" fill="#00ff88" opacity="0.6" letter-spacing="2">MYST // CLAW</text>
+  <text x="36" y="50" font-family="monospace" font-size="13" fill="#00ff88" opacity="0.6" letter-spacing="2">MYSTO // CLAW</text>
   <text x="476" y="50" text-anchor="end" font-family="monospace" font-size="13" fill="#00ff88" opacity="0.6" letter-spacing="2">v4.0.1</text>
 </svg>

@@ -5,7 +5,7 @@ import { normalizePubkey } from "../_walletAuth.js";
 const router = express.Router();
 
 // ═══════════════════════════════════════════════════════════════
-// MYST TOKEN HOLDINGS ENDPOINT
+// MYSTO TOKEN HOLDINGS ENDPOINT
 // ═══════════════════════════════════════════════════════════════
 //
 // Verify that a Phantom wallet holds at least one MysteryClaw access
@@ -16,7 +16,7 @@ const router = express.Router();
 // never drift apart.
 //
 // Response:
-//   { holdings: { MYST:0, CLAW:12000, SQUIRE:0, SAID:5000, NEMO:0 },
+//   { holdings: { MYSTO:0, CLAW:12000, SQUIRE:0, SAID:5000, NEMO:0 },
 //     hasAccess: true }
 //
 // Requires SOLANA_RPC env var. Without it, returns all-zeros +

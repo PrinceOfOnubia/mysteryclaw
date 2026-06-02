@@ -1095,7 +1095,7 @@ body::after{
       <button onclick="closeM('mAuth')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
     </div>
     <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.85;margin-bottom:16px">
-      Engaging Mysterio requires a connected wallet. The terminal is gated behind a holder check — only $MYST / $CLAW / $SQUIRE / $SAID / $NEMO holders can submit guesses for the prize.
+      Engaging Mysterio requires a connected wallet. The terminal is gated behind a holder check — only $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO holders can submit guesses for the prize.
     </p>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:20px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
       SECURITY: Signed via <span style="color:var(--accent)">signMessage</span>. No personal data collected. Backend verifies signature + on-chain holdings on every request.
@@ -1121,7 +1121,7 @@ body::after{
       Enter the single word you believe Mysterio is hiding. A correct guess claims a share of the <span style="color:var(--accent)">$1,000 USDC pool</span> — split evenly if there are multiple winners.
     </p>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:18px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
-      Holders only. 10 attempts per wallet per 24h. Verification is server-side. The word never lives on the client.
+      Holders only. 10 attempts per wallet per 3h game session. Verification is server-side. The word never lives on the client.
     </div>
     <div style="margin-bottom:14px">
       <label style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);display:block;margin-bottom:9px">YOUR ANSWER</label>
@@ -1268,8 +1268,8 @@ body::after{
             </div>
             <div class="prize-rule">
               <div class="rl">ATTEMPTS</div>
-              <div class="rt">10 / wallet / 24h</div>
-              <div class="rs">Then 24-hour cooldown</div>
+              <div class="rt">10 / wallet / 3h</div>
+              <div class="rs">Then 3-hour cooldown</div>
             </div>
             <div class="prize-rule">
               <div class="rl">SPLIT</div>
@@ -1484,7 +1484,7 @@ body::after{
         <h2>HOLD THE <span class="accent">KEYS</span>.<br/>UNLOCK THE <span class="accent">SECRET</span>.</h2>
       </div>
       <div class="tg-meta">
-        $MYST is the platform's native token, autonomously launched by Mysterio via <b>ClawPump</b>. Holding any of the access tokens below grants full participation — <b>agent interaction</b>, <b>discovery rewards</b>, and <b>future deployments</b>.
+        $MYSTO is the platform's native token, autonomously launched by Mysterio via <b>ClawPump</b>. Holding any of the access tokens below grants full participation — <b>agent interaction</b>, <b>discovery rewards</b>, and <b>future deployments</b>.
       </div>
     </div>
     <div class="tg-grid" id="tgGrid">
@@ -1799,10 +1799,10 @@ const API_BASE = (
 // ═══════════════════════════════════════════════════════════
 const TOKENS = [
   {
-    name:'MYST',
+    name:'MYSTO',
     sym:'◈',
-    ca:'MYST_MINT_TBD_AFTER_LAUNCH',
-    dex:'https://pump.fun/coin/MYST_MINT_TBD_AFTER_LAUNCH',
+    ca:'MYSTO_MINT_TBD_AFTER_LAUNCH',
+    dex:'https://pump.fun/coin/MYSTO_MINT_TBD_AFTER_LAUNCH',
     isPlatform:true
   },
   {
@@ -1836,7 +1836,7 @@ function renderTokenGate(){
   if(!g) return
   g.innerHTML = TOKENS.map(t => {
     const isPlatform = !!t.isPlatform
-    const notLaunched = isPlatform && t.ca.startsWith('MYST_MINT_TBD')
+    const notLaunched = isPlatform && t.ca.includes('_MINT_TBD')
     const pillText = isPlatform ? 'PLATFORM' : 'SOLANA'
     const chartLabel = isPlatform ? 'PUMP.FUN' : 'CHART'
 
@@ -2157,7 +2157,7 @@ function reqA(page){
     return
   }
   if(page === 'term' && S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYST / $CLAW / $SQUIRE / $SAID / $NEMO to enter')
+    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO to enter')
     return
   }
   go(page)
@@ -2544,7 +2544,7 @@ async function sendChat(){
     return
   }
   if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYST / $CLAW / $SQUIRE / $SAID / $NEMO to chat')
+    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO to chat')
     return
   }
   inp.value = ''
@@ -2592,7 +2592,7 @@ function openGuess(){
     return
   }
   if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYST / $CLAW / $SQUIRE / $SAID / $NEMO to participate')
+    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO to participate')
     return
   }
   document.getElementById('guessCount').textContent = S.guesses
@@ -2609,7 +2609,7 @@ async function submitGuess(){
   }
   // hard gate — must be a holder
   if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYST / $CLAW / $SQUIRE / $SAID / $NEMO to guess')
+    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO to guess')
     return
   }
 
@@ -2632,7 +2632,7 @@ async function submitGuess(){
       if(data.error === 'not_holder'){
         toast('Holders only — your wallet has no access tokens')
       } else if(data.error === 'rate_limited'){
-        toast('Limit reached — 10 attempts / 24h. Try again in ' + (data.cooldownHours || '24') + 'h')
+        toast('Limit reached — 10 attempts / 3h. Try again in ' + (data.cooldownHours || '3') + 'h')
       } else if(data.error === 'cooldown'){
         toast('Cooldown active — wait ' + (data.minutesLeft || '?') + ' min')
       } else if(data.error && data.error.startsWith('wallet_')){

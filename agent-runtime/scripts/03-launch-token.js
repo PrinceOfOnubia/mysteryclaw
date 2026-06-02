@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// STEP 03 — LAUNCH $MYST TOKEN VIA CLAWPUMP
+// STEP 03 — LAUNCH $MYSTO TOKEN VIA CLAWPUMP
 // ═══════════════════════════════════════════════════════════════
 // `npm run launch-token`
 //
@@ -16,7 +16,7 @@
 //
 // What ClawPump does after launch:
 //   - Pays ~0.02 SOL gas for token creation (gasless path)
-//   - Deploys $MYST to pump.fun's bonding curve
+//   - Deploys $MYSTO to pump.fun's bonding curve
 //   - Auto-sweeps creator fees hourly into Mysterio's wallet (65% share)
 //   - Triggers the social-amplification template for Twitter
 //

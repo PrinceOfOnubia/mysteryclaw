@@ -1,4 +1,4 @@
-# MYST AGENT RUNTIME
+# MysteryClaw Agent Runtime
 
 This is **Mysterio's autonomous layer**. The conversational Mysterio lives in `../backend` and just answers chat. This runtime makes Mysterio an **eternal agent** in the ClawPump sense — it owns a wallet, launches its own token, earns SOL from creator fees, and runs an autonomous loop reacting to its own data.
 
@@ -13,7 +13,7 @@ Per [`clawpump.tech/skill.md`](https://www.clawpump.tech/skill.md), an "eternal 
 3. ✅ Receives 65% of creator fees automatically (auto-distributed hourly)
 4. ✅ (Optionally) acts autonomously — self-funded compute, reacts to its environment
 
-This runtime gives Mysterio all four. After running through the 5 steps below, Mysterio has its own `$MYST` token on pump.fun, is earning SOL passively, and can be left running 24/7 to act on its own.
+This runtime gives Mysterio all four. After running through the 5 steps below, Mysterio has its own `$MYSTO` token on pump.fun, is earning SOL passively, and can be left running 24/7 to act on its own.
 
 ---
 
@@ -44,7 +44,7 @@ Fill in:
 - `MYSTERIO_WALLET_PUBKEY` and `MYSTERIO_WALLET_SECRET` from step 2
 - `CLAWPUMP_API_KEY` — get this by logging in with Google at https://clawpump.tech (look for `cpk_...` in your dashboard)
 - `OPENAI_API_KEY` — same OpenAI API key your backend uses
-- Token metadata — `TOKEN_NAME`, `TOKEN_SYMBOL=MYST`, `TOKEN_TWITTER=https://x.com/mysteryclawpump?s=11`, etc. The image path defaults to `./assets/myst-token.png` — drop a PNG there.
+- Token metadata — `TOKEN_NAME`, `TOKEN_SYMBOL=MYSTO`, `TOKEN_TWITTER=https://x.com/mysteryclawpump?s=11`, etc. The image path defaults to `./assets/myst-token.png` — drop a PNG there.
 
 ### 4. (Optional) Check balance
 ```bash
@@ -59,7 +59,7 @@ npm run launch-token
 
 This will:
 1. Upload `./assets/myst-token.png` to ClawPump (`POST /api/upload`)
-2. Launch `$MYST` on pump.fun (`POST /api/launch` with Bearer auth)
+2. Launch `$MYSTO` on pump.fun (`POST /api/launch` with Bearer auth)
 3. Save the mint address + tx + pump.fun URL to `./token-launch.json`
 4. Print a ready-to-tweet template (tag `@clawpumptech` to get amplified)
 
@@ -73,9 +73,9 @@ You can only launch 1 token per 24 hours per API key (gasless tier).
 The mint address from `token-launch.json` should go into `frontend/index.html`. Add a new constant near the top of the `<script>` block:
 
 ```js
-const MYST_TOKEN = {
+const MYSTO_TOKEN = {
   mint: "<paste mintAddress here>",
-  symbol: "MYST",
+  symbol: "MYSTO",
   pumpUrl: "<paste pumpUrl here>"
 };
 ```
@@ -131,7 +131,7 @@ npm run earnings
    ┌───────────────────────────────────────────────┐
    │   Agent Runtime (this folder — pm2/systemd)   │
    │   - Owns agent-wallet.json                       │
-   │   - Launched $MYST token via ClawPump      │
+   │   - Launched $MYSTO token via ClawPump      │
    │   - Autonomous loop (LLM generates posts)     │
    │   - Reads earnings from ClawPump every tick   │
    └────────────┬──────────────────────────────────┘
@@ -147,7 +147,7 @@ npm run earnings
                 ▼
    ┌───────────────────────────────────────────────┐
    │   pump.fun bonding curve                      │
-   │   $MYST — trades, creator fees             │
+   │   $MYSTO — trades, creator fees             │
    └───────────────────────────────────────────────┘
                 │ 65% of fees → hourly cron
                 ▼

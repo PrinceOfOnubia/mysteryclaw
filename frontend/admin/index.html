@@ -186,7 +186,7 @@
           <h2>Token</h2>
           <div id="tokenRows"></div>
           <div class="actions">
-            <button class="danger" onclick="confirmAction('launch')">Launch $MYST</button>
+            <button class="danger" onclick="confirmAction('launch')">Launch $MYSTO</button>
           </div>
         </section>
         <section class="card wide">
@@ -449,7 +449,7 @@
     function confirmAction(action){
       pendingAction = action
       const copy = {
-        launch:['Launch $MYST', 'Type LAUNCH MYST to call the server-side launch route. It will refuse if already launched or agent control is not configured.', 'LAUNCH MYST'],
+        launch:['Launch $MYSTO', 'Type LAUNCH MYSTO to call the server-side launch route. It will refuse if already launched or agent control is not configured.', 'LAUNCH MYSTO'],
         payout:['Trigger Payout', 'Type TRIGGER PAYOUT to request payout processing. Backend still refuses unless PAYOUTS_ENABLED=true and all treasury guards pass.', 'TRIGGER PAYOUT'],
         restart:['Restart Agent', 'Type RESTART MYSTERIO AGENT to call the server-side agent restart route. It will refuse unless agent control is configured.', 'RESTART MYSTERIO AGENT']
       }[action]
@@ -465,7 +465,7 @@
       if(typed !== phrase) return toast('Confirmation phrase mismatch')
       closeModal()
       const map = {
-        launch:['/admin/api/token/launch', { confirm:'LAUNCH MYST' }],
+        launch:['/admin/api/token/launch', { confirm:'LAUNCH MYSTO' }],
         payout:['/admin/api/payout', { confirm:'TRIGGER PAYOUT' }],
         restart:['/admin/api/agent/restart', { confirm:'RESTART MYSTERIO AGENT' }]
       }
