@@ -5,12 +5,12 @@
 // on-chain holder check. Both routes/holdings.js and routes/guess.js
 // import from here, so there's no risk of them drifting apart.
 //
-// ⚠ After Mysterio launches $MYSTO via ClawPump (agent-runtime), replace
-// the MYSTO placeholder mint below with the real mint address.
+// $MYSTO launched through the hosted ClawPump flow. Keep its production
+// mint aligned with Railway's MYSTO_TOKEN_MINT admin status value.
 // ═══════════════════════════════════════════════════════════════
 
 export const ACCESS_TOKENS = {
-  MYSTO: "MYSTO_MINT_TBD_AFTER_LAUNCH",
+  MYSTO: "G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ",
   CLAW:    "739dnZEG4yaBWFsY8L8ZwrfhGG6dhtCSercW8Umspump",
   SQUIRE:  "EN2nnxrg8uUi6x2sJkzNPd2eT6rB9rdSoQNNaENA4RZA",
   SAID:    "4rWuWZei2iFNHYpnz5wjMeSvimsJcj5EgpSNvNS1pump",

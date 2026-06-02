@@ -227,7 +227,21 @@ body::after{
 }
 .hero-sub b{color:var(--accent);font-weight:500}
 
-.hero-cta{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:80px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:24px}
+.hero-ca{
+  max-width:760px;width:100%;display:flex;align-items:center;justify-content:center;gap:12px;
+  margin-bottom:64px;padding:12px 16px;border:1px solid var(--accent-dim);
+  background:rgba(0,255,136,.035);cursor:pointer;transition:border-color .2s,background .2s;
+}
+.hero-ca:hover{border-color:var(--accent);background:rgba(0,255,136,.065)}
+.hero-ca-label{
+  flex-shrink:0;font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--accent);
+}
+.hero-ca-value{
+  min-width:0;font-family:'JetBrains Mono';font-size:10px;letter-spacing:.06em;
+  color:var(--text-dim);overflow-wrap:anywhere;
+}
 
 /* live stats grid in hero */
 .stats-row{
@@ -1062,6 +1076,7 @@ body::after{
   #dbtn{padding:9px 10px;letter-spacing:.16em;font-size:8px}
   #nwi{display:none!important}
   .hero{padding:80px 18px 60px}
+  .hero-ca{align-items:flex-start;flex-direction:column;gap:7px;margin-bottom:48px}
   .sec-divider,.incident,.hiw,.tg-wrap,.cta-bottom,#footer,.lore-hero,.lore-section,.disc-hero,.disc-grid{padding-left:18px;padding-right:18px}
   .hiw-grid,.feat-grid,.agents-grid{grid-template-columns:1fr}
   .tg-grid{grid-template-columns:1fr}
@@ -1222,6 +1237,10 @@ body::after{
         <span style="font-family:'JetBrains Mono'">→</span>
       </button>
       <button class="bg" onclick="go('lore')">READ THE MYSTERY</button>
+    </div>
+    <div class="hero-ca" onclick="copyText(MYSTO_MINT,'✓ MYSTO CA copied')" title="Copy $MYSTO contract address">
+      <span class="hero-ca-label">$MYSTO CA // CLICK TO COPY</span>
+      <span class="hero-ca-value">G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ</span>
     </div>
     <div class="stats-row">
       <div class="stat-cell">
@@ -1797,12 +1816,13 @@ const API_BASE = (
 // ═══════════════════════════════════════════════════════════
 // TOKEN GATE DATA
 // ═══════════════════════════════════════════════════════════
+const MYSTO_MINT = 'G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ'
 const TOKENS = [
   {
     name:'MYSTO',
     sym:'◈',
-    ca:'MYSTO_MINT_TBD_AFTER_LAUNCH',
-    dex:'https://pump.fun/coin/MYSTO_MINT_TBD_AFTER_LAUNCH',
+    ca:MYSTO_MINT,
+    dex:`https://pump.fun/coin/${MYSTO_MINT}`,
     isPlatform:true
   },
   {
@@ -1836,29 +1856,8 @@ function renderTokenGate(){
   if(!g) return
   g.innerHTML = TOKENS.map(t => {
     const isPlatform = !!t.isPlatform
-    const notLaunched = isPlatform && t.ca.includes('_MINT_TBD')
     const pillText = isPlatform ? 'PLATFORM' : 'SOLANA'
     const chartLabel = isPlatform ? 'PUMP.FUN' : 'CHART'
-
-    if(notLaunched){
-      return `
-        <div class="tg-card platform">
-          <div class="tg-head">
-            <div class="tg-avatar">${t.sym}</div>
-            <span class="tg-pill">${pillText}</span>
-          </div>
-          <div class="tg-name">$${t.name}</div>
-          <div class="tg-ca" style="color:var(--text-mute);font-style:italic;cursor:default">
-            <span class="cpy">CONTRACT</span>
-            Launching soon via ClawPump — token deploy in progress...
-          </div>
-          <div class="tg-actions">
-            <a href="https://clawpump.tech" target="_blank" rel="noopener" style="opacity:.7">VIA CLAWPUMP</a>
-            <a style="opacity:.5;cursor:not-allowed;pointer-events:none" class="primary">PENDING</a>
-          </div>
-        </div>
-      `
-    }
 
     return `
       <div class="tg-card ${isPlatform?'platform':''}">

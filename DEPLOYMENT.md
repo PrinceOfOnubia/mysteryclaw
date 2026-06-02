@@ -58,7 +58,7 @@ This guide walks through everything needed to take MysteryClaw from code to a fu
 │ OpenAI      │  │ AGENT RUNTIME (separate process)     │
 │ API         │  │ pm2 / systemd on VPS                 │
 │ (chat LLM)  │  │ - Observes hosted ClawPump wallet           │
-└─────────────┘  │ - Can launch $MYSTO later via ClawPump │
+└─────────────┘  │ - Observes launched $MYSTO state        │
                  │ - Runs autonomous loop 24/7          │
                  │ - Posts to /autonomous every 5 min   │
                  └─────────┬────────────────────────────┘
@@ -185,7 +185,7 @@ Set these in Railway dashboard → your service → **Environment** tab.
 | `TREASURY_PRIVKEY` | Only when enabling payouts | empty | Base58 treasury secret, never commit |
 | `USDC_MINT` | ✅ Yes | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | Mainnet USDC |
 | `AGENT_WALLET_PUBKEY` | Optional | Mysterio wallet pubkey | Shows wallet address in admin status |
-| `MYSTO_TOKEN_MINT` | Optional until launch | Mint pubkey | Shows token launch status after launch |
+| `MYSTO_TOKEN_MINT` | ✅ Yes | `G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ` | Launched `$MYSTO` mint |
 | `CLAWPUMP_API_KEY` | ✅ Yes for hosted-agent bridge | `cpk_...` | Server-side only; never expose to frontend |
 | `CLAWPUMP_AGENT_ID` | ✅ Yes for hosted-agent bridge | Hosted agent UUID | Mysterio agent created in the ClawPump dashboard |
 | `CLAWPUMP_BASE_URL` | ✅ Recommended | `https://clawpump.tech/api/v1` | Hosted-agent API base URL |
@@ -430,26 +430,17 @@ Fill in:
 
 Confirm `assets/myst-token.png` exists and is the approved token logo.
 
-### 8.7 Launch $MYSTO on pump.fun later
+### 8.7 Confirm launched $MYSTO configuration
 
-```bash
-npm run launch-token
+Use this mint everywhere:
+
+```text
+G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ
 ```
 
-Do not run this until the token launch is intentionally approved.
-2. Sign in and launch from `https://agents.clawpump.tech/dashboard/launch-token`
-3. Save the mint address and transaction signature to `token-launch.json`
-4. Update the Railway and frontend mint configuration
+Set `MYSTO_TOKEN_MINT` in Railway and AWS `agent-runtime/.env`. Keep the frontend `MYSTO_MINT` constant and backend `ACCESS_TOKENS.MYSTO` aligned with the same CA.
 
-### 8.8 Update the mint address everywhere
-
-After successful launch, copy the `mintAddress` from `token-launch.json` and update:
-
-1. **`frontend/index.html`** — find `MYSTO_MINT_TBD_AFTER_LAUNCH` in the `TOKENS` array and replace it
-2. **`backend/_access.js`** — find the same placeholder in `ACCESS_TOKENS` and replace it
-3. Commit and redeploy frontend (`vercel --prod`) and backend (auto-deploys on push to main)
-
-### 8.9 Start the autonomous loop
+### 8.8 Start the autonomous loop
 
 ```bash
 pm2 start scripts/06-agent-loop.js --name mysterio-agent
@@ -637,13 +628,9 @@ cd frontend
 vercel --prod
 ```
 
-### 11.2 Update token mint address
+### 11.2 Verify token mint address
 
-After `$MYSTO` is launched (section 8), update both files with the real mint:
-- `frontend/index.html` → `TOKENS` array (`MYSTO_MINT_TBD_AFTER_LAUNCH`)
-- `backend/_access.js` → `ACCESS_TOKENS` object
-
-Commit and push.
+Confirm the `$MYSTO` CA is identical in Railway `MYSTO_TOKEN_MINT`, frontend `MYSTO_MINT`, backend `ACCESS_TOKENS.MYSTO`, and AWS agent-runtime `MYSTO_TOKEN_MINT`.
 
 ### 11.3 Domain (optional)
 
@@ -681,7 +668,7 @@ Optional server-side env vars for admin visibility/control:
 ADMIN_WALLET=
 ADMIN_SESSION_SECRET=
 AGENT_WALLET_PUBKEY=
-MYSTO_TOKEN_MINT=
+MYSTO_TOKEN_MINT=G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ
 # Legacy fallback supported if it was already set before the ticker update:
 # MYST_TOKEN_MINT=
 AGENT_CONTROL_URL=
@@ -740,8 +727,7 @@ Before announcing publicly, verify:
 ### Agent Runtime
 - [ ] Hosted ClawPump agent UUID and public wallet address configured
 - [ ] No agent wallet private key stored in `agent-runtime/.env`
-- [ ] `$MYSTO` token launch intentionally approved
-- [ ] Mint address updated in frontend + backend
+- [ ] `$MYSTO` mint matches the launched CA everywhere
 - [ ] `npm run earnings` returns real data
 - [ ] `pm2 list` shows `mysterio-loop` as `online`
 - [ ] `pm2 logs mysterio-loop` shows successful ticks

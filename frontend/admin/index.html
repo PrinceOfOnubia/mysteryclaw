@@ -186,7 +186,7 @@
           <h2>Token</h2>
           <div id="tokenRows"></div>
           <div class="actions">
-            <button class="danger" onclick="confirmAction('launch')">Launch $MYSTO</button>
+            <button class="danger" id="tokenLaunchBtn" disabled>$MYSTO Launched</button>
           </div>
         </section>
         <section class="card wide">
@@ -375,6 +375,9 @@
       ])
       document.getElementById('agentPauseBtn').textContent = data.agent?.actionsPaused ? 'Unpause Agent Actions' : 'Pause Agent Actions'
       document.getElementById('prizePauseBtn').textContent = data.settings?.prize_submissions_paused === 'true' ? 'Unpause Prize Submissions' : 'Pause Prize Submissions'
+      const tokenLaunchBtn = document.getElementById('tokenLaunchBtn')
+      tokenLaunchBtn.disabled = Boolean(data.token?.launched)
+      tokenLaunchBtn.textContent = data.token?.launched ? '$MYSTO Launched' : 'Launch $MYSTO'
     }
 
     function renderPrize(data){

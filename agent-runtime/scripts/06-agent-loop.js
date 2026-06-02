@@ -36,7 +36,9 @@ console.log("══════════════════════�
 const memory = loadMemory();
 const agentWallet = process.env.CLAWPUMP_AGENT_WALLET_PUBKEY || null;
 if (memory.identity.wallet !== agentWallet) memory.identity.wallet = agentWallet;
-if (!memory.identity.tokenMint && fs.existsSync(LAUNCH_FILE)) {
+if (process.env.MYSTO_TOKEN_MINT) {
+  memory.identity.tokenMint = process.env.MYSTO_TOKEN_MINT;
+} else if (!memory.identity.tokenMint && fs.existsSync(LAUNCH_FILE)) {
   try {
     const l = JSON.parse(fs.readFileSync(LAUNCH_FILE, "utf-8"));
     memory.identity.tokenMint = l.mintAddress;

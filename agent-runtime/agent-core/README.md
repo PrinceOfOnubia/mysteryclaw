@@ -120,7 +120,7 @@ Every tick, the LLM sees a compact view of this memory (goals + last 8 decisions
 ```bash
 cd agent-runtime
 npm install              # if not already done
-# (run 01..03 first to get wallet + token launched)
+# Set MYSTO_TOKEN_MINT to the launched token CA in .env.
 npm run agent
 ```
 

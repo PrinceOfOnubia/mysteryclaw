@@ -24,15 +24,23 @@ Required values:
 
 Do not add wallet private keys to this runtime.
 
-## Token Launch Preparation
+## Launched Token
+
+`$MYSTO` CA:
+
+```text
+G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ
+```
+
+Set `MYSTO_TOKEN_MINT` in `.env` so the runtime observes the launched token and persists it in Mysterio's memory.
+
+## Launch Utility
 
 ```bash
 npm run launch-token
 ```
 
-The command validates `TOKEN_IMAGE_PATH` and `TOKEN_IMAGE_URL`, then prints the authenticated ClawPump dashboard launch URL. It does not launch a token or submit a transaction.
-
-Do not launch until intentionally approved. After a dashboard launch, record the mint address and transaction signature in `token-launch.json`, then update the Railway and frontend mint configuration.
+The command is retained as a guarded utility. It validates metadata and refuses to submit token transactions directly. Do not launch a second token.
 
 ## Run The Agent
 

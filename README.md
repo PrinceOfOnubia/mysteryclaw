@@ -28,11 +28,11 @@ mysteryclaw/
 └── agent-runtime/                 ← Mysterio's autonomous layer
     ├── README.md                  ← full setup guide
     ├── scripts/
-    │   ├── 03-launch-token.js     ← deploy $MYSTO via ClawPump
+    │   ├── 03-launch-token.js     ← guarded launch metadata utility
     │   ├── 04-autonomous-loop.js  ← run Mysterio 24/7
     │   └── 05-check-earnings.js
     └── assets/
-        └── myst-token.svg           ← logo (convert to PNG before launch)
+        └── myst-token.png           ← launched token logo
 ```
 
 ---
@@ -63,12 +63,12 @@ See `agent-runtime/README.md` for the 5-step process:
 1. Create the hosted Mysterio agent in the ClawPump dashboard
 2. Fill `.env` with its UUID, public wallet address, and ClawPump API key
 3. Confirm `assets/myst-token.png` is the intended token image
-4. Launch `$MYSTO` only from the authenticated ClawPump dashboard when approved
+4. Keep `$MYSTO` mint configuration aligned with Railway and the frontend
 5. `pm2 start scripts/06-agent-loop.js --name mysterio-agent` — Mysterio acts autonomously 24/7
 
-After launch:
+Launched token:
 - Mysterio earns 65% of all $MYSTO trading fees automatically (hourly distribution)
-- Update `MYSTO_MINT_TBD_AFTER_LAUNCH` in `frontend/index.html` and `backend/_access.js` with the real mint address
+- `$MYSTO` CA: `G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ`
 - Use the hosted ClawPump dashboard to inspect Mysterio's profile and wallet
 
 ---
@@ -101,5 +101,5 @@ To rotate: update Railway's `SECRET_WORD` environment variable and redeploy the 
 - Vercel project: configure after creating the MysteryClaw Vercel project
 - Backend (when live): https://<your-railway-service>.up.railway.app
 - X/Twitter: https://x.com/mysteryclawpump?s=11
-- Token (after launch): `https://pump.fun/coin/{mint}`
+- Token: `https://pump.fun/coin/G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ`
 - Agent profile: open Mysterio from `https://agents.clawpump.tech/dashboard`

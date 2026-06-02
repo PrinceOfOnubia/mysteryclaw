@@ -39,13 +39,16 @@ export async function gatherObservation() {
 
   // ─── Token info from ClawPump ────────────────────────────────
   try {
-    if (fs.existsSync("./token-launch.json")) {
-      const launch = JSON.parse(fs.readFileSync("./token-launch.json", "utf-8"));
-      const r = await fetch(CLAWPUMP_BASE + "/api/tokens/" + launch.mintAddress);
+    const launch = fs.existsSync("./token-launch.json")
+      ? JSON.parse(fs.readFileSync("./token-launch.json", "utf-8"))
+      : null;
+    const mintAddress = process.env.MYSTO_TOKEN_MINT || launch?.mintAddress;
+    if (mintAddress) {
+      const r = await fetch(CLAWPUMP_BASE + "/api/tokens/" + mintAddress);
       if (r.ok) {
         const data = await r.json();
         obs.tokenInfo = {
-          mint: launch.mintAddress,
+          mint: mintAddress,
           marketCap: data.marketCap || null,
           volume24h: data.volume24h || null,
           holders: data.holders || null,

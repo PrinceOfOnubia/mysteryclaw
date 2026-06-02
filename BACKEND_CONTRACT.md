@@ -103,7 +103,7 @@ TODO comment in `routes/guess.js` shows where to add winner-recording logic. Rec
 
 ## 3. `POST /holdings`  ⚠️ STUB
 
-Verify that a wallet holds at least one of the 4 MysteryClaw access tokens.
+Verify that a wallet holds at least one of the 5 MysteryClaw access tokens.
 
 **Request:**
 ```json
