@@ -448,9 +448,9 @@ npm run launch-token
 ```
 
 Do not run this until the token launch is intentionally approved.
-2. Call `POST https://clawpump.tech/api/v1/launch` with your API key
-3. Save the result to `token-launch.json`
-4. Print a Twitter template with `@clawpumptech` tag
+2. Sign in and launch from `https://agents.clawpump.tech/dashboard/launch-token`
+3. Save the mint address and transaction signature to `token-launch.json`
+4. Update the Railway and frontend mint configuration
 
 **Note:** gasless tier = 1 launch per 24h. If it fails with 503 (treasury empty), use the self-funded path (see `clawpump.tech/launch.md`).
 
