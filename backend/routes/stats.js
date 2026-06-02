@@ -33,22 +33,8 @@ router.get("/", async (req, res) => {
     }
 
     const result = await query(
-      `with active_wallets as (
-         select wallet_pubkey
-         from audit_logs
-         where wallet_pubkey is not null
-           and created_at >= now() - interval '24 hours'
-         union
-         select wallet_pubkey
-         from guesses
-         where created_at >= now() - interval '24 hours'
-         union
-         select wallet_pubkey
-         from verified_wallets
-         where last_verified_at >= now() - interval '24 hours'
-       )
-       select
-         (select count(distinct wallet_pubkey)::int from active_wallets) as investigators,
+      `select
+         (select count(*)::int from users) as investigators,
          (select count(*)::int from audit_logs where event_type = 'chat_message') as conversations,
          (select count(*)::int from autonomous_posts) as clues`
     );
