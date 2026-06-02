@@ -44,7 +44,7 @@ Fill in:
 - `MYSTERIO_WALLET_PUBKEY` and `MYSTERIO_WALLET_SECRET` from step 2
 - `CLAWPUMP_API_KEY` — get this by logging in with Google at https://clawpump.tech (look for `cpk_...` in your dashboard)
 - `OPENAI_API_KEY` — same OpenAI API key your backend uses
-- Token metadata — `TOKEN_NAME`, `TOKEN_SYMBOL=MYSTO`, `TOKEN_TWITTER=https://x.com/mysteryclawpump?s=11`, etc. The image path defaults to `./assets/myst-token.png` — drop a PNG there.
+- Token metadata — `TOKEN_NAME`, `TOKEN_SYMBOL=MYSTO`, `TOKEN_TWITTER=https://x.com/mysteryclawpump?s=11`, etc. Keep the local PNG at `./assets/myst-token.png` and set `TOKEN_IMAGE_URL` to its public HTTPS URL.
 
 ### 4. (Optional) Check balance
 ```bash
@@ -58,8 +58,8 @@ npm run launch-token
 ```
 
 This will:
-1. Upload `./assets/myst-token.png` to ClawPump (`POST /api/upload`)
-2. Launch `$MYSTO` on pump.fun (`POST /api/launch` with Bearer auth)
+1. Validate `./assets/myst-token.png` and its public `TOKEN_IMAGE_URL`
+2. Launch `$MYSTO` on pump.fun (`POST https://agents.clawpump.tech/api/v1/launch` with Bearer auth)
 3. Save the mint address + tx + pump.fun URL to `./token-launch.json`
 4. Print a ready-to-tweet template (tag `@clawpumptech` to get amplified)
 

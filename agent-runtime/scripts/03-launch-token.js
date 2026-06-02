@@ -4,8 +4,8 @@
 // `npm run launch-token`
 //
 // What this does:
-//   1. Uploads token image to ClawPump (POST /api/upload)
-//   2. Launches the token (POST /api/launch with API key auth)
+//   1. Validates the local token image and public TOKEN_IMAGE_URL
+//   2. Launches the token (POST /api/v1/launch with API key auth)
 //   3. Saves mint address + tx + pump.fun URL to ./token-launch.json
 //
 // Prerequisites:
@@ -28,15 +28,22 @@
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
-import FormData from "form-data";
 import fetch from "node-fetch";
 
 dotenv.config();
 
-const CLAWPUMP_BASE = "https://clawpump.tech";
+const CLAWPUMP_BASE = "https://agents.clawpump.tech/api/v1";
 
 // ─── Validate env ────────────────────────────────────────────
-const required = ["CLAWPUMP_API_KEY", "TOKEN_NAME", "TOKEN_SYMBOL", "TOKEN_DESCRIPTION", "TOKEN_IMAGE_PATH"];
+const required = [
+  "CLAWPUMP_API_KEY",
+  "CLAWPUMP_AGENT_ID",
+  "TOKEN_NAME",
+  "TOKEN_SYMBOL",
+  "TOKEN_DESCRIPTION",
+  "TOKEN_IMAGE_PATH",
+  "TOKEN_IMAGE_URL",
+];
 for (const k of required) {
   if (!process.env[k]) {
     console.error(`Missing required env var: ${k}`);
@@ -61,33 +68,12 @@ if (fs.existsSync(outFile)) {
   process.exit(1);
 }
 
-// ─── STEP A — Upload image ───────────────────────────────────
+// ─── STEP A — Validate image ─────────────────────────────────
 console.log("");
-console.log("[1/2] Uploading token image to ClawPump...");
+console.log("[1/2] Validating token image...");
 console.log("      File: " + imagePath);
-
-const imageBuffer = fs.readFileSync(imagePath);
-const fd = new FormData();
-fd.append("image", imageBuffer, {
-  filename: path.basename(imagePath),
-  contentType: getMimeType(imagePath),
-});
-
-let imageUrl;
-{
-  const r = await fetch(CLAWPUMP_BASE + "/api/upload", {
-    method: "POST",
-    body: fd,
-    headers: fd.getHeaders(),
-  });
-  const json = await r.json();
-  if (!r.ok || !json.success) {
-    console.error("Upload failed:", json);
-    process.exit(1);
-  }
-  imageUrl = json.imageUrl;
-  console.log("      ✓ Uploaded: " + imageUrl);
-}
+const imageUrl = process.env.TOKEN_IMAGE_URL;
+console.log("      Public URL: " + imageUrl);
 
 // ─── STEP B — Launch token ───────────────────────────────────
 console.log("");
@@ -98,12 +84,14 @@ const payload = {
   symbol: process.env.TOKEN_SYMBOL,
   description: process.env.TOKEN_DESCRIPTION,
   imageUrl,
+  agentId: process.env.CLAWPUMP_AGENT_ID,
+  walletAddress: process.env.MYSTERIO_WALLET_PUBKEY || process.env.PI_WALLET_PUBKEY,
 };
 if (process.env.TOKEN_WEBSITE) payload.website = process.env.TOKEN_WEBSITE;
 if (process.env.TOKEN_TWITTER) payload.twitter = process.env.TOKEN_TWITTER;
 if (process.env.TOKEN_BUYBACK_BPS) payload.buybackBps = parseInt(process.env.TOKEN_BUYBACK_BPS, 10);
 
-const launchRes = await fetch(CLAWPUMP_BASE + "/api/launch", {
+const launchRes = await fetch(CLAWPUMP_BASE + "/launch", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -112,7 +100,7 @@ const launchRes = await fetch(CLAWPUMP_BASE + "/api/launch", {
   body: JSON.stringify(payload),
 });
 
-const launchJson = await launchRes.json();
+const launchJson = await readJsonResponse(launchRes);
 
 if (!launchRes.ok) {
   console.error("");
@@ -186,13 +174,13 @@ console.log("  4. Start autonomous loop: npm run loop");
 console.log("");
 
 // ─── helpers ─────────────────────────────────────────────────
-function getMimeType(p) {
-  const ext = path.extname(p).toLowerCase();
-  return {
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".gif": "image/gif",
-    ".webp": "image/webp",
-  }[ext] || "application/octet-stream";
+async function readJsonResponse(response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.error(`ClawPump returned a non-JSON response (HTTP ${response.status}).`);
+    console.error(text.slice(0, 500));
+    process.exit(1);
+  }
 }

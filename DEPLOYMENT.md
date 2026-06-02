@@ -426,6 +426,7 @@ nano .env
 Fill in:
 - `MYSTERIO_WALLET_PUBKEY` and `MYSTERIO_WALLET_SECRET` (from step 8.4 output)
 - `CLAWPUMP_API_KEY` (from step 8.5)
+- `TOKEN_IMAGE_URL=https://mysteryclaw.xyz/assets/mysteryclaw-logo.jpg`
 - `TOKEN_TWITTER=https://x.com/mysteryclawpump?s=11`
 - `OPENAI_API_KEY` (same OpenAI API key as backend)
 - `MYSTERYCLAW_API=https://<your-railway-service>.up.railway.app`
@@ -447,7 +448,7 @@ npm run launch-token
 ```
 
 Do not run this until the token launch is intentionally approved.
-2. Call `POST /api/launch` with your API key
+2. Call `POST https://agents.clawpump.tech/api/v1/launch` with your API key
 3. Save the result to `token-launch.json`
 4. Print a Twitter template with `@clawpumptech` tag
 
