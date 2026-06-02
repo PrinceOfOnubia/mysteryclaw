@@ -448,7 +448,7 @@ npm run launch-token
 ```
 
 Do not run this until the token launch is intentionally approved.
-2. Call `POST https://agents.clawpump.tech/api/v1/launch` with your API key
+2. Call `POST https://clawpump.tech/api/v1/launch` with your API key
 3. Save the result to `token-launch.json`
 4. Print a Twitter template with `@clawpumptech` tag
 

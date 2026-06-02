@@ -59,7 +59,7 @@ npm run launch-token
 
 This will:
 1. Validate `./assets/myst-token.png` and its public `TOKEN_IMAGE_URL`
-2. Launch `$MYSTO` on pump.fun (`POST https://agents.clawpump.tech/api/v1/launch` with Bearer auth)
+2. Launch `$MYSTO` on pump.fun (`POST https://clawpump.tech/api/v1/launch` with Bearer auth)
 3. Save the mint address + tx + pump.fun URL to `./token-launch.json`
 4. Print a ready-to-tweet template (tag `@clawpumptech` to get amplified)
 

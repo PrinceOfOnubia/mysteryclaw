@@ -32,7 +32,7 @@ import fetch from "node-fetch";
 
 dotenv.config();
 
-const CLAWPUMP_BASE = "https://agents.clawpump.tech/api/v1";
+const CLAWPUMP_BASE = "https://clawpump.tech/api/v1";
 
 // ─── Validate env ────────────────────────────────────────────
 const required = [
