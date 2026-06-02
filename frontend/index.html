@@ -1605,6 +1605,10 @@ body::after{
         <span class="tsb-label">FRAGMENTS</span>
         <span class="tsb-val" id="fragCount">07</span>
       </div>
+      <div class="tsb-row">
+        <span class="tsb-label">EPOCH REMAINING</span>
+        <span class="tsb-val" id="terminalEpochTimer" style="color:var(--accent)">SYNCING</span>
+      </div>
     </div>
   </aside>
 
@@ -2732,13 +2736,11 @@ function formatCountdown(ms){
 }
 
 function renderPrizeCountdown(){
-  const timer = document.getElementById('prizeTimer')
-  if(!timer) return
-  if(!prizeClosesAt){
-    timer.textContent = 'SYNCING'
-    return
-  }
-  timer.textContent = formatCountdown(prizeClosesAt - Date.now())
+  const value = prizeClosesAt ? formatCountdown(prizeClosesAt - Date.now()) : 'SYNCING'
+  const prizeTimer = document.getElementById('prizeTimer')
+  const terminalTimer = document.getElementById('terminalEpochTimer')
+  if(prizeTimer) prizeTimer.textContent = value
+  if(terminalTimer) terminalTimer.textContent = value
 }
 
 async function loadPrizeStatus(){
