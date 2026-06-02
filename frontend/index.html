@@ -1574,7 +1574,7 @@ body::after{
       <div class="agent-active">
         <div class="av">◈</div>
         <div>
-          <div class="nm">PI</div>
+          <div class="nm">MYSTERIO</div>
           <div class="st" id="aiStatus">BOOTING</div>
         </div>
       </div>
@@ -1588,7 +1588,7 @@ body::after{
     </nav>
 
     <div class="term-status-block">
-      <div class="l" style="font-family:'JetBrains Mono';font-size:8px;letter-spacing:.3em;color:var(--text-mute);text-transform:uppercase;margin-bottom:14px">PI VITAL SIGNS</div>
+      <div class="l" style="font-family:'JetBrains Mono';font-size:8px;letter-spacing:.3em;color:var(--text-mute);text-transform:uppercase;margin-bottom:14px">MYSTERIO VITAL SIGNS</div>
       <div class="tsb-row">
         <span class="tsb-label">SIGNAL</span>
         <div class="tsb-bar" style="--w:72%"></div>
@@ -1613,7 +1613,7 @@ body::after{
     <div class="term-header">
       <div class="title">
         <span class="pulse"></span>
-        <span>PI // MEMORY RECOVERY INTERFACE</span>
+        <span>MYSTERIO // MEMORY RECOVERY INTERFACE</span>
       </div>
       <div class="session">SESSION <span id="sessId">#0000</span> // ENCRYPTED CHANNEL</div>
     </div>
@@ -1753,7 +1753,7 @@ body::after{
     <div class="mono-pre">[CHANNEL OPEN // WORD UNKNOWN]</div>
     <h2>FIND THE WORD.<br/><span class="ghost">CLAIM THE ARCHIVE.</span></h2>
     <div class="cta-row">
-      <button class="bp" onclick="reqA('term')">ENGAGE PI</button>
+      <button class="bp" onclick="reqA('term')">ENGAGE MYSTERIO</button>
     </div>
   </section>
 </div>
@@ -2413,7 +2413,7 @@ function appendChat(role, text){
     if(Math.random() < 0.18) d.classList.add('glitch')
     // store full text as data attr so save button can read it
     const safeText = esc(text)
-    d.innerHTML = `<div class="hd">PI<span class="ts">// ${ts}</span></div><div class="bd">${safeText}</div><button class="save-frag" onclick="openSaveFragment(this)">[ + SAVE FRAGMENT ]</button>`
+    d.innerHTML = `<div class="hd">MYSTERIO<span class="ts">// ${ts}</span></div><div class="bd">${safeText}</div><button class="save-frag" onclick="openSaveFragment(this)">[ + SAVE FRAGMENT ]</button>`
     d.dataset.raw = text
   } else {
     d.className = 'msg-user fadein'
@@ -2719,11 +2719,36 @@ setInterval(loadStats, 30000)
 // ═══════════════════════════════════════════════════════════
 // PRIZE EPOCH STATUS — live pool / winners / countdown
 // ═══════════════════════════════════════════════════════════
+let prizeClosesAt = null
+let prizeStatus = 'open'
+
+function formatCountdown(ms){
+  if(ms <= 0) return '00:00:00'
+  const totalSeconds = Math.floor(ms / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  return [hours, minutes, seconds].map(n => String(n).padStart(2, '0')).join(':')
+}
+
+function renderPrizeCountdown(){
+  const timer = document.getElementById('prizeTimer')
+  if(!timer) return
+  if(!prizeClosesAt){
+    timer.textContent = 'SYNCING'
+    return
+  }
+  timer.textContent = formatCountdown(prizeClosesAt - Date.now())
+}
+
 async function loadPrizeStatus(){
   try{
     const r = await fetch(API_BASE + '/prize', { cache:'no-store' })
     if(!r.ok) return
     const d = await r.json()
+    prizeStatus = d.status
+    prizeClosesAt = d.closesAt ? Number(d.closesAt) : null
+    renderPrizeCountdown()
     // update hero stat
     const poolEl = document.getElementById('sPool')
     if(poolEl) poolEl.textContent = '$' + Number(d.pool || 1000).toLocaleString()
@@ -2733,21 +2758,21 @@ async function loadPrizeStatus(){
     if(live){
       if(d.status === 'active' && d.winners > 0){
         const share = Math.floor(d.estimatedShare)
-        const closes = d.closesAt ? new Date(d.closesAt) : null
         live.style.display = 'flex'
-        live.innerHTML = `<span class="d"></span><span>${d.winners} winner${d.winners>1?'s':''} this epoch · ~$${share.toLocaleString()} each · epoch closes ${closes ? closes.toUTCString().slice(17,22)+' UTC' : 'soon'}</span>`
+        live.innerHTML = `<span class="d"></span><span>${d.winners} winner${d.winners>1?'s':''} this epoch · ~$${share.toLocaleString()} each · <b id="prizeTimer">${formatCountdown(prizeClosesAt - Date.now())}</b> remaining</span>`
       } else if(d.status === 'closing'){
         live.style.display = 'flex'
         live.innerHTML = `<span class="d"></span><span>Epoch closed — payout processing on-chain...</span>`
       } else {
         live.style.display = 'flex'
-        live.innerHTML = `<span class="d"></span><span>Pool open · be the first to recover the word</span>`
+        live.innerHTML = `<span class="d"></span><span>Pool open · <b id="prizeTimer">${prizeClosesAt ? formatCountdown(prizeClosesAt - Date.now()) : 'SYNCING'}</b> remaining · be the first to recover the word</span>`
       }
     }
   }catch(e){ /* silent */ }
 }
 loadPrizeStatus()
 setInterval(loadPrizeStatus, 30000)
+setInterval(renderPrizeCountdown, 1000)
 
 // ═══════════════════════════════════════════════════════════
 // UTILS

@@ -240,6 +240,18 @@ export async function publicStatus() {
     };
   }
 
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    await ensureCurrentEpoch(client);
+    await client.query("commit");
+  } catch (err) {
+    await client.query("rollback");
+    throw err;
+  } finally {
+    client.release();
+  }
+
   const result = await query(
     `select e.id, e.epoch_number, e.pool_usdc, e.started_at, e.closes_at, e.paid_out_at,
        count(w.id)::int as winners
@@ -326,14 +338,17 @@ async function ensureCurrentEpoch(client) {
   }
 
   if (!epoch.started_at) {
+    const bootstrapElapsedMinutes = epoch.epoch_number === 1
+      ? Math.max(0, Math.min(parseInt(process.env.EPOCH_BOOTSTRAP_ELAPSED_MINUTES || "0", 10) || 0, EPOCH_HOURS * 60))
+      : 0;
     const started = await client.query(
       `update prize_epochs
-       set started_at = now(),
-           closes_at = now() + $2::interval,
+       set started_at = now() - ($3::int * interval '1 minute'),
+           closes_at = now() + $2::interval - ($3::int * interval '1 minute'),
            status = 'active'
        where id = $1
        returning *`,
-      [epoch.id, EPOCH_INTERVAL]
+      [epoch.id, EPOCH_INTERVAL, bootstrapElapsedMinutes]
     );
     epoch = started.rows[0];
   }
