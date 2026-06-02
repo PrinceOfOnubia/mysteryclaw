@@ -10,8 +10,7 @@
 //
 // Prerequisites:
 //   - .env has CLAWPUMP_API_KEY filled (cpk_...)
-//   - .env has MYSTERIO_WALLET_PUBKEY filled (auto-derived from API key
-//     server-side, but kept for our records)
+//   - .env has CLAWPUMP_AGENT_ID filled from the hosted agent dashboard
 //   - ./assets/myst-token.png exists (or whatever TOKEN_IMAGE_PATH points to)
 //
 // What ClawPump does after launch:
@@ -20,9 +19,6 @@
 //   - Auto-sweeps creator fees hourly into Mysterio's wallet (65% share)
 //   - Triggers the social-amplification template for Twitter
 //
-// Rate limits:
-//   - Gasless: 1 launch per 24h per API key
-//   - Self-funded: unlimited (0.03 SOL per launch)
 // ═══════════════════════════════════════════════════════════════
 
 import dotenv from "dotenv";
@@ -60,7 +56,6 @@ const outFile = path.resolve("./token-launch.json");
 if (fs.existsSync(outFile)) {
   console.error(`⚠  ${outFile} already exists — Mysterio appears to already have a token launched.`);
   console.error(`   Delete that file if you intentionally want to launch a NEW one.`);
-  console.error(`   Gasless is rate-limited to 1 launch per 24h, self-funded costs 0.03 SOL.`);
   process.exit(1);
 }
 

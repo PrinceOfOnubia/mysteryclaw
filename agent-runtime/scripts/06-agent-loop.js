@@ -34,7 +34,8 @@ console.log("══════════════════════�
 
 // Load or initialize memory
 const memory = loadMemory();
-if (!memory.identity.wallet) memory.identity.wallet = process.env.MYSTERIO_WALLET_PUBKEY || process.env.PI_WALLET_PUBKEY || null;
+const agentWallet = process.env.CLAWPUMP_AGENT_WALLET_PUBKEY || null;
+if (memory.identity.wallet !== agentWallet) memory.identity.wallet = agentWallet;
 if (!memory.identity.tokenMint && fs.existsSync(LAUNCH_FILE)) {
   try {
     const l = JSON.parse(fs.readFileSync(LAUNCH_FILE, "utf-8"));

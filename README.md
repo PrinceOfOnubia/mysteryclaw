@@ -28,8 +28,6 @@ mysteryclaw/
 └── agent-runtime/                 ← Mysterio's autonomous layer
     ├── README.md                  ← full setup guide
     ├── scripts/
-    │   ├── 01-create-wallet.js    ← generate Solana wallet
-    │   ├── 02-check-balance.js
     │   ├── 03-launch-token.js     ← deploy $MYSTO via ClawPump
     │   ├── 04-autonomous-loop.js  ← run Mysterio 24/7
     │   └── 05-check-earnings.js
@@ -61,11 +59,11 @@ Push this repo to GitHub, connect Railway, and set the service root directory to
 
 ### 3. Mysterio's autonomous layer → server (you)
 See `agent-runtime/README.md` for the 5-step process:
-1. `npm run create-wallet` — generate Mysterio's Solana address
-2. Fill `.env` with the wallet + ClawPump API key
-3. Convert `myst-token.svg` to `myst-token.png`
-4. Create the hosted Mysterio agent and launch `$MYSTO` from the authenticated ClawPump dashboard
-5. `pm2 start scripts/04-autonomous-loop.js --name mysterio-loop` — Mysterio acts autonomously 24/7
+1. Create the hosted Mysterio agent in the ClawPump dashboard
+2. Fill `.env` with its UUID, public wallet address, and ClawPump API key
+3. Confirm `assets/myst-token.png` is the intended token image
+4. Launch `$MYSTO` only from the authenticated ClawPump dashboard when approved
+5. `pm2 start scripts/06-agent-loop.js --name mysterio-agent` — Mysterio acts autonomously 24/7
 
 After launch:
 - Mysterio earns 65% of all $MYSTO trading fees automatically (hourly distribution)

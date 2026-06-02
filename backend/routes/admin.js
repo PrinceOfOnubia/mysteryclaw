@@ -56,7 +56,7 @@ router.get("/api/status", async (req, res) => {
       payoutsEnabled: process.env.PAYOUTS_ENABLED === "true",
       requireHolder: process.env.REQUIRE_HOLDER === "true",
       agent: {
-        wallet: process.env.AGENT_WALLET_PUBKEY || process.env.MYSTERIO_WALLET_PUBKEY || process.env.PI_WALLET_PUBKEY || null,
+        wallet: process.env.AGENT_WALLET_PUBKEY || null,
         actionsPaused: settings.agent_actions_paused === "true",
         controlConfigured: Boolean(process.env.AGENT_CONTROL_URL),
       },

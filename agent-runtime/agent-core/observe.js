@@ -58,7 +58,7 @@ export async function gatherObservation() {
 
   // ─── Wallet balance from Solana ──────────────────────────────
   try {
-    const walletPubkey = process.env.MYSTERIO_WALLET_PUBKEY || process.env.PI_WALLET_PUBKEY;
+    const walletPubkey = process.env.CLAWPUMP_AGENT_WALLET_PUBKEY;
     if (walletPubkey) {
       const conn = new Connection(
         process.env.SOLANA_RPC || "https://api.mainnet-beta.solana.com",

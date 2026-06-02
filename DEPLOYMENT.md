@@ -57,7 +57,7 @@ This guide walks through everything needed to take MysteryClaw from code to a fu
 ┌─────────────┐  ┌──────────────────────────────────────┐
 │ OpenAI      │  │ AGENT RUNTIME (separate process)     │
 │ API         │  │ pm2 / systemd on VPS                 │
-│ (chat LLM)  │  │ - Owns Mysterio's Solana wallet            │
+│ (chat LLM)  │  │ - Observes hosted ClawPump wallet           │
 └─────────────┘  │ - Can launch $MYSTO later via ClawPump │
                  │ - Runs autonomous loop 24/7          │
                  │ - Posts to /autonomous every 5 min   │
@@ -118,7 +118,7 @@ node_modules/
 ### 3.2 Connect to Railway
 
 1. Go to https://railway.app/dashboard → **New Project**
-2. Choose **Deploy from GitHub repo** and connect `PrinceOfOnubia/piverse`
+2. Choose **Deploy from GitHub repo** and connect `PrinceOfOnubia/mysteryclaw`
 3. Configure:
    - **Root Directory:** `backend`
    - **Build Command:** `npm install`
@@ -372,7 +372,7 @@ The frontend has a fallback array of mock fragments, so this is not blocking. Wh
 
 ## 8. Agent Runtime Deployment
 
-This is **a separate deployment** from the backend. It owns Mysterio's Solana wallet, launched the `$MYSTO` token, and runs the autonomous loop 24/7.
+This is **a separate deployment** from the backend. It runs Mysterio's autonomous loop 24/7 and observes the hosted ClawPump agent wallet. It does not store that wallet's private key.
 
 **Recommended host:** a small VPS (DigitalOcean $4/mo, Hetzner €3/mo, AWS Lightsail $3.50/mo). Railway works too but introduces unnecessary HTTP layer.
 
@@ -394,29 +394,19 @@ sudo npm install -g pm2
 ### 8.3 Pull the agent-runtime folder
 
 ```bash
-git clone https://github.com/PrinceOfOnubia/piverse.git
+git clone https://github.com/PrinceOfOnubia/mysteryclaw.git
 cd mysteryclaw/agent-runtime
 npm install
 ```
 
-### 8.4 Generate Mysterio's wallet
-
-```bash
-npm run create-wallet
-```
-
-This generates `agent-wallet.json` and prints `.env`-ready variables.
-
-**⚠️ CRITICAL:** back up `agent-wallet.json` to an encrypted location (1Password, encrypted USB, etc). If lost, Mysterio's funds are unrecoverable.
-
-### 8.5 Get ClawPump API key
+### 8.4 Create the hosted ClawPump agent and get its API key
 
 1. Open https://clawpump.tech
 2. Click **Login with Google** (Crossmint auth)
-3. Navigate to your agent dashboard
-4. Copy the `cpk_...` API key
+3. Create or select the hosted Mysterio agent
+4. Copy the agent UUID, hosted wallet public address, and `cpk_...` API key
 
-### 8.6 Configure `.env`
+### 8.5 Configure `.env`
 
 ```bash
 cp .env.example .env
@@ -424,24 +414,20 @@ nano .env
 ```
 
 Fill in:
-- `MYSTERIO_WALLET_PUBKEY` and `MYSTERIO_WALLET_SECRET` (from step 8.4 output)
-- `CLAWPUMP_API_KEY` (from step 8.5)
+- `CLAWPUMP_AGENT_ID` (hosted agent UUID from step 8.4)
+- `CLAWPUMP_AGENT_WALLET_PUBKEY` (hosted public wallet address from step 8.4)
+- `CLAWPUMP_API_KEY` (from step 8.4)
 - `TOKEN_IMAGE_URL=https://mysteryclaw.xyz/assets/mysteryclaw-logo.jpg`
 - `TOKEN_TWITTER=https://x.com/mysteryclawpump?s=11`
 - `OPENAI_API_KEY` (same OpenAI API key as backend)
 - `MYSTERYCLAW_API=https://<your-railway-service>.up.railway.app`
 - `AGENT_KEY` (same value as on Railway — without this `/autonomous` push fails with 401)
 
-### 8.7 Convert token image
+### 8.6 Confirm the token image
 
-ClawPump needs PNG/JPG, not SVG:
+Confirm `assets/myst-token.png` exists and is the approved token logo.
 
-```bash
-sudo apt install librsvg2-bin
-rsvg-convert -w 1024 -h 1024 assets/myst-token.svg -o assets/myst-token.png
-```
-
-### 8.8 Launch $MYSTO on pump.fun later
+### 8.7 Launch $MYSTO on pump.fun later
 
 ```bash
 npm run launch-token
@@ -452,9 +438,7 @@ Do not run this until the token launch is intentionally approved.
 3. Save the mint address and transaction signature to `token-launch.json`
 4. Update the Railway and frontend mint configuration
 
-**Note:** gasless tier = 1 launch per 24h. If it fails with 503 (treasury empty), use the self-funded path (see `clawpump.tech/launch.md`).
-
-### 8.9 Update the mint address everywhere
+### 8.8 Update the mint address everywhere
 
 After successful launch, copy the `mintAddress` from `token-launch.json` and update:
 
@@ -462,17 +446,17 @@ After successful launch, copy the `mintAddress` from `token-launch.json` and upd
 2. **`backend/_access.js`** — find the same placeholder in `ACCESS_TOKENS` and replace it
 3. Commit and redeploy frontend (`vercel --prod`) and backend (auto-deploys on push to main)
 
-### 8.10 Start the autonomous loop
+### 8.9 Start the autonomous loop
 
 ```bash
-pm2 start scripts/04-autonomous-loop.js --name mysterio-loop
+pm2 start scripts/06-agent-loop.js --name mysterio-agent
 pm2 save
 pm2 startup  # makes pm2 survive reboots — follow the printed instructions
 ```
 
 Check it's running:
 ```bash
-pm2 logs mysterio-loop
+pm2 logs mysterio-agent
 ```
 
 You should see a tick every 5 minutes. Within 30 seconds the first post should appear at https://mysteryclaw.xyz/discoveries.
@@ -734,7 +718,8 @@ Before announcing publicly, verify:
 - [ ] Discoveries page polls `/autonomous` and shows live posts when loop is active
 
 ### Agent Runtime
-- [ ] Mysterio's wallet generated and `agent-wallet.json` backed up offline
+- [ ] Hosted ClawPump agent UUID and public wallet address configured
+- [ ] No agent wallet private key stored in `agent-runtime/.env`
 - [ ] `$MYSTO` token launch intentionally approved
 - [ ] Mint address updated in frontend + backend
 - [ ] `npm run earnings` returns real data
@@ -751,7 +736,7 @@ Before announcing publicly, verify:
 - [ ] No `winners.json` dependency in production
 
 ### Security
-- [ ] `.env` and `agent-wallet.json` NOT in git history (run `git log --all -- agent-wallet.json` to verify)
+- [ ] `.env`, wallet files, and private keys NOT in git history
 - [ ] `treasury.json` NOT in git
 - [ ] Admin panel does not expose private keys or API keys in responses
 - [ ] OpenAI API key not exposed in frontend or logs
@@ -774,8 +759,8 @@ Before announcing publicly, verify:
 ### pm2 (Agent Runtime)
 ```bash
 pm2 status               # see all processes
-pm2 logs mysterio-loop         # tail logs
-pm2 restart mysterio-loop      # restart after code change
+pm2 logs mysterio-agent         # tail logs
+pm2 restart mysterio-agent      # restart after code change
 pm2 monit                # real-time CPU/memory dashboard
 ```
 
@@ -795,7 +780,7 @@ Check ClawPump leaderboard: https://clawpump.tech/leaderboard
 | `/holdings` always returns 0 | Wrong RPC URL or PublicKey throws | Check `SOLANA_RPC`, validate pubkey format |
 | Frontend shows "UNVERIFIED" forever | CORS or /holdings 500 | Check browser console + Railway logs |
 | Loop posts but Discoveries empty | `AGENT_KEY` mismatch | Verify same value in both env files |
-| pump.fun launch fails 503 | Treasury empty on ClawPump | Use `/api/launch/self-funded` instead |
+| Token launch unavailable | Hosted ClawPump launch is dashboard-only | Sign in to the hosted ClawPump dashboard and verify agent access |
 | Rate limit on RPC | Free Solana RPC | Switch to Helius |
 
 ---
