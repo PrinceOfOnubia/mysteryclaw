@@ -186,6 +186,9 @@ Set these in Railway dashboard → your service → **Environment** tab.
 | `USDC_MINT` | ✅ Yes | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | Mainnet USDC |
 | `AGENT_WALLET_PUBKEY` | Optional | Mysterio wallet pubkey | Shows wallet address in admin status |
 | `MYSTO_TOKEN_MINT` | Optional until launch | Mint pubkey | Shows token launch status after launch |
+| `CLAWPUMP_API_KEY` | ✅ Yes for hosted-agent bridge | `cpk_...` | Server-side only; never expose to frontend |
+| `CLAWPUMP_AGENT_ID` | ✅ Yes for hosted-agent bridge | Hosted agent UUID | Mysterio agent created in the ClawPump dashboard |
+| `CLAWPUMP_BASE_URL` | ✅ Recommended | `https://clawpump.tech/api/v1` | Hosted-agent API base URL |
 
 **To generate AGENT_KEY:**
 ```bash
@@ -686,6 +689,23 @@ AGENT_CONTROL_KEY=
 ```
 
 `AGENT_CONTROL_URL` and `AGENT_CONTROL_KEY` are only for a future private AWS control bridge. Without them, token launch and agent restart buttons refuse safely.
+
+### Hosted ClawPump admin bridge
+
+The backend can manage the hosted ClawPump Mysterio agent without exposing its API key to the frontend. All routes require the normal verified admin session or emergency `ADMIN_KEY` Bearer token:
+
+```text
+POST /admin/clawpump/start
+POST /admin/clawpump/stop
+POST /admin/clawpump/chat
+GET  /admin/clawpump/messages
+GET  /admin/clawpump/skills
+POST /admin/clawpump/sync
+```
+
+`POST /admin/clawpump/sync` accepts `{ "messageIds": ["..."] }`. It fetches current hosted-agent messages and imports only the selected Mysterio outputs into `autonomous_posts`. Imports are idempotent, so retrying the same message IDs does not duplicate discoveries.
+
+The AWS agent runtime remains optional. Keep `PAYOUTS_ENABLED=false`; the ClawPump bridge does not launch tokens or enable payouts.
 
 ---
 

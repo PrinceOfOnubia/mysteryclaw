@@ -8,6 +8,17 @@ import { createAdminNonce, verifyAdminLogin, verifyAdminRequest } from "../_admi
 import { processPayouts } from "../_payout.js";
 import { adminPrizeOverview, approveWinner, publicStatus } from "../_winners.js";
 import { getSetting, setSetting } from "../_settings.js";
+import {
+  autonomousPostId,
+  clawpumpAgentId,
+  clawpumpConfigured,
+  getAgentMessages,
+  listSkills,
+  normalizeAgentMessages,
+  sendAgentMessage,
+  startAgent,
+  stopAgent,
+} from "../_clawpump.js";
 
 const router = express.Router();
 const TOKEN_LAUNCH_FILE = path.resolve("../agent-runtime/token-launch.json");
@@ -59,6 +70,7 @@ router.get("/api/status", async (req, res) => {
         wallet: process.env.AGENT_WALLET_PUBKEY || null,
         actionsPaused: settings.agent_actions_paused === "true",
         controlConfigured: Boolean(process.env.AGENT_CONTROL_URL),
+        clawpumpConfigured: clawpumpConfigured(),
       },
       token: getTokenLaunchStatus(),
       prize,
@@ -225,6 +237,81 @@ router.post("/api/agent/restart", async (req, res) => {
   }
 });
 
+router.post("/clawpump/start", async (req, res) => {
+  await handleClawpumpAction(req, res, "admin_clawpump_start", startAgent);
+});
+
+router.post("/clawpump/stop", async (req, res) => {
+  await handleClawpumpAction(req, res, "admin_clawpump_stop", stopAgent);
+});
+
+router.post("/clawpump/chat", async (req, res) => {
+  await handleClawpumpAction(req, res, "admin_clawpump_chat", () => sendAgentMessage(req.body?.message));
+});
+
+router.get("/clawpump/messages", async (req, res) => {
+  await handleClawpumpAction(req, res, "admin_clawpump_messages", getAgentMessages);
+});
+
+router.get("/clawpump/skills", async (req, res) => {
+  await handleClawpumpAction(req, res, "admin_clawpump_skills", listSkills);
+});
+
+router.post("/clawpump/sync", async (req, res) => {
+  try {
+    if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
+    const selectedIds = Array.isArray(req.body?.messageIds)
+      ? new Set(req.body.messageIds.map(String))
+      : null;
+    if (!selectedIds?.size) {
+      return res.status(400).json({ error: "message_ids_required" });
+    }
+
+    const messages = normalizeAgentMessages(await getAgentMessages());
+    const selected = messages.filter((message) => selectedIds.has(message.id));
+    const imported = [];
+    const skipped = [];
+
+    for (const message of selected) {
+      if (message.role && !["assistant", "agent", "mysterio"].includes(message.role)) {
+        skipped.push({ messageId: message.id, reason: "not_agent_output" });
+        continue;
+      }
+      if (message.content.length > 600) {
+        skipped.push({ messageId: message.id, reason: "post_too_long" });
+        continue;
+      }
+      const id = autonomousPostId(message);
+      const result = await query(
+        `insert into autonomous_posts (id, post, context, mood, created_at)
+         values ($1, $2, $3, $4, coalesce($5::timestamptz, now()))
+         on conflict (id) do nothing
+         returning id`,
+        [
+          id,
+          message.content,
+          JSON.stringify([{ source: "clawpump", messageId: message.id, agentId: clawpumpAgentId() }]),
+          "hosted-agent-sync",
+          message.createdAt,
+        ]
+      );
+      if (result.rowCount) imported.push({ id, messageId: message.id });
+      else skipped.push({ messageId: message.id, reason: "duplicate" });
+    }
+
+    await auditLog("admin_clawpump_sync", {
+      actor: req.adminActor,
+      selected: selectedIds.size,
+      imported: imported.length,
+      skipped: skipped.length,
+    });
+    res.json({ ok: true, imported, skipped });
+  } catch (err) {
+    await auditLog("admin_clawpump_sync_failed", { actor: req.adminActor, error: err.message });
+    res.status(err.status || 500).json({ error: err.message || "clawpump_sync_failed" });
+  }
+});
+
 // Backward-compatible route for existing ops scripts.
 router.post("/payout", async (req, res) => {
   try {
@@ -247,6 +334,21 @@ function requireAdmin(req, res, next) {
   req.adminWallet = admin.wallet;
   req.adminAuthMethod = admin.method;
   next();
+}
+
+async function handleClawpumpAction(req, res, eventType, action) {
+  try {
+    const result = await action();
+    await auditLog(eventType, { actor: req.adminActor, ok: true });
+    res.json(result);
+  } catch (err) {
+    await auditLog(`${eventType}_failed`, {
+      actor: req.adminActor,
+      error: err.message,
+      upstreamStatus: err.upstreamStatus,
+    });
+    res.status(err.status || 500).json({ error: err.message || "clawpump_request_failed" });
+  }
 }
 
 function getTokenLaunchStatus() {

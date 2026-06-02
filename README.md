@@ -45,7 +45,8 @@ mysteryclaw/
 | **Conversational Mysterio** | `backend/routes/chat.js` | LLM-powered adversarial agent with paranoid prompt + leak detector | ✅ Code ready, awaiting backend dev to deploy on Railway |
 | **Word-guess game** | `backend/routes/guess.js` | Holders-only, 10 attempts/3h game session, $1k USDC prize pool | ✅ Code ready |
 | **Token Gate** | `backend/routes/holdings.js` | Solana RPC check for 5 access tokens | ⚠ Stub — backend dev wires real RPC |
-| **Eternal Agent** | `agent-runtime/` | Mysterio's wallet + $MYSTO token launch via ClawPump + autonomous loop | ✅ Code ready, run scripts in order |
+| **Eternal Agent** | `agent-runtime/` | Optional AWS loop that observes hosted ClawPump state and posts autonomous fragments | ✅ Optional runtime path |
+| **Hosted ClawPump bridge** | `backend/_clawpump.js` | Admin-only hosted Mysterio lifecycle, chat, skills, and selected-message sync | ✅ Optional AWS-independent control path |
 
 ---
 
