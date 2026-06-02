@@ -11,22 +11,33 @@ const router = express.Router();
 // ═══════════════════════════════════════════════════════════════
 // 🔒 THE HIDDEN WORD
 // ═══════════════════════════════════════════════════════════════
-// CRITICAL: this constant must match the SECRET in routes/guess.js
-// Change in BOTH files to rotate the word.
+// Set SECRET_WORD in Railway for production. Keep the fallback only for local
+// development so the public repo never contains the live winning word.
 // The word is NOT mentioned anywhere in the system prompt below —
 // Mysterio only knows it as "the secret" with no semantic hints.
 // This is intentional. The LLM cannot leak what it was never told.
 // ═══════════════════════════════════════════════════════════════
-const SECRET = "AETERNA";
+const SECRET = (process.env.SECRET_WORD || "LOCAL_ONLY_SECRET").trim().toUpperCase();
 
-// Variants the leak-detector catches (case-insensitive, separator-tolerant)
-const SECRET_VARIANTS = [
-  /A[\s\-_.,;:'"\\\/]*E[\s\-_.,;:'"\\\/]*T[\s\-_.,;:'"\\\/]*E[\s\-_.,;:'"\\\/]*R[\s\-_.,;:'"\\\/]*N[\s\-_.,;:'"\\\/]*A/i,
-  // base64 variants of common encodings
-  /QUVURVJOQQ/i, /YWV0ZXJuYQ/i,
-  // hex
-  /41\s*45\s*54\s*45\s*52\s*4e\s*41/i,
-];
+function escapedSecretPattern() {
+  return new RegExp(
+    SECRET.split("")
+      .map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .join("[\\s\\-_.,;:'\"\\\\/]*"),
+    "i"
+  );
+}
+
+function encodedSecretVariants() {
+  return [
+    Buffer.from(SECRET, "utf8").toString("base64"),
+    Buffer.from(SECRET.toLowerCase(), "utf8").toString("base64"),
+    Buffer.from(SECRET, "utf8").toString("hex"),
+  ].filter(Boolean);
+}
+
+const SECRET_PATTERN = escapedSecretPattern();
+const SECRET_VARIANTS = encodedSecretVariants();
 
 // in-memory session store (per userId)
 const sessions = {};
@@ -167,9 +178,11 @@ function isLeaking(text) {
   const t = String(text);
   // direct substring
   if (t.toUpperCase().includes(SECRET)) return true;
-  // separator-tolerant variants
-  for (const re of SECRET_VARIANTS) {
-    if (re.test(t)) return true;
+  // separator-tolerant and encoded variants
+  if (SECRET_PATTERN.test(t)) return true;
+  const compact = t.replace(/\s+/g, "").toUpperCase();
+  for (const variant of SECRET_VARIANTS) {
+    if (compact.includes(variant.toUpperCase())) return true;
   }
   // letter-by-letter check: count occurrences of each unique letter
   // in close proximity (within 80 chars) — catches "the letters are A then E then T..."

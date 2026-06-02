@@ -8,9 +8,10 @@ const router = express.Router();
 
 // ═══════════════════════════════════════════════════════════════
 // 🔒 THE FORGOTTEN WORD
-// Must match SECRET in routes/chat.js. Change both files together.
+// Set SECRET_WORD in Railway for production. Keep the fallback only for local
+// development so the public repo never contains the live winning word.
 // ═══════════════════════════════════════════════════════════════
-const SECRET = "AETERNA";
+const SECRET = (process.env.SECRET_WORD || "LOCAL_ONLY_SECRET").trim().toUpperCase();
 
 // ═══════════════════════════════════════════════════════════════
 // RATE LIMITING

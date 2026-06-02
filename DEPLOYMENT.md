@@ -170,6 +170,7 @@ Set these in Railway dashboard → your service → **Environment** tab.
 |---|---|---|---|
 | `OPENAI_API_KEY` | ✅ Yes | `sk-...` | OpenAI API key (official OpenAI SDK) |
 | `OPENAI_MODEL` | No | `gpt-4o` | Defaults to `gpt-4o` if unset |
+| `SECRET_WORD` | ✅ Yes | private MYSTO-themed word | Exact prize word; set only in Railway, never commit |
 | `DATABASE_URL` | ✅ Yes | Railway PostgreSQL URL | Production source of truth for wallets, guesses, winners, payouts, autonomous posts |
 | `SOLANA_RPC` | ✅ Yes | `https://mainnet.helius-rpc.com/?api-key=...` | Paid mainnet RPC strongly recommended |
 | `SOLANA_CLUSTER` | ✅ Yes | `mainnet` | Mainnet-only deployment |
