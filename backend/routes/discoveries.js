@@ -1,4 +1,5 @@
 import express from "express";
+import { hasDatabase, query } from "../_db.js";
 
 const router = express.Router();
 
@@ -28,33 +29,27 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    // ─────────────────────────────────────────────────────────
-    // TODO (BACKEND DEV): query your DB for saved fragments
-    // ─────────────────────────────────────────────────────────
-    //
-    // Suggested schema (Postgres / Mongo / Redis):
-    //   fragments {
-    //     id: string,
-    //     userId: string (wallet pubkey),
-    //     quote: text,
-    //     category: enum('clue','keyword','contradiction'),
-    //     createdAt: timestamp,
-    //   }
-    //
-    // For investigator handle: hash the pubkey or take last 4 chars
-    //   const handle = "INV_" + pubkey.slice(-4).toUpperCase();
-    //
-    // Suggested query: SELECT * FROM fragments
-    //                  ORDER BY createdAt DESC LIMIT 30;
-    //
-    // Optional: support ?category=clue|keyword|contradiction filter
-    // Optional: support ?limit=N (default 20)
-    // ─────────────────────────────────────────────────────────
+    if (!hasDatabase) return res.json([]);
 
-    // STUB: return empty so frontend uses its mock fallback
-    return res.json([]);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 30, 100);
+    const result = await query(
+      `select id, post, created_at
+       from autonomous_posts
+       order by created_at desc
+       limit $1`,
+      [limit]
+    );
+
+    return res.json(result.rows.map((row) => ({
+      id: row.id,
+      by: "MYSTERIO",
+      quote: row.post,
+      ts: formatTs(row.created_at),
+      autonomous: true,
+    })));
 
   } catch (err) {
+    console.error("DISCOVERIES ERROR:", err.message);
     res.status(500).json({ error: "discoveries unavailable" });
   }
 });
@@ -66,5 +61,16 @@ router.post("/", async (req, res) => {
   // TODO: accept { pubkey, quote, category } and store
   return res.json({ ok: true, _stub: true });
 });
+
+function formatTs(iso) {
+  try {
+    const d = new Date(iso);
+    const h = String(d.getUTCHours()).padStart(2, "0");
+    const m = String(d.getUTCMinutes()).padStart(2, "0");
+    return `${h}:${m} UTC`;
+  } catch {
+    return "—";
+  }
+}
 
 export default router;

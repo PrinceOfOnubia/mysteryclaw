@@ -28,3 +28,4 @@ mysterio-memory.json
 dist/
 build/
 coverage/
+.vercel

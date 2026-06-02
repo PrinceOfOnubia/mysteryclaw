@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import dotenv from "dotenv";
 import { isHolder } from "../_access.js";
 import { normalizePubkey } from "../_walletAuth.js";
+import { auditLog } from "../_db.js";
 
 dotenv.config();
 
@@ -253,6 +254,8 @@ router.post("/", async (req, res) => {
     }
 
     const sessionId = wallet || userId;
+    await auditLog("chat_message", { actor: sessionId, wallet_pubkey: wallet });
+
     if (!sessions[sessionId]) sessions[sessionId] = [];
     const history = sessions[sessionId];
 
