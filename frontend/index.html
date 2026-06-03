@@ -1163,7 +1163,7 @@ body::after{
       <button onclick="closeM('mAuth')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
     </div>
     <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.85;margin-bottom:16px">
-      Engaging Mysterio requires a connected wallet. The terminal is gated behind a holder check — only $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO holders can submit guesses for the prize.
+      Engaging Mysterio requires a connected wallet. The terminal is gated behind a holder check — only $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT holders can submit guesses for the prize.
     </p>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:20px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
       SECURITY: Signed via <span style="color:var(--accent)">signMessage</span>. No personal data collected. Backend verifies signature + on-chain holdings on every request.
@@ -1874,6 +1874,7 @@ const API_BASE = (
 // TOKEN GATE DATA
 // ═══════════════════════════════════════════════════════════
 const MYSTO_MINT = 'G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ'
+const PENGXBT_MINT = '6anryGPu48Pa7trnfoxYum5uWmfBjyvcwUhcEDLYFioa'
 const TOKENS = [
   {
     name:'MYSTO',
@@ -1905,6 +1906,12 @@ const TOKENS = [
     sym:'N',
     ca:'J4zQdwgyXq8PJwaK9MGyjyK2Zyigg36KVRuU6Qe5Bas8',
     dex:'https://dexscreener.com/solana/7snlgmrpgsnggo7jehe7dbzbcgdkvyrafw8icnsd7krw'
+  },
+  {
+    name:'PENGXBT',
+    sym:'P',
+    ca:PENGXBT_MINT,
+    dex:`https://pump.fun/coin/${PENGXBT_MINT}`
   }
 ]
 
@@ -2213,7 +2220,7 @@ function reqA(page){
     return
   }
   if(page === 'term' && S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO to enter')
+    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to enter')
     return
   }
   go(page)
@@ -2333,7 +2340,7 @@ async function checkHoldings(pubkey){
     if(!r.ok) throw new Error('holdings endpoint unavailable')
     const d = await r.json()
     // Expected shape:
-    // { holdings: { CLAW:12000, SQUIRE:0, SAID:5000, NEMO:0 }, hasAccess: true }
+    // { holdings: { MYSTO:0, CLAW:12000, SQUIRE:0, SAID:5000, NEMO:0, PENGXBT:0 }, hasAccess: true }
     S.holdings = d.holdings || {}
     S.hasAccess = !!d.hasAccess
     renderHoldings()
@@ -2600,7 +2607,7 @@ async function sendChat(){
     return
   }
   if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO to chat')
+    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to chat')
     return
   }
   inp.value = ''
@@ -2648,7 +2655,7 @@ function openGuess(){
     return
   }
   if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO to participate')
+    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to participate')
     return
   }
   document.getElementById('guessCount').textContent = S.guesses
@@ -2665,7 +2672,7 @@ async function submitGuess(){
   }
   // hard gate — must be a holder
   if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO to guess')
+    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to guess')
     return
   }
 

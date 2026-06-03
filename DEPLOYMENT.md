@@ -211,7 +211,7 @@ The default public RPC (`api.mainnet-beta.solana.com`) rate-limits aggressively.
 
 **Free tier:** 100k requests/day. With caching this is enough for thousands of users.
 
-**Why this matters:** every `/holdings` call hits the RPC ~5 times (once per access token). Without a paid RPC, the endpoint will start failing once you have ~50 active users/day.
+**Why this matters:** every `/holdings` call hits the RPC once per access token. Without a paid RPC, the endpoint will start failing once you have ~50 active users/day.
 
 ---
 
@@ -313,7 +313,7 @@ curl -X POST https://<your-railway-service>.up.railway.app/holdings \
   -d '{"pubkey":"<real_phantom_pubkey>"}'
 
 # Expected:
-# { "holdings": {"MYSTO":0,"CLAW":12000,"SQUIRE":0,"SAID":0,"NEMO":0}, "hasAccess": true }
+# { "holdings": {"MYSTO":0,"CLAW":12000,"SQUIRE":0,"SAID":0,"NEMO":0,"PENGXBT":0}, "hasAccess": true }
 ```
 
 ---

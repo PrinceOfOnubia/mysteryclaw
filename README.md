@@ -44,7 +44,7 @@ mysteryclaw/
 | **Landing + Terminal UI** | `frontend/index.html` | Public site, chat with Mysterio, token gate, prize pool, agents roster | ✅ Deployed to Vercel |
 | **Conversational Mysterio** | `backend/routes/chat.js` | LLM-powered adversarial agent with paranoid prompt + leak detector | ✅ Code ready, awaiting backend dev to deploy on Railway |
 | **Word-guess game** | `backend/routes/guess.js` | Holders-only, 10 attempts/3h game session, $1k USDC prize pool | ✅ Code ready |
-| **Token Gate** | `backend/routes/holdings.js` | Solana RPC check for 5 access tokens | ⚠ Stub — backend dev wires real RPC |
+| **Token Gate** | `backend/routes/holdings.js` | Solana RPC check for access tokens | ⚠ Stub — backend dev wires real RPC |
 | **Eternal Agent** | `agent-runtime/` | Optional AWS loop that observes hosted ClawPump state and posts autonomous fragments | ✅ Optional runtime path |
 | **Hosted ClawPump bridge** | `backend/_clawpump.js` | Admin-only hosted Mysterio lifecycle, chat, skills, and selected-message sync | ✅ Optional AWS-independent control path |
 
@@ -75,7 +75,7 @@ Launched token:
 
 ## Access tokens
 
-The frontend gates participation behind any of these 5 tokens. Holders earn shares of the $1k USDC prize pool when the forgotten word is recovered.
+The frontend gates participation behind any of these access tokens. Holders earn shares of the $1k USDC prize pool when the forgotten word is recovered.
 
 | Token | Status | Where |
 |---|---|---|
@@ -84,6 +84,7 @@ The frontend gates participation behind any of these 5 tokens. Holders earn shar
 | $SQUIRE | Live partner | DexScreener |
 | $SAID | Live partner | DexScreener |
 | $NEMO | Live partner | DexScreener |
+| $PENGXBT | Live partner | pump.fun |
 
 ---
 

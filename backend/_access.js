@@ -15,6 +15,7 @@ export const ACCESS_TOKENS = {
   SQUIRE:  "EN2nnxrg8uUi6x2sJkzNPd2eT6rB9rdSoQNNaENA4RZA",
   SAID:    "4rWuWZei2iFNHYpnz5wjMeSvimsJcj5EgpSNvNS1pump",
   NEMO:    "J4zQdwgyXq8PJwaK9MGyjyK2Zyigg36KVRuU6Qe5Bas8",
+  PENGXBT: "6anryGPu48Pa7trnfoxYum5uWmfBjyvcwUhcEDLYFioa",
 };
 
 // Minimum amount of any single token to count as "holder"
