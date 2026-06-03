@@ -495,6 +495,8 @@ body::after{
 }
 .tg-card:hover::before{opacity:1}
 .tg-card.platform::before{opacity:1}
+.tg-card.pengxbt{grid-column:3}
+@media(max-width:760px){.tg-card.pengxbt{grid-column:auto}}
 
 .tg-head{display:flex;align-items:center;justify-content:space-between}
 .tg-avatar{
@@ -1921,10 +1923,14 @@ function renderTokenGate(){
   g.innerHTML = TOKENS.map(t => {
     const isPlatform = !!t.isPlatform
     const pillText = isPlatform ? 'PLATFORM' : 'SOLANA'
-    const chartLabel = isPlatform ? 'PUMP.FUN' : 'CHART'
+    const chartLabel = 'CHART'
+    const cardClass = [
+      isPlatform ? 'platform' : '',
+      t.name === 'PENGXBT' ? 'pengxbt' : ''
+    ].filter(Boolean).join(' ')
 
     return `
-      <div class="tg-card ${isPlatform?'platform':''}">
+      <div class="tg-card ${cardClass}">
         <div class="tg-head">
           <div class="tg-avatar">${t.sym}</div>
           <span class="tg-pill">${pillText}</span>
