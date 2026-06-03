@@ -34,13 +34,31 @@ create table if not exists verified_wallets (
 create table if not exists prize_epochs (
   id uuid primary key default gen_random_uuid(),
   epoch_number integer unique not null,
+  title text,
+  slug text unique,
   started_at timestamptz,
   closes_at timestamptz,
+  starts_at timestamptz,
+  ends_at timestamptz,
   paid_out_at timestamptz,
   status text not null default 'open',
   pool_usdc numeric(18, 6) not null default 1000,
+  max_attempts_per_wallet integer not null default 10,
+  x_thread_url text,
+  secret_env_var text,
+  metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+alter table prize_epochs add column if not exists title text;
+alter table prize_epochs add column if not exists slug text;
+alter table prize_epochs add column if not exists starts_at timestamptz;
+alter table prize_epochs add column if not exists ends_at timestamptz;
+alter table prize_epochs add column if not exists max_attempts_per_wallet integer not null default 10;
+alter table prize_epochs add column if not exists x_thread_url text;
+alter table prize_epochs add column if not exists secret_env_var text;
+alter table prize_epochs add column if not exists metadata jsonb not null default '{}'::jsonb;
+create unique index if not exists prize_epochs_slug_unique on prize_epochs (slug) where slug is not null;
 
 create table if not exists guesses (
   id uuid primary key default gen_random_uuid(),
@@ -52,10 +70,13 @@ create table if not exists guesses (
   verified_wallet boolean not null default false,
   verified_wallet_id uuid references verified_wallets(id),
   epoch_id uuid references prize_epochs(id),
+  source text not null default 'website',
   ip_hash text,
   user_agent text,
   created_at timestamptz not null default now()
 );
+
+alter table guesses add column if not exists source text not null default 'website';
 
 create index if not exists guesses_wallet_created_idx on guesses (wallet_pubkey, created_at desc);
 create index if not exists guesses_epoch_idx on guesses (epoch_id);
@@ -106,6 +127,22 @@ create table if not exists autonomous_posts (
 
 create index if not exists autonomous_posts_created_idx on autonomous_posts (created_at desc);
 
+create table if not exists epoch_clues (
+  id uuid primary key default gen_random_uuid(),
+  epoch_id uuid not null references prize_epochs(id) on delete cascade,
+  clue_number integer not null,
+  scheduled_at timestamptz,
+  post_copy text not null,
+  x_url text,
+  status text not null default 'draft',
+  posted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (epoch_id, clue_number)
+);
+
+create index if not exists epoch_clues_epoch_idx on epoch_clues (epoch_id, clue_number);
+
 create table if not exists audit_logs (
   id uuid primary key default gen_random_uuid(),
   event_type text not null,
@@ -129,5 +166,53 @@ values
 on conflict (key) do nothing;
 
 insert into prize_epochs (epoch_number, status)
-values (1, 'open')
+values (1, 'closed')
 on conflict (epoch_number) do nothing;
+
+update prize_epochs
+set title = coalesce(title, 'Epoch 01: Mysterio'),
+    slug = coalesce(slug, 'mysterio'),
+    secret_env_var = coalesce(secret_env_var, 'SECRET_WORD')
+where epoch_number = 1;
+
+insert into prize_epochs (
+  epoch_number, title, slug, status, pool_usdc, max_attempts_per_wallet,
+  started_at, starts_at, closes_at, ends_at, secret_env_var, metadata
+)
+values (
+  2,
+  'EPOCH 02: ECHO',
+  'echo',
+  'live',
+  1000,
+  10,
+  now(),
+  now(),
+  now() + interval '3 hours',
+  now() + interval '3 hours',
+  'ECHO_SECRET_WORD',
+  jsonb_build_object(
+    'tagline', 'The word is gone. The echoes remain.',
+    'launchCopy', 'Fragments will appear across X and inside the terminal. No single clue is enough. Mysterio already knows the answer. Your job is to reconstruct it.',
+    'xCta', 'Follow the X investigation'
+  )
+)
+on conflict (epoch_number) do update
+set title = excluded.title,
+    slug = excluded.slug,
+    pool_usdc = excluded.pool_usdc,
+    max_attempts_per_wallet = excluded.max_attempts_per_wallet,
+    secret_env_var = excluded.secret_env_var,
+    metadata = prize_epochs.metadata || excluded.metadata;
+
+insert into epoch_clues (epoch_id, clue_number, scheduled_at, post_copy, status)
+select e.id, c.clue_number, now() + (c.clue_number - 1) * interval '30 minutes', c.post_copy, 'draft'
+from prize_epochs e
+cross join (values
+  (1, 'ECHO CLUE 01: The word is gone. The echoes remain. X is for theories. The terminal is for answers.'),
+  (2, 'ECHO CLUE 02: A fragment is not proof. A pattern is not a confession. Keep both.'),
+  (3, 'ECHO CLUE 03: No single clue is enough. The archive only opens when the fragments agree.'),
+  (4, 'ECHO CLUE 04: Mysterio already knows the answer. Echo only repeats the shape it left behind.')
+) as c(clue_number, post_copy)
+where e.slug = 'echo'
+on conflict (epoch_id, clue_number) do nothing;

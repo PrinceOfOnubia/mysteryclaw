@@ -20,14 +20,14 @@ export function load() {
   };
 }
 
-export async function recordGuess({ wallet, userId, guess, normalized, correct, verifiedWallet, verifiedWalletId, req }) {
+export async function recordGuess({ wallet, userId, guess, normalized, correct, verifiedWallet, verifiedWalletId, epochId, source = "website", req }) {
   if (!hasDatabase) return { id: null };
 
   const result = await query(
     `insert into guesses
       (wallet_pubkey, user_id, guess, normalized_guess, correct, verified_wallet,
-       verified_wallet_id, ip_hash, user_agent)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       verified_wallet_id, epoch_id, source, ip_hash, user_agent)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      returning id`,
     [
       wallet,
@@ -37,6 +37,8 @@ export async function recordGuess({ wallet, userId, guess, normalized, correct, 
       correct,
       verifiedWallet,
       verifiedWalletId || null,
+      epochId || null,
+      source,
       req?.ip ? sha256(req.ip) : null,
       req?.get?.("user-agent")?.slice(0, 300) || null,
     ]
@@ -44,7 +46,7 @@ export async function recordGuess({ wallet, userId, guess, normalized, correct, 
   return result.rows[0];
 }
 
-export async function recordWinner({ wallet, guessId, verifiedWalletId }) {
+export async function recordWinner({ wallet, guessId, verifiedWalletId, epochId, closeOnWin = false }) {
   if (!hasDatabase) {
     const err = new Error("database_not_configured");
     err.status = 503;
@@ -59,7 +61,25 @@ export async function recordWinner({ wallet, guessId, verifiedWalletId }) {
   const client = await pool.connect();
   try {
     await client.query("begin");
-    const epoch = await ensureCurrentEpoch(client);
+    const epoch = epochId
+      ? (await client.query(`select * from prize_epochs where id = $1 for update`, [epochId])).rows[0]
+      : await ensureCurrentEpoch(client);
+    if (!epoch) {
+      const err = new Error("epoch_not_found");
+      err.status = 404;
+      throw err;
+    }
+    if (closeOnWin) {
+      const existingWinner = await client.query(
+        `select id from winners where epoch_id = $1 limit 1`,
+        [epoch.id]
+      );
+      if (existingWinner.rows[0]) {
+        const err = new Error("epoch_already_won");
+        err.status = 409;
+        throw err;
+      }
+    }
 
     await client.query(
       `update guesses set epoch_id = $1 where id = $2`,
@@ -80,13 +100,28 @@ export async function recordWinner({ wallet, guessId, verifiedWalletId }) {
     );
     const totalWinners = countResult.rows[0].count;
 
+    let closesAt = epoch.closes_at;
+    if (closeOnWin && inserted.rowCount > 0) {
+      const closed = await client.query(
+        `update prize_epochs
+         set status = 'closed',
+             closes_at = least(coalesce(closes_at, now()), now()),
+             ends_at = least(coalesce(ends_at, now()), now())
+         where id = $1
+         returning closes_at`,
+        [epoch.id]
+      );
+      closesAt = closed.rows[0]?.closes_at || closesAt;
+    }
+
     await client.query("commit");
 
     return {
       epoch: epoch.epoch_number,
+      slug: epoch.slug,
       alreadyWinner: inserted.rowCount === 0,
       totalWinners,
-      closesAt: epoch.closes_at ? new Date(epoch.closes_at).getTime() : null,
+      closesAt: closesAt ? new Date(closesAt).getTime() : null,
       estimatedShare: totalWinners ? POOL_USDC / totalWinners : POOL_USDC,
     };
   } catch (err) {
@@ -97,12 +132,78 @@ export async function recordWinner({ wallet, guessId, verifiedWalletId }) {
   }
 }
 
+export async function getSubmissionEpoch() {
+  if (!hasDatabase) {
+    const err = new Error("database_not_configured");
+    err.status = 503;
+    throw err;
+  }
+  const result = await query(
+    `select *
+     from prize_epochs
+     where status in ('live', 'active', 'open')
+       and paid_out_at is null
+       and coalesce(closes_at, ends_at) > now()
+     order by epoch_number desc
+     limit 1`
+  );
+  const epoch = result.rows[0];
+  if (!epoch) {
+    const err = new Error("epoch_closed");
+    err.status = 423;
+    throw err;
+  }
+  return epoch;
+}
+
+export async function getAttemptsForEpoch({ wallet, epochId }) {
+  if (!hasDatabase) return { used: 0, max: 10, attemptsLeft: 10 };
+  const [countResult, epochResult] = await Promise.all([
+    query(
+      `select count(*)::int as used
+       from guesses
+       where wallet_pubkey = $1 and epoch_id = $2 and source = 'website'`,
+      [wallet, epochId]
+    ),
+    query(`select max_attempts_per_wallet from prize_epochs where id = $1`, [epochId]),
+  ]);
+  const used = countResult.rows[0]?.used || 0;
+  const max = epochResult.rows[0]?.max_attempts_per_wallet || 10;
+  return { used, max, attemptsLeft: Math.max(0, max - used) };
+}
+
+export async function getEpochBySlug(slug) {
+  if (!hasDatabase) return null;
+  const result = await query(
+    `select e.*,
+       coalesce(json_agg(
+         json_build_object(
+           'id', c.id,
+           'clueNumber', c.clue_number,
+           'scheduledAt', c.scheduled_at,
+           'postCopy', c.post_copy,
+           'xUrl', c.x_url,
+           'status', c.status,
+           'postedAt', c.posted_at
+         )
+         order by c.clue_number
+       ) filter (where c.id is not null), '[]'::json) as clues
+     from prize_epochs e
+     left join epoch_clues c on c.epoch_id = e.id
+     where e.slug = $1
+     group by e.id`,
+    [slug]
+  );
+  return result.rows[0] || null;
+}
+
 export async function getPayableEpochs() {
   if (!hasDatabase) return [];
   const result = await query(
     `select
        e.id,
        e.epoch_number as epoch,
+       e.slug,
        e.pool_usdc,
        e.started_at,
        e.closes_at,
@@ -186,7 +287,8 @@ export async function adminPrizeOverview() {
 
   const [epochs, guesses, winners, payouts] = await Promise.all([
     query(
-      `select e.id, e.epoch_number, e.status, e.pool_usdc, e.started_at, e.closes_at,
+      `select e.id, e.epoch_number, e.title, e.slug, e.status, e.pool_usdc, e.started_at, e.starts_at, e.closes_at, e.ends_at,
+          e.max_attempts_per_wallet, e.x_thread_url,
           e.paid_out_at, count(w.id)::int as winners
        from prize_epochs e
        left join winners w on w.epoch_id = e.id
@@ -195,9 +297,10 @@ export async function adminPrizeOverview() {
        limit 20`
     ),
     query(
-      `select id, wallet_pubkey, guess, normalized_guess, correct, verified_wallet,
-          epoch_id, created_at
-       from guesses
+      `select g.id, g.wallet_pubkey, g.guess, g.normalized_guess, g.correct, g.verified_wallet,
+          g.epoch_id, g.source, g.created_at, e.epoch_number, e.slug
+       from guesses g
+       left join prize_epochs e on e.id = g.epoch_id
        order by created_at desc
        limit 100`
     ),
@@ -254,11 +357,14 @@ export async function publicStatus() {
 
   const result = await query(
     `select e.id, e.epoch_number, e.pool_usdc, e.started_at, e.closes_at, e.paid_out_at,
+       e.title, e.slug, e.max_attempts_per_wallet, e.x_thread_url, e.metadata,
        count(w.id)::int as winners
      from prize_epochs e
      left join winners w on w.epoch_id = e.id
      where e.epoch_number = (
-       select coalesce(max(epoch_number), 1) from prize_epochs where paid_out_at is null
+       select coalesce(max(epoch_number), 1)
+       from prize_epochs
+       where paid_out_at is null
      )
      group by e.id
      order by e.epoch_number desc
@@ -279,9 +385,14 @@ export async function publicStatus() {
   return {
     pool: Number(epoch.pool_usdc || POOL_USDC),
     epoch: epoch.epoch_number,
+    title: epoch.title || `Epoch ${epoch.epoch_number}`,
+    slug: epoch.slug || null,
     status,
     winners: epoch.winners || 0,
     closesAt,
+    maxAttemptsPerWallet: epoch.max_attempts_per_wallet || 10,
+    xThreadUrl: epoch.x_thread_url || null,
+    metadata: epoch.metadata || {},
     estimatedShare: epoch.winners ? Number(epoch.pool_usdc || POOL_USDC) / epoch.winners : Number(epoch.pool_usdc || POOL_USDC),
   };
 }
@@ -290,6 +401,7 @@ export async function prizeHistory() {
   if (!hasDatabase) return [];
   const result = await query(
     `select e.epoch_number as epoch, e.paid_out_at,
+       e.slug,
        count(w.id)::int as winners,
        coalesce(json_agg(
          json_build_object(
@@ -319,10 +431,22 @@ export async function prizeHistory() {
 }
 
 async function ensureCurrentEpoch(client) {
+  const active = await client.query(
+    `select *
+     from prize_epochs
+     where status in ('live', 'active')
+       and paid_out_at is null
+       and coalesce(closes_at, ends_at) > now()
+     order by epoch_number desc
+     limit 1`
+  );
+  if (active.rows[0]) return active.rows[0];
+
   const existing = await client.query(
     `select *
      from prize_epochs
      where paid_out_at is null
+       and status not in ('closed', 'paid')
      order by epoch_number desc
      limit 1`
   );

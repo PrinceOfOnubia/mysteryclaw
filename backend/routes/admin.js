@@ -202,6 +202,97 @@ router.post("/api/prize/pause", async (req, res) => {
   }
 });
 
+router.post("/api/epochs/echo/live", async (req, res) => {
+  try {
+    if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
+    const hours = Math.max(1, Math.min(Number(req.body?.hours || 3), 24));
+    const result = await query(
+      `update prize_epochs
+       set status = 'live',
+           started_at = coalesce(started_at, now()),
+           starts_at = coalesce(starts_at, now()),
+           closes_at = now() + ($1::text)::interval,
+           ends_at = now() + ($1::text)::interval
+       where slug = 'echo'
+       returning id, epoch_number, title, slug, status, closes_at`,
+      [`${hours} hours`]
+    );
+    await auditLog("admin_echo_set_live", { actor: req.adminActor, hours });
+    res.json({ ok: true, epoch: result.rows[0] });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || "echo_live_failed" });
+  }
+});
+
+router.post("/api/epochs/echo/close", async (req, res) => {
+  try {
+    if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
+    const result = await query(
+      `update prize_epochs
+       set status = 'closed',
+           closes_at = least(coalesce(closes_at, now()), now()),
+           ends_at = least(coalesce(ends_at, now()), now())
+       where slug = 'echo'
+       returning id, epoch_number, title, slug, status, closes_at`,
+    );
+    await auditLog("admin_echo_closed", { actor: req.adminActor });
+    res.json({ ok: true, epoch: result.rows[0] });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || "echo_close_failed" });
+  }
+});
+
+router.post("/api/epochs/echo/x-thread", async (req, res) => {
+  try {
+    if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
+    const url = String(req.body?.xThreadUrl || "").trim();
+    const result = await query(
+      `update prize_epochs
+       set x_thread_url = nullif($1, '')
+       where slug = 'echo'
+       returning id, epoch_number, title, slug, x_thread_url`,
+      [url]
+    );
+    await auditLog("admin_echo_x_thread_changed", { actor: req.adminActor, xThreadUrl: url || null });
+    res.json({ ok: true, epoch: result.rows[0] });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || "echo_x_thread_failed" });
+  }
+});
+
+router.post("/api/epochs/echo/clues", async (req, res) => {
+  try {
+    if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
+    const clueNumber = Number(req.body?.clueNumber);
+    const postCopy = String(req.body?.postCopy || "").trim();
+    if (!Number.isInteger(clueNumber) || clueNumber < 1) return res.status(400).json({ error: "clue_number_required" });
+    if (!postCopy) return res.status(400).json({ error: "post_copy_required" });
+    const scheduledAt = req.body?.scheduledAt || null;
+    const xUrl = req.body?.xUrl || null;
+    const status = req.body?.status || "draft";
+    const result = await query(
+      `insert into epoch_clues (epoch_id, clue_number, scheduled_at, post_copy, x_url, status, posted_at)
+       select id, $1, $2::timestamptz, $3, nullif($4, ''), $5,
+         case when $5 = 'posted' then coalesce($6::timestamptz, now()) else null end
+       from prize_epochs where slug = 'echo'
+       on conflict (epoch_id, clue_number)
+       do update set
+         scheduled_at = excluded.scheduled_at,
+         post_copy = excluded.post_copy,
+         x_url = excluded.x_url,
+         status = excluded.status,
+         posted_at = excluded.posted_at,
+         updated_at = now()
+       returning *`,
+      [clueNumber, scheduledAt, postCopy, xUrl, status, req.body?.postedAt || null]
+    );
+    await auditLog("admin_echo_clue_upserted", { actor: req.adminActor, clueNumber, status });
+    res.json({ ok: true, clue: result.rows[0] });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || "echo_clue_failed" });
+  }
+});
+
 router.post("/api/agent/pause", async (req, res) => {
   try {
     const paused = Boolean(req.body?.paused);

@@ -553,6 +553,29 @@ body::after{
   line-height:1.7;flex:1;min-width:280px;
 }
 
+.epoch-live{
+  padding:84px 60px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:radial-gradient(ellipse at 18% 20%,rgba(88,214,58,.12),transparent 36%),rgba(9,17,10,.22);
+}
+.epoch-live-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:44px;align-items:start}
+.epoch-kicker{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+.epoch-live h2{font-family:'Inter';font-size:clamp(44px,7vw,92px);line-height:.92;letter-spacing:-.055em;text-transform:uppercase;margin-bottom:20px}
+.epoch-copy{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);line-height:1.9;max-width:640px}
+.epoch-rules{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line-2);margin:28px 0}
+.epoch-rule{background:rgba(9,17,10,.92);padding:16px}
+.epoch-rule .l{font-family:'JetBrains Mono';font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:var(--text-mute);margin-bottom:7px}
+.epoch-rule .v{font-family:'Inter';font-size:18px;font-weight:900;color:#fff;text-transform:uppercase}
+.epoch-panel{border:1px solid var(--line-2);background:linear-gradient(180deg,rgba(22,61,18,.34),rgba(0,0,0,.84));padding:22px}
+.epoch-countdown{font-family:'Inter';font-size:46px;font-weight:900;color:var(--accent);letter-spacing:-.04em;text-shadow:0 0 24px rgba(88,214,58,.24)}
+.epoch-status{display:inline-flex;align-items:center;gap:9px;font-family:'JetBrains Mono';font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--success);padding:6px 10px;border:1px solid var(--accent-dim);background:rgba(88,214,58,.06);margin-bottom:16px}
+.epoch-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success)}
+.clue-list{margin-top:20px;display:grid;gap:10px}
+.clue-item{border:1px solid var(--line);background:rgba(0,0,0,.35);padding:12px 14px;font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.65}
+.clue-item a{color:var(--accent);text-decoration:none}
+.clue-item .n{color:var(--accent);letter-spacing:.2em;text-transform:uppercase;font-size:8px;margin-bottom:4px}
+@media(max-width:900px){.epoch-live{padding:58px 18px}.epoch-live-inner{grid-template-columns:1fr}.epoch-rules{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.epoch-rules{grid-template-columns:1fr}.epoch-countdown{font-size:36px}}
+
 /* === CTA BOTTOM === */
 .cta-bottom{
   padding:120px 60px;text-align:center;border-top:1px solid var(--line);
@@ -1243,6 +1266,7 @@ body::after{
   <div class="nav-links">
     <span class="nl on" id="nl-land" onclick="go('land')">Home</span>
     <span class="nl" id="nl-term" onclick="reqA('term')">Terminal</span>
+    <span class="nl" id="nl-echo" onclick="go('echo')">Echo</span>
     <span class="nl" id="nl-lore" onclick="go('lore')">Lore</span>
     <span class="nl" id="nl-disc" onclick="go('disc')">Discoveries</span>
   </div>
@@ -1265,6 +1289,7 @@ body::after{
 <div id="mobileMenu" aria-hidden="true">
   <span class="nl on" id="mnl-land" onclick="go('land')">Home</span>
   <span class="nl" id="mnl-term" onclick="reqA('term')">Terminal</span>
+  <span class="nl" id="mnl-echo" onclick="go('echo')">Echo</span>
   <span class="nl" id="mnl-lore" onclick="go('lore')">Lore</span>
   <span class="nl" id="mnl-disc" onclick="go('disc')">Discoveries</span>
 </div>
@@ -1313,6 +1338,47 @@ body::after{
       <div class="stat-cell">
         <div class="stat-label">PRIZE POOL</div>
         <div class="stat-val" id="sPool" style="color:var(--accent);text-shadow:0 0 8px rgba(88,214,58,.3)">$1,000</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE EPOCH -->
+  <section class="epoch-live" id="echoLive">
+    <div class="epoch-live-inner">
+      <div>
+        <div class="epoch-kicker">EPOCH 02: ECHO // LIVE</div>
+        <h2>THE WORD IS GONE.<br/><span class="accent">THE ECHOES REMAIN.</span></h2>
+        <p class="epoch-copy">
+          Fragments will appear across X and inside the terminal. No single clue is enough.
+          Mysterio already knows the answer. Your job is to reconstruct it.
+        </p>
+        <div class="epoch-rules">
+          <div class="epoch-rule"><div class="l">INVESTIGATION</div><div class="v">X theories</div></div>
+          <div class="epoch-rule"><div class="l">VERIFICATION</div><div class="v">site answers</div></div>
+          <div class="epoch-rule"><div class="l">ATTEMPTS</div><div class="v">10 / wallet</div></div>
+          <div class="epoch-rule"><div class="l">REWARD</div><div class="v">$1,000 USDC</div></div>
+        </div>
+        <p class="epoch-copy">
+          <b style="color:var(--accent)">X is for theories. The terminal is for answers.</b><br/>
+          Only guesses submitted on MysteryClaw count for rewards. If someone posts the answer on X, they do not win unless they submit it here first.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:24px">
+          <button class="bp" onclick="reqA('term')">OPEN TERMINAL</button>
+          <button class="bg" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
+          <a class="bg" id="echoXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW X INVESTIGATION</a>
+        </div>
+      </div>
+      <div class="epoch-panel">
+        <div class="epoch-status" id="echoEpochStatus">LIVE</div>
+        <div style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin-bottom:8px">COUNTDOWN</div>
+        <div class="epoch-countdown" id="echoCountdown">SYNCING</div>
+        <div style="display:flex;justify-content:space-between;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase">
+          <span>Attempts remaining</span>
+          <span id="echoAttemptsRemaining" style="color:var(--accent)">10</span>
+        </div>
+        <div class="clue-list" id="echoClues">
+          <div class="clue-item"><div class="n">CLUE TIMELINE</div>Loading Echo clue schedule...</div>
+        </div>
       </div>
     </div>
   </section>
@@ -1742,6 +1808,45 @@ body::after{
   </main>
 </div>
 
+<!-- ═══ PAGE: ECHO ═══ -->
+<div class="pg" id="pg-echo">
+  <section class="epoch-live" style="padding-top:120px">
+    <div class="epoch-live-inner">
+      <div>
+        <div class="epoch-kicker">EPOCH 02: ECHO // HYBRID INVESTIGATION</div>
+        <h2>X IS FOR THEORIES.<br/><span class="accent">THE TERMINAL IS FOR ANSWERS.</span></h2>
+        <p class="epoch-copy">
+          The word is gone. The echoes remain. Public theories, quote replies, and clue drops belong on X.
+          Official reward eligibility only counts through website submissions on MysteryClaw.
+        </p>
+        <div class="epoch-rules">
+          <div class="epoch-rule"><div class="l">OFFICIAL ANSWERS</div><div class="v">Website only</div></div>
+          <div class="epoch-rule"><div class="l">ATTEMPTS</div><div class="v">10 / wallet</div></div>
+          <div class="epoch-rule"><div class="l">WIN RULE</div><div class="v">First valid</div></div>
+          <div class="epoch-rule"><div class="l">PAYOUT</div><div class="v">Admin verified</div></div>
+        </div>
+        <p class="epoch-copy">
+          A correct website submission closes Echo immediately or marks it pending verification.
+          X replies are never treated as official guesses.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:24px">
+          <button class="bp" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
+          <button class="bg" onclick="reqA('term')">OPEN TERMINAL</button>
+          <a class="bg" id="echoPageXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW THE X INVESTIGATION</a>
+        </div>
+      </div>
+      <div class="epoch-panel">
+        <div class="epoch-status" id="echoPageStatus">LIVE</div>
+        <div style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin-bottom:8px">ECHO COUNTDOWN</div>
+        <div class="epoch-countdown" id="echoPageCountdown">SYNCING</div>
+        <div class="clue-list" id="echoPageClues">
+          <div class="clue-item"><div class="n">CLUE TIMELINE</div>Loading Echo clue schedule...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
 <!-- ═══ PAGE: LORE ═══ -->
 <div class="pg" id="pg-lore">
   <section class="lore-hero">
@@ -1861,7 +1966,8 @@ const S = {
   sessionNonce: Math.random().toString(36).slice(2),
   holdings:null,        // populated after /holdings call
   hasAccess:false,      // true if user holds at least 1 access token
-  pendingSaveText:null  // fragment text waiting for category in save modal
+  pendingSaveText:null, // fragment text waiting for category in save modal
+  echo:{ status:'live', maxAttempts:10, closesAt:null }
 }
 
 const DEFAULT_API_BASE = 'https://piverse-production.up.railway.app'
@@ -2209,6 +2315,7 @@ function go(page){
   window.scrollTo(0, 0)
   if(page === 'term') bootChat()
   if(page === 'land') renderTokenGate()
+  if(page === 'echo') loadEchoEpoch()
   if(page === 'disc'){
     renderDiscoveries()
     startAutoFeedPolling()
@@ -2616,6 +2723,10 @@ async function sendChat(){
     toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to chat')
     return
   }
+  if(S.echo?.closesAt && Date.now() >= S.echo.closesAt){
+    toast('Time elapsed — Echo is closed')
+    return
+  }
   inp.value = ''
   appendChat('user', msg)
   showTyping(true)
@@ -2660,6 +2771,14 @@ function openGuess(){
     openM('mAuth')
     return
   }
+  if(S.echo?.status && !['live','active','open'].includes(S.echo.status)){
+    toast('Echo is closed — official submissions are no longer accepted')
+    return
+  }
+  if(S.echo?.closesAt && Date.now() >= S.echo.closesAt){
+    toast('Time elapsed — official submissions are closed')
+    return
+  }
   if(S.holdings !== null && !S.hasAccess){
     toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to participate')
     return
@@ -2701,7 +2820,13 @@ async function submitGuess(){
       if(data.error === 'not_holder'){
         toast('Holders only — your wallet has no access tokens')
       } else if(data.error === 'rate_limited'){
-        toast('Limit reached — 10 attempts / 3h. Try again in ' + (data.cooldownHours || '3') + 'h')
+        toast('Limit reached — 10 official attempts for this epoch')
+      } else if(data.error === 'epoch_closed'){
+        toast('Time elapsed — official submissions are closed')
+      } else if(data.error === 'epoch_answer_not_configured'){
+        toast('Echo is not fully configured yet')
+      } else if(data.error === 'epoch_already_won'){
+        toast('Echo already has a pending verified winner')
       } else if(data.error === 'cooldown'){
         toast('Cooldown active — wait ' + (data.minutesLeft || '?') + ' min')
       } else if(data.error && data.error.startsWith('wallet_')){
@@ -2714,6 +2839,7 @@ async function submitGuess(){
 
     S.guesses++
     document.getElementById('guessCount').textContent = S.guesses
+    if(data.attemptsLeft !== undefined) updateEchoAttempts(data.attemptsLeft)
     document.getElementById('gIn').value = ''
 
     if(data.correct || data.success){
@@ -2801,8 +2927,12 @@ function renderPrizeCountdown(){
   const value = prizeClosesAt ? formatCountdown(prizeClosesAt - Date.now()) : 'SYNCING'
   const prizeTimer = document.getElementById('prizeTimer')
   const terminalTimer = document.getElementById('terminalEpochTimer')
+  const echoTimer = document.getElementById('echoCountdown')
+  const echoPageTimer = document.getElementById('echoPageCountdown')
   if(prizeTimer) prizeTimer.textContent = value
   if(terminalTimer) terminalTimer.textContent = value
+  if(echoTimer) echoTimer.textContent = value
+  if(echoPageTimer) echoPageTimer.textContent = value
 }
 
 async function loadPrizeStatus(){
@@ -2812,7 +2942,11 @@ async function loadPrizeStatus(){
     const d = await r.json()
     prizeStatus = d.status
     prizeClosesAt = d.closesAt ? Number(d.closesAt) : null
+    S.echo.status = d.status
+    S.echo.closesAt = prizeClosesAt
+    S.echo.maxAttempts = d.maxAttemptsPerWallet || S.echo.maxAttempts || 10
     renderPrizeCountdown()
+    renderEchoStatus(d)
     // update hero stat
     const poolEl = document.getElementById('sPool')
     if(poolEl) poolEl.textContent = '$' + Number(d.pool || 1000).toLocaleString()
@@ -2835,8 +2969,64 @@ async function loadPrizeStatus(){
   }catch(e){ /* silent */ }
 }
 loadPrizeStatus()
+loadEchoEpoch()
 setInterval(loadPrizeStatus, 30000)
+setInterval(loadEchoEpoch, 60000)
 setInterval(renderPrizeCountdown, 1000)
+
+function renderEchoStatus(d){
+  const labels = [document.getElementById('echoEpochStatus'), document.getElementById('echoPageStatus')]
+  const status = d.status === 'closing' || d.status === 'closed' ? 'CLOSED' : 'LIVE'
+  labels.forEach(el => { if(el) el.textContent = status })
+  updateEchoAttempts(S.echo.maxAttempts - S.guesses)
+  const xUrl = d.xThreadUrl
+  ;['echoXLink','echoPageXLink'].forEach(id => {
+    const el = document.getElementById(id)
+    if(el && xUrl) el.href = xUrl
+  })
+}
+
+function updateEchoAttempts(left){
+  const clean = Math.max(0, Number(left ?? S.echo.maxAttempts ?? 10))
+  ;['echoAttemptsRemaining'].forEach(id => {
+    const el = document.getElementById(id)
+    if(el) el.textContent = String(clean)
+  })
+}
+
+async function loadEchoEpoch(){
+  try{
+    const r = await fetch(API_BASE + '/prize/epochs/echo', { cache:'no-store' })
+    if(!r.ok) return
+    const d = await r.json()
+    S.echo.status = d.status || S.echo.status
+    S.echo.maxAttempts = d.maxAttemptsPerWallet || 10
+    S.echo.closesAt = d.closesAt ? new Date(d.closesAt).getTime() : S.echo.closesAt
+    if(d.xThreadUrl){
+      ;['echoXLink','echoPageXLink'].forEach(id => {
+        const el = document.getElementById(id)
+        if(el) el.href = d.xThreadUrl
+      })
+    }
+    renderEchoClues(d.clues || [])
+    renderPrizeCountdown()
+  }catch(e){ /* keep page usable */ }
+}
+
+function renderEchoClues(clues){
+  const html = clues.length
+    ? clues.map(c => `
+      <div class="clue-item">
+        <div class="n">CLUE ${String(c.clueNumber).padStart(2,'0')} · ${esc((c.status || 'draft').toUpperCase())}</div>
+        ${c.xUrl ? `<a href="${esc(c.xUrl)}" target="_blank" rel="noopener">View posted clue on X</a>` : esc(c.scheduledAt ? ('Scheduled ' + new Date(c.scheduledAt).toLocaleString()) : 'Awaiting clue drop')}
+      </div>
+    `).join('')
+    : '<div class="clue-item"><div class="n">CLUE TIMELINE</div>Awaiting first Echo clue drop.</div>'
+  ;['echoClues','echoPageClues'].forEach(id => {
+    const el = document.getElementById(id)
+    if(el) el.innerHTML = html
+  })
+}
 
 // ═══════════════════════════════════════════════════════════
 // UTILS

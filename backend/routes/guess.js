@@ -1,6 +1,6 @@
 import express from "express";
 import { isHolder } from "../_access.js";
-import { recordGuess, recordWinner } from "../_winners.js";
+import { getAttemptsForEpoch, getSubmissionEpoch, recordGuess, recordWinner } from "../_winners.js";
 import { normalizePubkey, verifyWalletAuth } from "../_walletAuth.js";
 import { booleanSetting } from "../_settings.js";
 
@@ -8,46 +8,18 @@ const router = express.Router();
 
 // ═══════════════════════════════════════════════════════════════
 // 🔒 THE FORGOTTEN WORD
-// Set SECRET_WORD in Railway for production. Keep the fallback only for local
-// development so the public repo never contains the live winning word.
+// Set the current epoch's secret env var in Railway. The answer is never
+// stored in frontend code and is not echoed back to the client.
 // ═══════════════════════════════════════════════════════════════
-const SECRET = (process.env.SECRET_WORD || "LOCAL_ONLY_SECRET").trim().toUpperCase();
-
-// ═══════════════════════════════════════════════════════════════
-// RATE LIMITING
-// 10 attempts per wallet per 3-hour game session.
-// Resets 3h after the first attempt that hit the limit.
-// In-memory store — moves to Redis/Postgres for production.
-// ═══════════════════════════════════════════════════════════════
-const MAX_ATTEMPTS = 10;
-const WINDOW_MS = 3 * 60 * 60 * 1000;
-
-const guessLog = {}; // pubkey → array of timestamps
-
-function checkRateLimit(pubkey) {
-  if (!pubkey) return { allowed: true, attemptsLeft: MAX_ATTEMPTS };
-  const now = Date.now();
-  if (!guessLog[pubkey]) guessLog[pubkey] = [];
-  // drop old timestamps outside window
-  guessLog[pubkey] = guessLog[pubkey].filter((ts) => now - ts < WINDOW_MS);
-  const used = guessLog[pubkey].length;
-  if (used >= MAX_ATTEMPTS) {
-    const oldest = guessLog[pubkey][0];
-    const cooldownMs = WINDOW_MS - (now - oldest);
-    return {
-      allowed: false,
-      attemptsLeft: 0,
-      cooldownHours: Math.ceil(cooldownMs / (60 * 60 * 1000)),
-      minutesLeft: Math.ceil(cooldownMs / 60000),
-    };
+function secretForEpoch(epoch) {
+  const envName = epoch?.secret_env_var || (epoch?.slug === "echo" ? "ECHO_SECRET_WORD" : "SECRET_WORD");
+  const secret = (process.env[envName] || "").trim().toUpperCase();
+  if (!secret) {
+    const err = new Error("epoch_answer_not_configured");
+    err.status = 503;
+    throw err;
   }
-  return { allowed: true, attemptsLeft: MAX_ATTEMPTS - used };
-}
-
-function recordAttempt(pubkey) {
-  if (!pubkey) return;
-  if (!guessLog[pubkey]) guessLog[pubkey] = [];
-  guessLog[pubkey].push(Date.now());
+  return secret;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -88,23 +60,21 @@ router.post("/", async (req, res) => {
       }
     }
 
-    // ─── GATE 3: rate limit ──────────────────────────────
-    const rl = checkRateLimit(wallet);
-    if (!rl.allowed) {
+    // ─── GATE 3: epoch must be live and not elapsed ───────
+    const epoch = await getSubmissionEpoch();
+    const attempts = await getAttemptsForEpoch({ wallet, epochId: epoch.id });
+    if (attempts.attemptsLeft <= 0) {
       return res.status(429).json({
         error: "rate_limited",
-        cooldownHours: rl.cooldownHours,
-        minutesLeft: rl.minutesLeft,
+        attemptsLeft: 0,
+        maxAttempts: attempts.max,
       });
     }
 
-    // Record this attempt BEFORE checking — so failed AND successful
-    // both count toward the limit.
-    recordAttempt(wallet);
-
     // ─── ACTUAL CHECK ────────────────────────────────────
     const normalized = guess.toUpperCase().trim();
-    const correct = normalized === SECRET;
+    const secret = secretForEpoch(epoch);
+    const correct = normalized === secret;
     const guessRecord = await recordGuess({
       wallet,
       userId,
@@ -113,29 +83,33 @@ router.post("/", async (req, res) => {
       correct,
       verifiedWallet: true,
       verifiedWalletId: verified.verified_wallet_id,
+      epochId: epoch.id,
+      source: "website",
       req,
     });
 
     if (correct) {
-      // Record into the current 3h epoch. Real payouts require a later
-      // admin-only trigger and PAYOUTS_ENABLED=true.
       const winInfo = await recordWinner({
         wallet,
         guessId: guessRecord.id,
         verifiedWalletId: verified.verified_wallet_id,
+        epochId: epoch.id,
+        closeOnWin: epoch.slug === "echo",
       });
       return res.json({
         correct: true,
         success: true,
-        word: SECRET,
         message: winInfo.alreadyWinner
           ? "Already recorded. Your share is locked in."
-          : "ACCESS GRANTED. You are a winner of this epoch.",
+          : epoch.slug === "echo"
+            ? "ECHO VERIFIED. First valid website submission is locked pending admin validation."
+            : "ACCESS GRANTED. You are a winner of this epoch.",
         epoch: winInfo.epoch,
+        epochSlug: winInfo.slug,
         totalWinners: winInfo.totalWinners,
         estimatedShare: winInfo.estimatedShare,
         closesAt: winInfo.closesAt,
-        attemptsLeft: rl.attemptsLeft - 1,
+        attemptsLeft: attempts.attemptsLeft - 1,
       });
     }
 
@@ -143,7 +117,8 @@ router.post("/", async (req, res) => {
       correct: false,
       success: false,
       message: "Not the word.",
-      attemptsLeft: rl.attemptsLeft - 1,
+      attemptsLeft: attempts.attemptsLeft - 1,
+      maxAttempts: attempts.max,
     });
   } catch (err) {
     console.error("GUESS ERROR:", err.message);

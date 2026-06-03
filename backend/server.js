@@ -25,10 +25,14 @@ const LOCAL_ORIGINS = new Set([
   "http://localhost:5173",
   "http://localhost:8080",
   "http://localhost:5500",
+  "http://localhost:5501",
+  "http://localhost:5502",
   "http://127.0.0.1:3000",
   "http://127.0.0.1:5173",
   "http://127.0.0.1:8080",
   "http://127.0.0.1:5500",
+  "http://127.0.0.1:5501",
+  "http://127.0.0.1:5502",
   "null", // local file:// development
 ]);
 
@@ -122,6 +126,7 @@ app.get("/", (req, res) => {
       "GET  /autonomous":    "Mysterio's self-generated posts (live feed)",
       "POST /autonomous":    "agent-runtime pushes new post (requires x-agent-key)",
       "GET  /prize":         "current prize epoch status",
+      "GET  /prize/epochs/echo": "Echo epoch metadata and X clue timeline",
       "GET  /prize/history": "past epoch payouts (transparency)",
       "GET  /admin/api/status": "admin system status (requires Authorization)",
       "POST /admin/api/payout": "admin-only payout trigger"

@@ -219,6 +219,25 @@
             <button class="danger" onclick="confirmAction('payout')">Trigger Payout</button>
           </div>
         </section>
+        <section class="card wide">
+          <h2>Echo Controls</h2>
+          <p class="k" style="margin-top:-4px;margin-bottom:10px;color:var(--yellow)">Do not reveal hidden answer publicly.</p>
+          <div id="echoRows"></div>
+          <div class="actions">
+            <button onclick="setEchoLive()">Set Echo Live</button>
+            <button class="warn" onclick="closeEchoEpoch()">Close Echo</button>
+          </div>
+          <div class="actions">
+            <input id="echoXThreadInput" placeholder="X thread URL" style="flex:1;min-width:220px"/>
+            <button onclick="saveEchoXThread()">Save X Thread</button>
+          </div>
+          <div class="actions">
+            <input id="echoClueNumber" placeholder="Clue #" style="width:90px"/>
+            <input id="echoClueCopy" placeholder="Clue post copy" style="flex:2;min-width:220px"/>
+            <input id="echoClueUrl" placeholder="X URL after posted" style="flex:1;min-width:180px"/>
+            <button onclick="saveEchoClue()">Save Clue</button>
+          </div>
+        </section>
         <section class="card">
           <h2>Controls</h2>
           <div class="row"><span class="k">Payouts</span><span id="payoutState" class="v"></span></div>
@@ -388,13 +407,23 @@
         ['Mint', data.token?.mint || 'not set'],
         ['Launch File', data.token?.launchFilePresent ? 'present' : 'absent']
       ])
-      rows('prizeRows', [
-        ['Epoch', data.prize?.epoch ?? '-'],
-        ['Status', data.prize?.status || '-'],
-        ['Winners', data.prize?.winners ?? 0],
-        ['Pool', '$' + Number(data.prize?.pool || 0).toLocaleString() + ' USDC'],
-        ['Submissions', data.settings?.prize_submissions_paused === 'true' ? 'paused' : 'active']
-      ])
+        rows('prizeRows', [
+          ['Epoch', data.prize?.epoch ?? '-'],
+          ['Title', data.prize?.title || '-'],
+          ['Slug', data.prize?.slug || '-'],
+          ['Status', data.prize?.status || '-'],
+          ['Winners', data.prize?.winners ?? 0],
+          ['Pool', '$' + Number(data.prize?.pool || 0).toLocaleString() + ' USDC'],
+          ['Submissions', data.settings?.prize_submissions_paused === 'true' ? 'paused' : 'active']
+        ])
+        rows('echoRows', [
+          ['Status', data.prize?.slug === 'echo' ? (data.prize?.status || '-') : 'not current'],
+          ['Ends', data.prize?.closesAt ? new Date(data.prize.closesAt).toLocaleString() : '-'],
+          ['X Thread', data.prize?.xThreadUrl ? `<a href="${esc(data.prize.xThreadUrl)}" target="_blank" rel="noopener">${esc(data.prize.xThreadUrl)}</a>` : 'not set'],
+          ['Warning', '<span class="bad">Never enter the hidden answer here.</span>']
+        ])
+        const echoXInput = document.getElementById('echoXThreadInput')
+        if(echoXInput && data.prize?.xThreadUrl) echoXInput.value = data.prize.xThreadUrl
       document.getElementById('agentPauseBtn').textContent = data.agent?.actionsPaused ? 'Unpause Agent Actions' : 'Pause Agent Actions'
       document.getElementById('prizePauseBtn').textContent = data.settings?.prize_submissions_paused === 'true' ? 'Unpause Prize Submissions' : 'Pause Prize Submissions'
       const tokenLaunchBtn = document.getElementById('tokenLaunchBtn')
@@ -451,6 +480,45 @@
         toast('Winner approved')
         await refreshAll()
       }catch(e){ toast('Approve failed: ' + e.message) }
+    }
+
+    async function setEchoLive(){
+      try{
+        await api('/admin/api/epochs/echo/live', { method:'POST', body:JSON.stringify({ hours:3 }) })
+        toast('Echo set live')
+        await refreshAll()
+      }catch(e){ toast('Echo live failed: ' + e.message) }
+    }
+
+    async function closeEchoEpoch(){
+      try{
+        await api('/admin/api/epochs/echo/close', { method:'POST', body:'{}' })
+        toast('Echo closed')
+        await refreshAll()
+      }catch(e){ toast('Echo close failed: ' + e.message) }
+    }
+
+    async function saveEchoXThread(){
+      try{
+        const xThreadUrl = document.getElementById('echoXThreadInput').value.trim()
+        await api('/admin/api/epochs/echo/x-thread', { method:'POST', body:JSON.stringify({ xThreadUrl }) })
+        toast('Echo X thread saved')
+        await refreshAll()
+      }catch(e){ toast('X thread save failed: ' + e.message) }
+    }
+
+    async function saveEchoClue(){
+      try{
+        const clueNumber = Number(document.getElementById('echoClueNumber').value)
+        const postCopy = document.getElementById('echoClueCopy').value.trim()
+        const xUrl = document.getElementById('echoClueUrl').value.trim()
+        await api('/admin/api/epochs/echo/clues', {
+          method:'POST',
+          body:JSON.stringify({ clueNumber, postCopy, xUrl, status:xUrl ? 'posted' : 'draft' })
+        })
+        toast('Echo clue saved')
+        await refreshAll()
+      }catch(e){ toast('Clue save failed: ' + e.message) }
     }
 
     async function togglePrizePause(){
