@@ -183,17 +183,17 @@ values (
   2,
   'TRIALS OF ECHO',
   'echo',
-  'live',
+  'pending',
   1000,
   10,
-  now(),
-  now(),
-  now() + interval '3 hours',
-  now() + interval '3 hours',
+  null,
+  now() + interval '2 hours',
+  now() + interval '5 hours',
+  now() + interval '5 hours',
   'ECHO_SECRET_WORD',
   jsonb_build_object(
     'tagline', 'The word is gone. The echoes remain.',
-    'launchCopy', 'Fragments will appear across X and inside the terminal. No single clue is enough. Echo is the live trial. Your job is to reconstruct the answer.',
+    'launchCopy', 'Fragments will appear across X and inside the terminal. No single clue is enough. Echo begins when the countdown reaches zero. Your job is to reconstruct the answer.',
     'xCta', 'Follow the X investigation'
   )
 )
@@ -212,7 +212,7 @@ cross join (values
   (1, 'ECHO CLUE 01: The word is gone. The echoes remain. X is for theories. The terminal is for answers.'),
   (2, 'ECHO CLUE 02: A fragment is not proof. A pattern is not a confession. Keep both.'),
   (3, 'ECHO CLUE 03: No single clue is enough. The archive only opens when the fragments agree.'),
-  (4, 'ECHO CLUE 04: Mysterio already knows the answer. Echo only repeats the shape it left behind.')
+  (4, 'ECHO CLUE 04: The archive already knows the answer. Echo only repeats the shape it left behind.')
 ) as c(clue_number, post_copy)
 where e.slug = 'echo'
 on conflict (epoch_id, clue_number) do nothing;

@@ -138,6 +138,17 @@ export async function getSubmissionEpoch() {
     err.status = 503;
     throw err;
   }
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    await ensureCurrentEpoch(client);
+    await client.query("commit");
+  } catch (err) {
+    await client.query("rollback");
+    throw err;
+  } finally {
+    client.release();
+  }
   const result = await query(
     `select *
      from prize_epochs
@@ -356,7 +367,7 @@ export async function publicStatus() {
   }
 
   const result = await query(
-    `select e.id, e.epoch_number, e.pool_usdc, e.started_at, e.closes_at, e.paid_out_at,
+    `select e.id, e.epoch_number, e.pool_usdc, e.status, e.started_at, e.starts_at, e.closes_at, e.ends_at, e.paid_out_at,
        e.title, e.slug, e.max_attempts_per_wallet, e.x_thread_url, e.metadata,
        count(w.id)::int as winners
      from prize_epochs e
@@ -372,15 +383,19 @@ export async function publicStatus() {
   );
 
   const epoch = result.rows[0] || { epoch_number: 1, pool_usdc: POOL_USDC, winners: 0 };
-  const closesAt = epoch.closes_at ? new Date(epoch.closes_at).getTime() : null;
+  const startsAt = epoch.starts_at ? new Date(epoch.starts_at).getTime() : null;
+  const closesAt = (epoch.closes_at || epoch.ends_at) ? new Date(epoch.closes_at || epoch.ends_at).getTime() : null;
   const now = Date.now();
-  const status = epoch.paid_out_at
-    ? "paid"
-    : closesAt && now >= closesAt
-      ? "closing"
-      : epoch.started_at
-        ? "active"
-        : "open";
+  let status = epoch.status || "open";
+  if (epoch.paid_out_at) {
+    status = "paid";
+  } else if (closesAt && now >= closesAt) {
+    status = "closing";
+  } else if (startsAt && now < startsAt) {
+    status = "pending";
+  } else if (["live", "active", "open"].includes(status)) {
+    status = "active";
+  }
 
   return {
     pool: Number(epoch.pool_usdc || POOL_USDC),
@@ -388,6 +403,7 @@ export async function publicStatus() {
     title: epoch.title || `Epoch ${epoch.epoch_number}`,
     slug: epoch.slug || null,
     status,
+    startsAt,
     winners: epoch.winners || 0,
     closesAt,
     maxAttemptsPerWallet: epoch.max_attempts_per_wallet || 10,
@@ -436,6 +452,7 @@ async function ensureCurrentEpoch(client) {
      from prize_epochs
      where status in ('live', 'active')
        and paid_out_at is null
+       and coalesce(starts_at, started_at, now()) <= now()
        and coalesce(closes_at, ends_at) > now()
      order by epoch_number desc
      limit 1`
@@ -461,6 +478,10 @@ async function ensureCurrentEpoch(client) {
     epoch = next.rows[0];
   }
 
+  if (epoch.starts_at && new Date(epoch.starts_at).getTime() > Date.now()) {
+    return epoch;
+  }
+
   if (!epoch.started_at) {
     const bootstrapElapsedMinutes = epoch.epoch_number === 1
       ? Math.max(0, Math.min(parseInt(process.env.EPOCH_BOOTSTRAP_ELAPSED_MINUTES || "0", 10) || 0, EPOCH_HOURS * 60))
@@ -469,7 +490,7 @@ async function ensureCurrentEpoch(client) {
       `update prize_epochs
        set started_at = now() - ($3::int * interval '1 minute'),
            closes_at = now() + $2::interval - ($3::int * interval '1 minute'),
-           status = 'active'
+           status = case when status = 'pending' then 'live' else 'active' end
        where id = $1
        returning *`,
       [epoch.id, EPOCH_INTERVAL, bootstrapElapsedMinutes]

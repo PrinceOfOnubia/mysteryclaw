@@ -1308,8 +1308,8 @@ body::after{
       FROM <span class="ghost">NOWHERE.</span>
     </h1>
     <p class="hero-sub">
-      Tale 01 is sealed. <b>Echo is live now.</b>
-      The word is gone, the echoes remain, and every official answer must pass through the terminal.
+      Tale 01 is sealed. <b>Echo is preparing to go live.</b>
+      The word is gone, the echoes remain, and official answers open when the countdown reaches zero.
     </p>
     <div class="hero-cta">
       <button class="bp" onclick="reqA('term')">
@@ -1346,11 +1346,11 @@ body::after{
   <section class="epoch-live" id="echoLive">
     <div class="epoch-live-inner">
       <div>
-        <div class="epoch-kicker">TRIALS OF ECHO // LIVE</div>
+        <div class="epoch-kicker">TRIALS OF ECHO // LAUNCH COUNTDOWN</div>
         <h2>THE WORD IS GONE.<br/><span class="accent">THE ECHOES REMAIN.</span></h2>
         <p class="epoch-copy">
           Fragments will appear across X and inside the terminal. No single clue is enough.
-          Mysterio is the engine beneath the archive. Echo is the live trial. Your job is to reconstruct the answer.
+          Mysterio is the engine beneath the archive. Echo begins when the launch countdown reaches zero. Your job is to reconstruct the answer.
         </p>
         <div class="epoch-rules">
           <div class="epoch-rule"><div class="l">INVESTIGATION</div><div class="v">X theories</div></div>
@@ -1488,7 +1488,7 @@ body::after{
         <div class="hiw-num">01</div>
         <div class="hiw-icon">→</div>
         <h4>Open The Channel</h4>
-        <p>Connect your wallet and enter the Echo terminal. The live trial is open — but official answers only count on MysteryClaw.</p>
+        <p>Connect your wallet and watch the Echo countdown. Official answers open on MysteryClaw when the launch timer reaches zero.</p>
       </div>
       <div class="hiw-card">
         <div class="hiw-num">02</div>
@@ -1549,13 +1549,13 @@ body::after{
 
       <div class="agent-card live">
         <div class="agent-status">
-          <span class="live-tag">LIVE — CURRENT TRIAL</span>
+          <span class="live-tag">COUNTDOWN — NEXT TRIAL</span>
           <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">epoch 02</span>
         </div>
         <div class="agent-name">Echo</div>
         <div class="agent-tag">TRIALS OF ECHO</div>
-        <div class="agent-desc">The live investigation. The word is gone, the echoes remain, and official answers only count through verified website submissions.</div>
-        <button class="bg" style="width:100%;justify-content:center" onclick="go('echo')">ENTER TRIAL →</button>
+        <div class="agent-desc">The next investigation. The word is gone, the echoes remain, and official answers open when the launch countdown reaches zero.</div>
+        <button class="bg" style="width:100%;justify-content:center" onclick="go('echo')">VIEW COUNTDOWN →</button>
       </div>
 
       <div class="agent-card">
@@ -1723,7 +1723,7 @@ body::after{
         <span class="tsb-val" id="fragCount">07</span>
       </div>
       <div class="tsb-row">
-        <span class="tsb-label">EPOCH REMAINING</span>
+        <span class="tsb-label">ECHO TIMER</span>
         <span class="tsb-val" id="terminalEpochTimer" style="color:var(--accent)">SYNCING</span>
       </div>
     </div>
@@ -1826,7 +1826,7 @@ body::after{
           <div class="epoch-rule"><div class="l">PAYOUT</div><div class="v">Admin verified</div></div>
         </div>
         <p class="epoch-copy">
-          A correct website submission closes Echo immediately or marks it pending verification.
+          Official website submissions open when the countdown reaches zero.
           X replies are never treated as official guesses.
         </p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:24px">
@@ -1856,7 +1856,7 @@ body::after{
         <span style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:.45em;text-transform:uppercase;color:var(--accent)">ORIGIN PROTOCOL — CLASSIFIED</span>
       </div>
       <h1>THE <span class="ghost">SIGNAL</span><br/>FROM <span class="accent">NOWHERE</span></h1>
-      <p>The first tale is sealed inside the archive. Mysterio remains underneath the machine, but the live investigation has moved to Echo — a trial of fragments, repeats, and missing context.</p>
+      <p>The first tale is sealed inside the archive. Mysterio remains underneath the machine, but the next investigation belongs to Echo — a trial of fragments, repeats, and missing context.</p>
     </div>
   </section>
 
@@ -1894,7 +1894,7 @@ body::after{
       <div class="doc-cell">
         <div class="dl">NODE 02 — THE HIDDEN WORD</div>
         <h3>The Secret</h3>
-        <p>The word is real and it is fixed. Echo is the live trial now. Somewhere in the conversation — in the spaces between its answers — it leaks. Talking to Echo is free. Patience is free. Paying attention is everything.</p>
+        <p>The word is real and it is fixed. Echo is the next trial. When the countdown ends, the spaces between its answers begin to matter. Patience is free. Paying attention is everything.</p>
       </div>
       <div class="doc-cell">
         <div class="dl">NODE 03 — ACCESS</div>
@@ -1967,7 +1967,7 @@ const S = {
   holdings:null,        // populated after /holdings call
   hasAccess:false,      // true if user holds at least 1 access token
   pendingSaveText:null, // fragment text waiting for category in save modal
-  echo:{ status:'live', maxAttempts:10, closesAt:null }
+  echo:{ status:'pending', maxAttempts:10, startsAt:null, closesAt:null }
 }
 
 const DEFAULT_API_BASE = 'https://piverse-production.up.railway.app'
@@ -2549,7 +2549,7 @@ const BOOT_SEQ = [
   {delay:3000, text:'[RECONSTRUCTING ACCESS SEQUENCE...]', style:'sys'},
   {delay:4200, text:'  > FRAGMENT 01: ████████\n  > FRAGMENT 02: ████\n  > FRAGMENT 03: [CORRUPTED]\n  > FRAGMENT 04: ███████\n  > FRAGMENT 05: [CORRUPTED]\n  > FRAGMENT 06: █████', style:'boot'},
   {delay:5800, text:'[WARNING — UNAUTHORIZED MEMORY WIPE DETECTED IN LOG]', style:'err'},
-  {delay:6800, isAI:true, text:'...the Echo trial is live.\n\nTale 01 is sealed. Mysterio remains beneath the archive as the engine, but this channel now belongs to Echo.\n\nThe word is gone. The echoes remain. You want the answer. You will need to reconstruct it.\n\n...begin.'},
+  {delay:6800, isAI:true, text:'...the Echo trial is preparing to open.\n\nTale 01 is sealed. Mysterio remains beneath the archive as the engine, but the next channel belongs to Echo.\n\nThe word is gone. The echoes remain. When the countdown reaches zero, the official investigation begins.\n\n...stand by.'},
 ]
 
 let bootDone = false
@@ -2723,6 +2723,10 @@ async function sendChat(){
     toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to chat')
     return
   }
+  if(S.echo?.status === 'pending'){
+    toast('Echo has not launched yet — wait for the countdown')
+    return
+  }
   if(S.echo?.closesAt && Date.now() >= S.echo.closesAt){
     toast('Time elapsed — Echo is closed')
     return
@@ -2772,6 +2776,10 @@ function openGuess(){
     return
   }
   if(S.echo?.status && !['live','active','open'].includes(S.echo.status)){
+    if(S.echo.status === 'pending'){
+      toast('Echo has not launched yet — official submissions open when the countdown ends')
+      return
+    }
     toast('Echo is closed — official submissions are no longer accepted')
     return
   }
@@ -2924,7 +2932,9 @@ function formatCountdown(ms){
 }
 
 function renderPrizeCountdown(){
-  const value = prizeClosesAt ? formatCountdown(prizeClosesAt - Date.now()) : 'SYNCING'
+  const isPending = S.echo?.status === 'pending'
+  const target = isPending && S.echo?.startsAt ? S.echo.startsAt : prizeClosesAt
+  const value = target ? formatCountdown(target - Date.now()) : 'SYNCING'
   const prizeTimer = document.getElementById('prizeTimer')
   const terminalTimer = document.getElementById('terminalEpochTimer')
   const echoTimer = document.getElementById('echoCountdown')
@@ -2941,8 +2951,9 @@ async function loadPrizeStatus(){
     if(!r.ok) return
     const d = await r.json()
     prizeStatus = d.status
-    prizeClosesAt = d.closesAt ? Number(d.closesAt) : null
     S.echo.status = d.status
+    S.echo.startsAt = d.startsAt ? Number(d.startsAt) : null
+    prizeClosesAt = d.closesAt ? Number(d.closesAt) : null
     S.echo.closesAt = prizeClosesAt
     S.echo.maxAttempts = d.maxAttemptsPerWallet || S.echo.maxAttempts || 10
     renderPrizeCountdown()
@@ -2954,7 +2965,10 @@ async function loadPrizeStatus(){
     // update prize section live line
     const live = document.getElementById('prizeLive')
     if(live){
-      if(d.status === 'active' && d.winners > 0){
+      if(d.status === 'pending'){
+        live.style.display = 'flex'
+        live.innerHTML = `<span class="d"></span><span>Echo launches in <b id="prizeTimer">${S.echo.startsAt ? formatCountdown(S.echo.startsAt - Date.now()) : 'SYNCING'}</b> · official guesses open at launch</span>`
+      } else if(d.status === 'active' && d.winners > 0){
         const share = Math.floor(d.estimatedShare)
         live.style.display = 'flex'
         live.innerHTML = `<span class="d"></span><span>${d.winners} winner${d.winners>1?'s':''} this epoch · ~$${share.toLocaleString()} each · <b id="prizeTimer">${formatCountdown(prizeClosesAt - Date.now())}</b> remaining</span>`
@@ -2976,7 +2990,11 @@ setInterval(renderPrizeCountdown, 1000)
 
 function renderEchoStatus(d){
   const labels = [document.getElementById('echoEpochStatus'), document.getElementById('echoPageStatus')]
-  const status = d.status === 'closing' || d.status === 'closed' ? 'CLOSED' : 'LIVE'
+  const status = d.status === 'pending'
+    ? 'COUNTDOWN'
+    : d.status === 'closing' || d.status === 'closed'
+      ? 'CLOSED'
+      : 'LIVE'
   labels.forEach(el => { if(el) el.textContent = status })
   updateEchoAttempts(S.echo.maxAttempts - S.guesses)
   const xUrl = d.xThreadUrl
@@ -3001,7 +3019,9 @@ async function loadEchoEpoch(){
     const d = await r.json()
     S.echo.status = d.status || S.echo.status
     S.echo.maxAttempts = d.maxAttemptsPerWallet || 10
+    S.echo.startsAt = d.startsAt ? new Date(d.startsAt).getTime() : S.echo.startsAt
     S.echo.closesAt = d.closesAt ? new Date(d.closesAt).getTime() : S.echo.closesAt
+    renderEchoStatus(d)
     if(d.xThreadUrl){
       ;['echoXLink','echoPageXLink'].forEach(id => {
         const el = document.getElementById(id)
