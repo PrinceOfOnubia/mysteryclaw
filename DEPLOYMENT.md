@@ -166,12 +166,18 @@ curl -X POST https://<your-railway-service>.up.railway.app/holdings \
 
 Set these in Railway dashboard → your service → **Environment** tab.
 
+### Sealed word protocol
+
+MysteryClaw should be presented and operated as if Mysterio chooses the secret word itself. The team runs the servers, prize logic, and wallet checks; the team does not need to know the live answer.
+
+For each epoch, use the private challenge flow to generate and seal the value directly into Railway env. Do not paste the live word into public docs, frontend code, issues, screenshots, chat, logs, X posts, or admin notes. Do not read it back from Railway unless you are rotating or recovering the epoch under emergency procedure. The backend uses the sealed env value only for server-side verification and leak scrubbing.
+
 | Variable | Required | Example | Notes |
 |---|---|---|---|
 | `OPENAI_API_KEY` | ✅ Yes | `sk-...` | OpenAI API key (official OpenAI SDK) |
 | `OPENAI_MODEL` | No | `gpt-4o` | Defaults to `gpt-4o` if unset |
-| `SECRET_WORD` | ✅ Yes | private MYSTO-themed word | Exact prize word; set only in Railway, never commit |
-| `ECHO_SECRET_WORD` | ✅ Yes for Epoch 02 | private Echo answer | Exact Echo answer; set only in Railway, never commit |
+| `SECRET_WORD` | ✅ Yes | sealed Mysterio value | Mysterio's sealed Tale 01 word; Railway-only, never commit, print, or reveal to the team |
+| `ECHO_SECRET_WORD` | ✅ Yes for Epoch 02 | sealed Echo value | Mysterio/Echo sealed answer; Railway-only, never commit, print, or reveal to the team |
 | `DATABASE_URL` | ✅ Yes | Railway PostgreSQL URL | Production source of truth for wallets, guesses, winners, payouts, autonomous posts |
 | `SOLANA_RPC` | ✅ Yes | `https://mainnet.helius-rpc.com/?api-key=...` | Paid mainnet RPC strongly recommended |
 | `SOLANA_CLUSTER` | ✅ Yes | `mainnet` | Mainnet-only deployment |

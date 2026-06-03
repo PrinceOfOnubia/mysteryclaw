@@ -33,12 +33,12 @@ Returns HTTP 429. Limit is 30 msgs / 5 min per userId (configurable).
 ```json
 { "reply": "[MEMORY FAULT — FRAGMENT CORRUPTED — CHANNEL SCRAMBLED]", "scrubbed": true }
 ```
-If Mysterio's output contains the secret word in any form (direct, base64, hex, letter-by-letter, separator-tolerant), the leak detector replaces it before sending.
+If a response contains the sealed secret word in any form (direct, base64, hex, letter-by-letter, separator-tolerant), the leak detector replaces it before sending.
 
 The system prompt and Mysterio's adversarial personality live in `routes/chat.js`.
-The forgotten word is read from the Railway-only `SECRET_WORD` environment variable.
+The forgotten word is treated as Mysterio's sealed choice. Operationally, the backend reads the sealed value from Railway-only env (`SECRET_WORD` / `ECHO_SECRET_WORD`) for verification and leak-scrubbing.
 
-⚠️ **Word never appears in the system prompt** — Mysterio only knows that "a fragment exists" with no semantic info about it. This is intentional and is the strongest protection against jailbreaks.
+⚠️ **Team-does-not-know protocol** — the live word must never appear in the frontend, public repo, docs, tickets, screenshots, or normal team chat. Mysterio's private challenge process chooses and seals it; the backend verifies submissions against the sealed server value. Operators should not read or print the live env value.
 
 ---
 
@@ -60,8 +60,7 @@ Submit a single-word guess. Triple-gated: wallet required → holder required �
 {
   "correct": true,
   "success": true,
-  "word": "<recovered-secret-word>",
-  "message": "ACCESS GRANTED. The word is recovered.",
+  "message": "ACCESS GRANTED. The word is verified.",
   "attemptsLeft": 7,
   "txSignature": "..."
 }
@@ -291,7 +290,7 @@ Generate one: `openssl rand -hex 24`
 - [ ] Cache `/holdings` results to avoid Solana RPC quotas
 - [ ] Never expose `OPENAI_API_KEY`, `SOLANA_RPC`, or treasury wallet keys in responses
 - [ ] Log every `/guess` attempt for audit (timestamp, pubkey, guess) — useful for detecting brute-force
-- [ ] The forgotten word lives ONLY in Railway's `SECRET_WORD` environment variable — never commit it
+- [ ] The forgotten word is Mysterio's sealed choice and lives only in Railway env (`SECRET_WORD` / `ECHO_SECRET_WORD`) — never commit it, print it, or reveal it to the team
 - [ ] Set `REQUIRE_HOLDER=true` after `/holdings` is wired in
 - [ ] Sign treasury USDC transfers with a hardware wallet or HSM — never store seeds in env
 
@@ -322,12 +321,14 @@ PORT=3000                         # default 3000
 
 ## Anti-jailbreak — defense in depth
 
-The forgotten word is protected by THREE layers, in order of strength:
+The forgotten word is protected by a team-does-not-know protocol and three technical layers:
 
-1. **System prompt design** (`routes/chat.js`): Mysterio is told a fragment exists but is NEVER told what the fragment is. The word does not appear anywhere in the system prompt. The model literally cannot leak what it was never given.
+0. **Sealed-word protocol**: Mysterio's private challenge process chooses the word for the epoch and seals it in Railway env. The team should not read, print, paste, screenshot, or discuss the live value. Admins manage the epoch, not the answer.
+
+1. **System prompt design** (`routes/chat.js`): the plaintext word does not appear in the system prompt or client code. The public conversation can imply Mysterio is guarding its own secret without handing the model a leakable plaintext answer in the prompt.
 
 2. **Output scrubber** (`routes/chat.js` → `isLeaking()`): every model reply is scanned for the secret in direct form, base64, hex, separator-tolerant variants, and letter-sequence patterns. Any positive match returns `[MEMORY FAULT...]` instead of the model's text.
 
 3. **Server-side guess verification** (`routes/guess.js`): the win condition NEVER touches the client. JS console tricks, DevTools, network replay — none of it grants the prize. The only path to winning is sending the literal word to `/guess` and having the backend match it.
 
-If you're rotating the word, update `SECRET` in both `chat.js` and `guess.js` and verify `SECRET_VARIANTS` (in `chat.js`) covers any new encoding patterns you want to block.
+If rotating the word, use the private challenge process to write the new sealed value to Railway env only. Do not hardcode the word in `chat.js`, `guess.js`, docs, admin UI, or frontend code.

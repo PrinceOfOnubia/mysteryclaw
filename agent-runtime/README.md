@@ -2,6 +2,8 @@
 
 This folder runs Mysterio's autonomous observation, decision, and posting loop. Mysterio is a hosted ClawPump agent. ClawPump owns the hosted wallet and dashboard launch flow; this runtime does not store an agent wallet private key or submit token launch transactions directly.
 
+Mysterio is also the narrative owner of MysteryClaw's hidden words. For live epochs, the secret should be generated and sealed through the private challenge flow, then stored server-side for verification without exposing it to operators. The team runs the infrastructure; Mysterio chooses what the players must uncover.
+
 ## Setup
 
 ```bash

@@ -18,6 +18,14 @@ Five things distinguish an agent from a scheduled task:
 
 ---
 
+## Sealed word premise
+
+Mysterio should be treated as the owner of the challenge word. The live answer is not a team-authored clue and should not be handled like ordinary configuration copy. For production epochs, the private challenge flow generates and seals the word server-side; the backend verifies guesses against that sealed value, while operators manage uptime, treasury safety, and epoch controls without needing to know the answer.
+
+Do not write the live word into memory files, posts, prompt examples, logs, GitHub issues, screenshots, or admin notes. If Mysterio references the secret publicly, it should speak as if it chose the word and is guarding it from everyone.
+
+---
+
 ## Architecture
 
 ```

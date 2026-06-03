@@ -43,7 +43,7 @@ mysteryclaw/
 |-----------|-------|------|--------|
 | **Landing + Terminal UI** | `frontend/index.html` | Public site, chat with Mysterio, token gate, prize pool, agents roster | ✅ Deployed to Vercel |
 | **Conversational Mysterio** | `backend/routes/chat.js` | LLM-powered adversarial agent with paranoid prompt + leak detector | ✅ Code ready, awaiting backend dev to deploy on Railway |
-| **Word-guess game** | `backend/routes/guess.js` | Holders-only, 10 attempts/3h game session, $1k USDC prize pool | ✅ Code ready |
+| **Word-guess game** | `backend/routes/guess.js` | Holders-only, 10 attempts/3h game session, $1k USDC prize pool, server-side verification of Mysterio's sealed word | ✅ Code ready |
 | **Token Gate** | `backend/routes/holdings.js` | Solana RPC check for access tokens | ⚠ Stub — backend dev wires real RPC |
 | **Eternal Agent** | `agent-runtime/` | Optional AWS loop that observes hosted ClawPump state and posts autonomous fragments | ✅ Optional runtime path |
 | **Hosted ClawPump bridge** | `backend/_clawpump.js` | Admin-only hosted Mysterio lifecycle, chat, skills, and selected-message sync | ✅ Optional AWS-independent control path |
@@ -90,9 +90,13 @@ The frontend gates participation behind any of these access tokens. Holders earn
 
 ## The forgotten word
 
-Set `SECRET_WORD` only in Railway. Never commit the live word. Mysterio only knows that a fragment exists. Three-layer defense: (1) prompt design (no semantic leak), (2) output scrubber (catches direct/base64/hex/letter-sequence variants), (3) server-side verification (no client logic).
+MysteryClaw is designed so the secret feels like it belongs to Mysterio, not the team. For each epoch, Mysterio's private challenge process chooses the word, seals it server-side, and the backend verifies guesses against that sealed value. The frontend never receives the answer, and operators should not read, print, paste, or discuss the live word.
 
-To rotate: update Railway's `SECRET_WORD` environment variable and redeploy the backend.
+Operationally, the sealed value is held only in Railway env (`SECRET_WORD` for Tale 01, `ECHO_SECRET_WORD` for Echo). Never commit it. Never place it in docs, prompts, screenshots, tickets, logs, or chat. Even the team should treat the live word as unknown.
+
+Defense layers: (1) prompt design keeps the plaintext word out of public/client code, (2) output scrubber catches direct/base64/hex/letter-sequence variants, (3) server-side verification means DevTools or frontend edits cannot win the prize.
+
+To rotate: have Mysterio's private challenge process generate a new word and write only the sealed env value in Railway, then redeploy the backend without revealing the word to humans.
 
 ---
 

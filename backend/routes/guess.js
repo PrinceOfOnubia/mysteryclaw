@@ -8,8 +8,9 @@ const router = express.Router();
 
 // ═══════════════════════════════════════════════════════════════
 // 🔒 THE FORGOTTEN WORD
-// Set the current epoch's secret env var in Railway. The answer is never
-// stored in frontend code and is not echoed back to the client.
+// The current epoch's env var is the sealed verification value for
+// Mysterio's private choice. It must never be stored in frontend code,
+// echoed back to the client, printed to logs, or treated as team-known.
 // ═══════════════════════════════════════════════════════════════
 function secretForEpoch(epoch) {
   const envName = epoch?.secret_env_var || (epoch?.slug === "echo" ? "ECHO_SECRET_WORD" : "SECRET_WORD");
