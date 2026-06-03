@@ -289,10 +289,15 @@ router.post("/", async (req, res) => {
 
     res.json({ reply });
   } catch (err) {
-    console.error("Mysterio ERROR:", err.message);
-    res.status(err.status || 500).json({
-      reply: err.status ? "[ACCESS CHECK FAILED]" : "[CHANNEL UNREACHABLE]",
-      error: err.status ? err.message : "Mysterio unreachable",
+    const status = err.status || err.statusCode || 500;
+    const safeStatus = status >= 400 && status < 500 && err.message?.startsWith("wallet_") ? status : 500;
+    console.error("Mysterio ERROR:", {
+      status,
+      code: err.code || err.type || "chat_failure",
+    });
+    res.status(safeStatus).json({
+      reply: "[CHANNEL UNREACHABLE]",
+      error: "Mysterio unreachable",
     });
   }
 });
