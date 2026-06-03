@@ -221,7 +221,8 @@ router.post("/", async (req, res) => {
     }
 
     let wallet = null;
-    if (process.env.REQUIRE_HOLDER === "true") {
+    const publicEchoAccess = process.env.PUBLIC_ECHO_ACCESS !== "false";
+    if (process.env.REQUIRE_HOLDER === "true" && !publicEchoAccess) {
       const rawWallet = pubkey || (userId !== "anon" ? userId : null);
       if (!rawWallet) {
         return res.status(401).json({

@@ -1194,10 +1194,10 @@ body::after{
       <button onclick="closeM('mAuth')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
     </div>
     <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.85;margin-bottom:16px">
-      Entering the Echo trial requires a connected wallet. The terminal is gated behind a holder check — only $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT holders can submit guesses for the prize.
+      Echo is open to everyone. Connect Phantom only when you want to submit an official guess, track attempts, and qualify for reward validation.
     </p>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:20px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
-      SECURITY: Signed via <span style="color:var(--accent)">signMessage</span>. No personal data collected. Backend verifies signature + on-chain holdings on every request.
+      SECURITY: Signed via <span style="color:var(--accent)">signMessage</span>. No personal data collected. Backend verifies wallet ownership for official attempts.
     </div>
     <button class="bp" style="width:100%;justify-content:space-between;margin-bottom:12px" onclick="connectPhantom()">
       <span>CONNECT PHANTOM</span>
@@ -1220,7 +1220,7 @@ body::after{
       Enter the single word you believe Echo is hiding. A correct verified website submission claims a share of the <span style="color:var(--accent)">$1,000 USDC pool</span> — split evenly if there are multiple winners.
     </p>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:18px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
-      Holders only. 10 attempts per wallet per 3h game session. Verification is server-side. The word never lives on the client.
+      Public access. 10 official attempts per wallet per game session. Verification is server-side. The word never lives on the client.
     </div>
     <div style="margin-bottom:14px">
       <label style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);display:block;margin-bottom:9px">YOUR ANSWER</label>
@@ -1409,8 +1409,8 @@ body::after{
           <div class="prize-rules">
             <div class="prize-rule">
               <div class="rl">ELIGIBILITY</div>
-              <div class="rt">Holders only</div>
-              <div class="rs">Hold any access token to submit</div>
+              <div class="rt">Public access</div>
+              <div class="rs">Wallet signature required only for official guesses</div>
             </div>
             <div class="prize-rule">
               <div class="rl">ATTEMPTS</div>
@@ -1904,8 +1904,8 @@ body::after{
       </div>
       <div class="doc-cell">
         <div class="dl">NODE 03 — ACCESS</div>
-        <h3>Token-Gated</h3>
-        <p>Talking to Echo and submitting answers requires holding one of the access tokens on Solana. Holdings are verified on-chain, never trusted from the browser. The keys are the entry — no key, no game.</p>
+        <h3>Public Trial</h3>
+        <p>Talking to Echo is open to everyone. Official guesses still require a Phantom signature so attempts and winner validation are tied to a real wallet, never a browser claim.</p>
       </div>
       <div class="doc-cell">
         <div class="dl">NODE 04 — COMMUNITY</div>
@@ -1971,9 +1971,9 @@ const S = {
   sessionId:'#' + Math.floor(Math.random()*9999).toString().padStart(4,'0'),
   sessionNonce: Math.random().toString(36).slice(2),
   holdings:null,        // populated after /holdings call
-  hasAccess:false,      // true if user holds at least 1 access token
+  hasAccess:false,      // true if user holds at least 1 access token; Echo remains public
   pendingSaveText:null, // fragment text waiting for category in save modal
-  echo:{ status:'pending', maxAttempts:10, startsAt:null, closesAt:null }
+  echo:{ status:'pending', maxAttempts:10, startsAt:null, closesAt:null, submissionsPaused:false }
 }
 
 const DEFAULT_API_BASE = 'https://piverse-production.up.railway.app'
@@ -2331,17 +2331,6 @@ function go(page){
 }
 
 function reqA(page){
-  // hard gate: terminal requires wallet
-  if(page === 'term' && !S.wallet){
-    // remember intent — after successful connect, auto-redirect
-    S.pendingRedirect = page
-    openM('mAuth')
-    return
-  }
-  if(page === 'term' && S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to enter')
-    return
-  }
   go(page)
 }
 
@@ -2508,7 +2497,7 @@ function setAccessBadge(state){
   b.style.display = 'inline-flex'
   b.classList.remove('no')
   if(state === 'yes'){ b.textContent = 'HOLDER'; b.classList.remove('no') }
-  else if(state === 'no'){ b.textContent = 'NO ACCESS'; b.classList.add('no') }
+  else if(state === 'no'){ b.textContent = 'CONNECTED'; b.classList.remove('no') }
   else if(state === 'checking'){ b.textContent = 'CHECKING...'; b.classList.add('no') }
   else { b.textContent = 'UNVERIFIED'; b.classList.add('no') }
 }
@@ -2537,8 +2526,8 @@ function renderHoldings(){
     </div>`
   }).join('')
 
-  access.textContent = S.hasAccess ? 'GRANTED' : 'DENIED'
-  access.style.color = S.hasAccess ? 'var(--accent)' : 'var(--danger)'
+  access.textContent = S.hasAccess ? 'HOLDER DETECTED' : 'PUBLIC ACCESS'
+  access.style.color = 'var(--accent)'
 }
 
 async function disconnect(){
@@ -2751,7 +2740,7 @@ async function callAI(userMsg){
       })
     })
     const data = await res.json()
-    if(!res.ok && data.error === 'not_holder') return '[ACCESS DENIED — HOLD ONE KEY TO ENTER]'
+    if(!res.ok && data.error === 'not_holder') return '[ACCESS GATE STILL ENABLED SERVER-SIDE]'
     if(!res.ok && data.error === 'wallet_required') return '[WALLET REQUIRED — CONNECT PHANTOM]'
     return data.reply || '[NO RESPONSE — CHANNEL UNSTABLE]'
   }catch(e){
@@ -2763,13 +2752,8 @@ async function sendChat(){
   const inp = document.getElementById('chatIn')
   const msg = inp.value.trim()
   if(!msg) return
-  if(!S.wallet){
-    S.pendingRedirect = 'term'
-    openM('mAuth')
-    return
-  }
-  if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to chat')
+  if(S.echo?.submissionsPaused){
+    toast('Echo is paused — official actions are temporarily suspended')
     return
   }
   if(S.echo?.status === 'pending'){
@@ -2836,8 +2820,8 @@ function openGuess(){
     toast('Time elapsed — official submissions are closed')
     return
   }
-  if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to participate')
+  if(S.echo?.submissionsPaused){
+    toast('Echo is paused — official submissions are temporarily suspended')
     return
   }
   document.getElementById('guessCount').textContent = S.guesses
@@ -2852,9 +2836,8 @@ async function submitGuess(){
     openM('mAuth')
     return
   }
-  // hard gate — must be a holder
-  if(S.holdings !== null && !S.hasAccess){
-    toast('Holders only — acquire $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT to guess')
+  if(S.echo?.submissionsPaused){
+    toast('Echo is paused — official submissions are temporarily suspended')
     return
   }
 
@@ -2875,9 +2858,11 @@ async function submitGuess(){
     // backend may reject for: not_holder, rate_limited, cooldown
     if(data.error){
       if(data.error === 'not_holder'){
-        toast('Holders only — your wallet has no access tokens')
+        toast('Access gate is still enabled on the server')
       } else if(data.error === 'rate_limited'){
         toast('Limit reached — 10 official attempts for this epoch')
+      } else if(data.error === 'prize_submissions_paused'){
+        toast('Echo is paused — official submissions are temporarily suspended')
       } else if(data.error === 'epoch_closed'){
         toast('Time elapsed — official submissions are closed')
       } else if(data.error === 'epoch_answer_not_configured'){
@@ -3005,6 +2990,7 @@ async function loadPrizeStatus(){
     prizeClosesAt = d.closesAt ? Number(d.closesAt) : null
     S.echo.closesAt = prizeClosesAt
     S.echo.maxAttempts = d.maxAttemptsPerWallet || S.echo.maxAttempts || 10
+    S.echo.submissionsPaused = !!d.submissionsPaused
     renderPrizeCountdown()
     renderEchoStatus(d)
     // update hero stat
@@ -3014,7 +3000,10 @@ async function loadPrizeStatus(){
     // update prize section live line
     const live = document.getElementById('prizeLive')
     if(live){
-      if(d.status === 'pending'){
+      if(d.submissionsPaused){
+        live.style.display = 'flex'
+        live.innerHTML = `<span class="d"></span><span>Echo is paused · official submissions are temporarily suspended</span>`
+      } else if(d.status === 'pending'){
         live.style.display = 'flex'
         live.innerHTML = `<span class="d"></span><span>Echo launches in <b id="prizeTimer">${S.echo.startsAt ? formatCountdown(S.echo.startsAt - Date.now()) : 'SYNCING'}</b> · official guesses open at launch</span>`
       } else if(d.status === 'active' && d.winners > 0){
@@ -3039,7 +3028,9 @@ setInterval(renderPrizeCountdown, 1000)
 
 function renderEchoStatus(d){
   const labels = [document.getElementById('echoEpochStatus'), document.getElementById('echoPageStatus')]
-  const status = d.status === 'pending'
+  const status = d.submissionsPaused
+    ? 'PAUSED'
+    : d.status === 'pending'
     ? 'COUNTDOWN'
     : d.status === 'closing' || d.status === 'closed'
       ? 'CLOSED'
@@ -3070,6 +3061,7 @@ async function loadEchoEpoch(){
     S.echo.maxAttempts = d.maxAttemptsPerWallet || 10
     S.echo.startsAt = d.startsAt ? new Date(d.startsAt).getTime() : S.echo.startsAt
     S.echo.closesAt = d.closesAt ? new Date(d.closesAt).getTime() : S.echo.closesAt
+    S.echo.submissionsPaused = !!d.submissionsPaused
     renderEchoStatus(d)
     if(d.xThreadUrl){
       ;['echoXLink','echoPageXLink'].forEach(id => {

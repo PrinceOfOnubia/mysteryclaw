@@ -1,4 +1,5 @@
 import express from "express";
+import { getSetting } from "../_settings.js";
 import { getEpochBySlug, publicStatus, prizeHistory } from "../_winners.js";
 
 const router = express.Router();
@@ -12,7 +13,12 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    res.json(await publicStatus());
+    const status = await publicStatus();
+    const submissionsPaused = await getSetting("prize_submissions_paused", "false");
+    res.json({
+      ...status,
+      submissionsPaused: submissionsPaused === true || submissionsPaused === "true",
+    });
   } catch (err) {
     console.error("PRIZE ERROR:", err.message);
     res.status(500).json({ error: "prize_status_failed" });
@@ -32,6 +38,7 @@ router.get("/epochs/:slug", async (req, res) => {
   try {
     const epoch = await getEpochBySlug(req.params.slug);
     if (!epoch) return res.status(404).json({ error: "epoch_not_found" });
+    const submissionsPaused = await getSetting("prize_submissions_paused", "false");
     res.json({
       id: epoch.id,
       epoch: epoch.epoch_number,
@@ -43,6 +50,7 @@ router.get("/epochs/:slug", async (req, res) => {
       closesAt: epoch.closes_at || epoch.ends_at,
       prizeAmount: Number(epoch.pool_usdc || 0),
       maxAttemptsPerWallet: epoch.max_attempts_per_wallet || 10,
+      submissionsPaused: submissionsPaused === true || submissionsPaused === "true",
       xThreadUrl: epoch.x_thread_url || null,
       metadata: epoch.metadata || {},
       clues: (epoch.clues || []).map((clue) => ({

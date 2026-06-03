@@ -26,8 +26,8 @@ function secretForEpoch(epoch) {
 // ═══════════════════════════════════════════════════════════════
 // HOLDER CHECK
 // Uses shared isHolder() from ../_access.js (same logic as /holdings).
-// Enforced only when REQUIRE_HOLDER=true in env. In dev (default),
-// the gate below is skipped so testing isn't blocked.
+// Enforced only when REQUIRE_HOLDER=true in env. Echo remains public
+// by default through PUBLIC_ECHO_ACCESS=true.
 // ═══════════════════════════════════════════════════════════════
 
 router.post("/", async (req, res) => {
@@ -53,16 +53,19 @@ router.post("/", async (req, res) => {
 
     const verified = await verifyWalletAuth(wallet, walletAuth);
 
-    // ─── GATE 2: must be a holder (when enforced) ────────
-    if (process.env.REQUIRE_HOLDER === "true") {
+    // ─── GATE 2: epoch must be live and not elapsed ───────
+    const epoch = await getSubmissionEpoch();
+
+    // ─── Optional holder gate: suspended for Echo public access ────────
+    const publicEchoAccess = process.env.PUBLIC_ECHO_ACCESS !== "false";
+    if (process.env.REQUIRE_HOLDER === "true" && !(publicEchoAccess && epoch.slug === "echo")) {
       const holder = await isHolder(wallet);
       if (!holder) {
         return res.status(403).json({ error: "not_holder" });
       }
     }
 
-    // ─── GATE 3: epoch must be live and not elapsed ───────
-    const epoch = await getSubmissionEpoch();
+    // ─── GATE 3: attempt limit ────────────────────────────
     const attempts = await getAttemptsForEpoch({ wallet, epochId: epoch.id });
     if (attempts.attemptsLeft <= 0) {
       return res.status(429).json({
