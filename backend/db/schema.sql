@@ -181,7 +181,7 @@ insert into prize_epochs (
 )
 values (
   2,
-  'EPOCH 02: ECHO',
+  'TRIALS OF ECHO',
   'echo',
   'live',
   1000,
@@ -193,7 +193,7 @@ values (
   'ECHO_SECRET_WORD',
   jsonb_build_object(
     'tagline', 'The word is gone. The echoes remain.',
-    'launchCopy', 'Fragments will appear across X and inside the terminal. No single clue is enough. Mysterio already knows the answer. Your job is to reconstruct it.',
+    'launchCopy', 'Fragments will appear across X and inside the terminal. No single clue is enough. Echo is the live trial. Your job is to reconstruct the answer.',
     'xCta', 'Follow the X investigation'
   )
 )

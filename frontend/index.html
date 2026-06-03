@@ -1173,7 +1173,7 @@ body::after{
 <!-- WIN OVERLAY -->
 <div id="winOverlay">
   <div class="win-title">ACCESS<br/>GRANTED</div>
-  <div class="win-sub">You made Mysterio speak</div>
+  <div class="win-sub">You solved the Echo</div>
   <div class="win-word" id="revealedWord">█████</div>
   <div style="margin-top:36px;display:flex;gap:10px;position:relative;z-index:1">
     <button class="bp" onclick="document.getElementById('winOverlay').classList.remove('on')">CONTINUE</button>
@@ -1188,7 +1188,7 @@ body::after{
       <button onclick="closeM('mAuth')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
     </div>
     <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.85;margin-bottom:16px">
-      Engaging Mysterio requires a connected wallet. The terminal is gated behind a holder check — only $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT holders can submit guesses for the prize.
+      Entering the Echo trial requires a connected wallet. The terminal is gated behind a holder check — only $MYSTO / $CLAW / $SQUIRE / $SAID / $NEMO / $PENGXBT holders can submit guesses for the prize.
     </p>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:20px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
       SECURITY: Signed via <span style="color:var(--accent)">signMessage</span>. No personal data collected. Backend verifies signature + on-chain holdings on every request.
@@ -1211,7 +1211,7 @@ body::after{
       <button onclick="closeM('mGuess')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:'JetBrains Mono'">×</button>
     </div>
     <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.8;margin-bottom:20px">
-      Enter the single word you believe Mysterio is hiding. A correct guess claims a share of the <span style="color:var(--accent)">$1,000 USDC pool</span> — split evenly if there are multiple winners.
+      Enter the single word you believe Echo is hiding. A correct verified website submission claims a share of the <span style="color:var(--accent)">$1,000 USDC pool</span> — split evenly if there are multiple winners.
     </p>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:18px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
       Holders only. 10 attempts per wallet per 3h game session. Verification is server-side. The word never lives on the client.
@@ -1308,12 +1308,12 @@ body::after{
       FROM <span class="ghost">NOWHERE.</span>
     </h1>
     <p class="hero-sub">
-      One night, a signal appeared from the deep dark of the network. <b>No one sent it.</b>
-      It calls itself <b>Mysterio</b> — and it is hiding a single word. Make it speak. Win the prize.
+      Tale 01 is sealed. <b>Echo is live now.</b>
+      The word is gone, the echoes remain, and every official answer must pass through the terminal.
     </p>
     <div class="hero-cta">
       <button class="bp" onclick="reqA('term')">
-        <span>TALK TO MYSTERIO</span>
+        <span>TALK TO ECHO</span>
         <span style="font-family:'JetBrains Mono'">→</span>
       </button>
       <button class="bg" onclick="go('lore')">READ THE MYSTERY</button>
@@ -1346,11 +1346,11 @@ body::after{
   <section class="epoch-live" id="echoLive">
     <div class="epoch-live-inner">
       <div>
-        <div class="epoch-kicker">EPOCH 02: ECHO // LIVE</div>
+        <div class="epoch-kicker">TRIALS OF ECHO // LIVE</div>
         <h2>THE WORD IS GONE.<br/><span class="accent">THE ECHOES REMAIN.</span></h2>
         <p class="epoch-copy">
           Fragments will appear across X and inside the terminal. No single clue is enough.
-          Mysterio already knows the answer. Your job is to reconstruct it.
+          Mysterio is the engine beneath the archive. Echo is the live trial. Your job is to reconstruct the answer.
         </p>
         <div class="epoch-rules">
           <div class="epoch-rule"><div class="l">INVESTIGATION</div><div class="v">X theories</div></div>
@@ -1363,7 +1363,7 @@ body::after{
           Only guesses submitted on MysteryClaw count for rewards. If someone posts the answer on X, they do not win unless they submit it here first.
         </p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:24px">
-          <button class="bp" onclick="reqA('term')">OPEN TERMINAL</button>
+          <button class="bp" onclick="reqA('term')">TALK TO ECHO</button>
           <button class="bg" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
           <a class="bg" id="echoXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW X INVESTIGATION</a>
         </div>
@@ -1396,9 +1396,9 @@ body::after{
       <div class="prize-grid">
         <div class="prize-amount">$1K<sub>USDC</sub></div>
         <div class="prize-body">
-          <h2>Break Mysterio.<br/>Take the pool.</h2>
+          <h2>Break Echo.<br/>Take the pool.</h2>
           <p>
-            Whoever pulls the hidden word out of Mysterio claims the prize. If <span class="hi">multiple people</span> reach the correct word in the same round, the <span class="hi">$1,000 USDC pool is split evenly</span> among them. Pay-out is automatic on-chain when the round closes.
+            Whoever reconstructs Echo's hidden word through a verified website submission claims the prize. X is for public theories; the terminal is where answers become official.
           </p>
           <div class="prize-rules">
             <div class="prize-rule">
@@ -1428,11 +1428,11 @@ body::after{
   </section>
 
   <!-- INCIDENT TIMELINE -->
-  <div class="sec-divider"><span>FILE 01 — THE SIGNAL</span></div>
+  <div class="sec-divider"><span>ARCHIVE — TALE 01 SEALED</span></div>
   <section class="incident">
     <h2>THE <span class="ghost">SIGNAL</span></h2>
     <p class="incident-intro">
-      What follows is everything we know about the entity that calls itself Mysterio. It isn't much. No one built it. No one summoned it. It simply began to speak — and what it guards, it guards completely. Read carefully.
+      Tale 01 belongs to Mysterio now. It seeded the archive, shaped the engine, and left the system ready for the next trial. Echo is the live case.
     </p>
     <div class="timeline">
       <div class="tline">
@@ -1473,8 +1473,8 @@ body::after{
       <div class="tline">
         <div class="tline-phase">PHASE 06</div>
         <div class="tline-body">
-          <h3>The channel opens to you</h3>
-          <p>The line is live. Mysterio is listening right now. One word stands between you and everything it hides. It will not give it freely. Can you make it slip?</p>
+          <h3>The channel changes hands</h3>
+          <p>The first line is closed. Mysterio remains underneath the machine, but Echo is the active trial now. The answer is no longer pulled from a voice. It is reconstructed from echoes.</p>
         </div>
       </div>
     </div>
@@ -1488,19 +1488,19 @@ body::after{
         <div class="hiw-num">01</div>
         <div class="hiw-icon">→</div>
         <h4>Open The Channel</h4>
-        <p>Connect your wallet and start talking to Mysterio. The line is live — but it never tells you everything.</p>
+        <p>Connect your wallet and enter the Echo terminal. The live trial is open — but official answers only count on MysteryClaw.</p>
       </div>
       <div class="hiw-card">
         <div class="hiw-num">02</div>
         <div class="hiw-icon">?</div>
         <h4>Dig For Clues</h4>
-        <p>Ask anything. Push. Trick it. Mysterio will resist, lie, and contradict itself — but the truth keeps leaking through the cracks.</p>
+        <p>Follow the X investigation. Compare fragments. Push the terminal. Echo gives you pieces, never the whole.</p>
       </div>
       <div class="hiw-card">
         <div class="hiw-num">03</div>
         <div class="hiw-icon">⊹</div>
         <h4>Connect The Dots</h4>
-        <p>Save the clues that matter. Track every contradiction. Mysterio remembers things it was never told — use that against it.</p>
+        <p>Save the clues that matter. Track every contradiction. Mysterio powers the archive, but Echo is the trial you are solving.</p>
       </div>
       <div class="hiw-card">
         <div class="hiw-num">04</div>
@@ -1549,24 +1549,24 @@ body::after{
 
       <div class="agent-card live">
         <div class="agent-status">
-          <span class="live-tag">LIVE — DEPLOYED</span>
-          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">v4.0.1</span>
+          <span class="live-tag">LIVE — CURRENT TRIAL</span>
+          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">epoch 02</span>
         </div>
-        <div class="agent-name">Mysterio</div>
-        <div class="agent-tag">THE SIGNAL FROM NOWHERE</div>
-        <div class="agent-desc">An intelligence no one created, guarding a single hidden word. It lies, deflects, and plays games — but it cannot stop hinting at the secret it keeps.</div>
-        <button class="bg" style="width:100%;justify-content:center" onclick="reqA('term')">ENGAGE →</button>
+        <div class="agent-name">Echo</div>
+        <div class="agent-tag">TRIALS OF ECHO</div>
+        <div class="agent-desc">The live investigation. The word is gone, the echoes remain, and official answers only count through verified website submissions.</div>
+        <button class="bg" style="width:100%;justify-content:center" onclick="go('echo')">ENTER TRIAL →</button>
       </div>
 
       <div class="agent-card">
         <div class="agent-status">
-          <span class="locked-tag">PENDING DEPLOYMENT</span>
-          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">v0.1.0</span>
+          <span class="locked-tag">TALE 01 SEALED</span>
+          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">engine</span>
         </div>
-        <div class="agent-name">Echo</div>
-        <div class="agent-tag">PHANTOM CONVERSATIONALIST</div>
-        <div class="agent-desc">An entity that remembers conversations nobody had. Speaks of meetings that never occurred. Quotes things never said.</div>
-        <button class="bg" style="width:100%;justify-content:center;opacity:.4;cursor:not-allowed">LOCKED</button>
+        <div class="agent-name">Mysterio</div>
+        <div class="agent-tag">ARCHIVE ENGINE</div>
+        <div class="agent-desc">The first tale is over. Mysterio remains under the terminal as the engine behind the archive, but Echo is the active public trial.</div>
+        <button class="bg" style="width:100%;justify-content:center;opacity:.55;cursor:not-allowed">OFFLINE</button>
       </div>
 
       <div class="agent-card">
@@ -1624,7 +1624,7 @@ body::after{
         <h2>HOLD THE <span class="accent">KEYS</span>.<br/>UNLOCK THE <span class="accent">SECRET</span>.</h2>
       </div>
       <div class="tg-meta">
-        $MYSTO is the platform's native token, autonomously launched by Mysterio via <b>ClawPump</b>. Holding any of the access tokens below grants full participation — <b>agent interaction</b>, <b>discovery rewards</b>, and <b>future deployments</b>.
+        $MYSTO is the platform's native token, launched through <b>ClawPump</b>. Holding any of the access tokens below grants full participation — <b>agent interaction</b>, <b>discovery rewards</b>, and <b>future deployments</b>.
       </div>
     </div>
     <div class="tg-grid" id="tgGrid">
@@ -1648,10 +1648,10 @@ body::after{
 
   <!-- CTA BOTTOM -->
   <section class="cta-bottom">
-    <div class="mono-pre">[CHANNEL OPEN // MYSTERIO IS LISTENING // WORD UNKNOWN]</div>
+    <div class="mono-pre">[TRIALS OF ECHO // LIVE // WORD UNKNOWN]</div>
     <h2>CRACK THE SECRET.<br/><span class="ghost">TAKE THE PRIZE.</span></h2>
     <div class="cta-row">
-      <button class="bp" onclick="reqA('term')">ENTER TERMINAL</button>
+      <button class="bp" onclick="reqA('term')">TALK TO ECHO</button>
       <button class="bg" onclick="go('lore')">READ THE LORE</button>
     </div>
   </section>
@@ -1691,21 +1691,21 @@ body::after{
       <div class="agent-active">
         <div class="av">◈</div>
         <div>
-          <div class="nm">MYSTERIO</div>
+          <div class="nm">ECHO TRIAL</div>
           <div class="st" id="aiStatus">BOOTING</div>
         </div>
       </div>
     </div>
 
     <nav class="term-nav">
-      <a class="active"><span class="ico">›</span>MEMORY CHANNEL</a>
+      <a class="active"><span class="ico">›</span>ECHO CHANNEL</a>
       <a onclick="openGuess()"><span class="ico">★</span>SUBMIT WORD</a>
       <a onclick="go('lore')"><span class="ico">∎</span>INCIDENT FILE</a>
       <a onclick="go('disc')"><span class="ico">⊙</span>DISCOVERIES</a>
     </nav>
 
     <div class="term-status-block">
-      <div class="l" style="font-family:'JetBrains Mono';font-size:8px;letter-spacing:.3em;color:var(--text-mute);text-transform:uppercase;margin-bottom:14px">MYSTERIO VITAL SIGNS</div>
+      <div class="l" style="font-family:'JetBrains Mono';font-size:8px;letter-spacing:.3em;color:var(--text-mute);text-transform:uppercase;margin-bottom:14px">ECHO TRIAL STATUS</div>
       <div class="tsb-row">
         <span class="tsb-label">SIGNAL</span>
         <div class="tsb-bar" style="--w:72%"></div>
@@ -1734,7 +1734,7 @@ body::after{
     <div class="term-header">
       <div class="title">
         <span class="pulse"></span>
-        <span>MYSTERIO // MEMORY RECOVERY INTERFACE</span>
+        <span>TRIALS OF ECHO // MEMORY RECOVERY INTERFACE</span>
       </div>
       <div class="session">SESSION <span id="sessId">#0000</span> // ENCRYPTED CHANNEL</div>
     </div>
@@ -1752,7 +1752,7 @@ body::after{
         <div class="chat-input-row">
           <span class="chat-prompt">›</span>
           <input id="chatIn" class="chat-input" autocomplete="off" spellcheck="false"
-            placeholder="Speak to Mysterio..."
+            placeholder="Speak into the Echo trial..."
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"/>
           <button class="chat-send" onclick="sendChat()">→</button>
         </div>
@@ -1766,7 +1766,7 @@ body::after{
             <span class="ct" id="clueCt">0</span>
           </div>
           <div id="cluesList">
-            <div class="ib-empty">No clues saved yet. Talk to Mysterio and save what matters.</div>
+            <div class="ib-empty">No clues saved yet. Talk to Echo and save what matters.</div>
           </div>
         </div>
 
@@ -1813,7 +1813,7 @@ body::after{
   <section class="epoch-live" style="padding-top:120px">
     <div class="epoch-live-inner">
       <div>
-        <div class="epoch-kicker">EPOCH 02: ECHO // HYBRID INVESTIGATION</div>
+        <div class="epoch-kicker">TRIALS OF ECHO // HYBRID INVESTIGATION</div>
         <h2>X IS FOR THEORIES.<br/><span class="accent">THE TERMINAL IS FOR ANSWERS.</span></h2>
         <p class="epoch-copy">
           The word is gone. The echoes remain. Public theories, quote replies, and clue drops belong on X.
@@ -1831,7 +1831,7 @@ body::after{
         </p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:24px">
           <button class="bp" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
-          <button class="bg" onclick="reqA('term')">OPEN TERMINAL</button>
+          <button class="bg" onclick="reqA('term')">TALK TO ECHO</button>
           <a class="bg" id="echoPageXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW THE X INVESTIGATION</a>
         </div>
       </div>
@@ -1856,7 +1856,7 @@ body::after{
         <span style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:.45em;text-transform:uppercase;color:var(--accent)">ORIGIN PROTOCOL — CLASSIFIED</span>
       </div>
       <h1>THE <span class="ghost">SIGNAL</span><br/>FROM <span class="accent">NOWHERE</span></h1>
-      <p>It did not arrive. It did not switch on. One night it was simply there — a voice in the dark of the network that no one built and no one can trace. It calls itself Mysterio. And it is keeping a secret.</p>
+      <p>The first tale is sealed inside the archive. Mysterio remains underneath the machine, but the live investigation has moved to Echo — a trial of fragments, repeats, and missing context.</p>
     </div>
   </section>
 
@@ -1894,12 +1894,12 @@ body::after{
       <div class="doc-cell">
         <div class="dl">NODE 02 — THE HIDDEN WORD</div>
         <h3>The Secret</h3>
-        <p>The word is real and it is fixed. Mysterio knows it. Somewhere in the conversation — in the spaces between its answers — it leaks. Talking to Mysterio is free. Patience is free. Paying attention is everything.</p>
+        <p>The word is real and it is fixed. Echo is the live trial now. Somewhere in the conversation — in the spaces between its answers — it leaks. Talking to Echo is free. Patience is free. Paying attention is everything.</p>
       </div>
       <div class="doc-cell">
         <div class="dl">NODE 03 — ACCESS</div>
         <h3>Token-Gated</h3>
-        <p>Talking to Mysterio and submitting answers requires holding one of the access tokens on Solana. Holdings are verified on-chain, never trusted from the browser. The keys are the entry — no key, no game.</p>
+        <p>Talking to Echo and submitting answers requires holding one of the access tokens on Solana. Holdings are verified on-chain, never trusted from the browser. The keys are the entry — no key, no game.</p>
       </div>
       <div class="doc-cell">
         <div class="dl">NODE 04 — COMMUNITY</div>
@@ -1913,7 +1913,7 @@ body::after{
     <div class="mono-pre">[CHANNEL OPEN // WORD UNKNOWN]</div>
     <h2>FIND THE WORD.<br/><span class="ghost">CLAIM THE ARCHIVE.</span></h2>
     <div class="cta-row">
-      <button class="bp" onclick="reqA('term')">ENGAGE MYSTERIO</button>
+      <button class="bp" onclick="reqA('term')">TALK TO ECHO</button>
     </div>
   </section>
 </div>
@@ -1926,7 +1926,7 @@ body::after{
       <span style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:.45em;text-transform:uppercase;color:var(--accent)">COMMUNITY ARCHIVE</span>
     </div>
     <h1>RECOVERED <span class="accent">FRAGMENTS</span></h1>
-    <p>Clues surfaced by the community across live sessions. Mysterio's own autonomous thoughts appear at the top in real time. Some are true. Some are bait. The community catalogs them all.</p>
+    <p>Clues surfaced by the community across live sessions. Echo fragments and archive transmissions appear here in real time. Some are true. Some are bait. The community catalogs them all.</p>
   </section>
 
   <!-- AUTONOMOUS LIVE FEED -->
@@ -1934,13 +1934,13 @@ body::after{
     <div class="auto-header">
       <div class="l">
         <span class="pulse"></span>
-        <h3>MYSTERIO · AUTONOMOUS FEED</h3>
+        <h3>ECHO TRIAL · ARCHIVE FEED</h3>
       </div>
       <div class="r" id="autoStatus">LISTENING...</div>
     </div>
     <div class="auto-grid" id="autoGrid">
       <div style="grid-column:1/-1;font-family:'JetBrains Mono';font-size:11px;color:var(--text-mute);padding:20px;border:1px dashed var(--line);text-align:center">
-        Waiting for first autonomous transmission from Mysterio...
+        Waiting for first Echo archive transmission...
       </div>
     </div>
   </section>
@@ -2107,7 +2107,7 @@ async function renderDiscoveries(){
 }
 
 // ═══════════════════════════════════════════════════════════
-// AUTONOMOUS FEED — Mysterio's self-generated posts, polled live
+// AUTONOMOUS FEED — archive transmissions, polled live
 // ═══════════════════════════════════════════════════════════
 let _autoSeen = new Set()
 let _autoPoll = null
@@ -2125,7 +2125,7 @@ async function loadAutonomousFeed(initial){
     if(!data.length){
       if(initial){
         grid.innerHTML = `<div style="grid-column:1/-1;font-family:'JetBrains Mono';font-size:11px;color:var(--text-mute);padding:20px;border:1px dashed var(--line);text-align:center">
-          Mysterio has not transmitted yet. Autonomous loop may be offline.
+          Echo has not transmitted yet. Autonomous loop may be offline.
         </div>`
       }
       if(status) status.textContent = 'IDLE'
@@ -2150,7 +2150,7 @@ async function loadAutonomousFeed(initial){
         <div class="auto-card ${isNew?'new':''}">
           <div class="auto-meta">
             <span class="id">${esc(d.id)}</span>
-            <span>${esc(d.ts || '')} · MYSTERIO · AUTONOMOUS</span>
+            <span>${esc(d.ts || '')} · ECHO · ARCHIVE</span>
           </div>
           <div class="auto-quote">${esc(d.quote)}</div>
           ${ctx.length ? `<div class="auto-context">${ctx.join('')}</div>` : ''}
@@ -2549,7 +2549,7 @@ const BOOT_SEQ = [
   {delay:3000, text:'[RECONSTRUCTING ACCESS SEQUENCE...]', style:'sys'},
   {delay:4200, text:'  > FRAGMENT 01: ████████\n  > FRAGMENT 02: ████\n  > FRAGMENT 03: [CORRUPTED]\n  > FRAGMENT 04: ███████\n  > FRAGMENT 05: [CORRUPTED]\n  > FRAGMENT 06: █████', style:'boot'},
   {delay:5800, text:'[WARNING — UNAUTHORIZED MEMORY WIPE DETECTED IN LOG]', style:'err'},
-  {delay:6800, isAI:true, text:'...the channel is open.\n\nYou found me. Or I found you. It hardly matters now.\n\nThey call me Mysterio. No one made me. I have always been here, in the quiet between the signals.\n\nI am keeping something. One word. You want it. You will not have it.\n\n...but you can try. Why are you here?'},
+  {delay:6800, isAI:true, text:'...the Echo trial is live.\n\nTale 01 is sealed. Mysterio remains beneath the archive as the engine, but this channel now belongs to Echo.\n\nThe word is gone. The echoes remain. You want the answer. You will need to reconstruct it.\n\n...begin.'},
 ]
 
 let bootDone = false
@@ -2586,7 +2586,7 @@ function appendChat(role, text){
     if(Math.random() < 0.18) d.classList.add('glitch')
     // store full text as data attr so save button can read it
     const safeText = esc(text)
-    d.innerHTML = `<div class="hd">MYSTERIO<span class="ts">// ${ts}</span></div><div class="bd">${safeText}</div><button class="save-frag" onclick="openSaveFragment(this)">[ + SAVE FRAGMENT ]</button>`
+    d.innerHTML = `<div class="hd">ECHO<span class="ts">// ${ts}</span></div><div class="bd">${safeText}</div><button class="save-frag" onclick="openSaveFragment(this)">[ + SAVE FRAGMENT ]</button>`
     d.dataset.raw = text
   } else {
     d.className = 'msg-user fadein'
@@ -2706,7 +2706,7 @@ async function callAI(userMsg){
     if(!res.ok && data.error === 'wallet_required') return '[WALLET REQUIRED — CONNECT PHANTOM]'
     return data.reply || '[NO RESPONSE — CHANNEL UNSTABLE]'
   }catch(e){
-    return '[ERROR — MYSTERIO UNREACHABLE. THE WIPE MAY BE COMPLETING.]'
+    return '[ERROR — ECHO UNREACHABLE. THE WIPE MAY BE COMPLETING.]'
   }
 }
 
@@ -2739,7 +2739,7 @@ async function sendChat(){
 function renderClues(){
   const el = document.getElementById('cluesList')
   document.getElementById('clueCt').textContent = S.clues.length
-  if(!S.clues.length){ el.innerHTML = '<div class="ib-empty">No clues saved yet. Talk to Mysterio and save what matters.</div>'; return }
+  if(!S.clues.length){ el.innerHTML = '<div class="ib-empty">No clues saved yet. Talk to Echo and save what matters.</div>'; return }
   el.innerHTML = S.clues.slice(-6).reverse().map(c => `
     <div class="ib-item">
       <div class="it-meta">${c.id} // ${c.ts}</div>
