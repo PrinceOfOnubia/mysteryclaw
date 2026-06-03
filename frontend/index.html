@@ -77,19 +77,19 @@ body::after{
 }
 .MysterioBackground::before{
   content:'';position:absolute;top:84%;left:50%;
-  width:min(72vw,760px);height:min(86vh,900px);
+  width:min(80vw,880px);height:min(94vh,1020px);
   transform:translate(-50%,-50%);
   background-image:url('/assets/mysterio-mascot.png');
   background-repeat:no-repeat;background-size:contain;background-position:center;
-  opacity:.18;filter:saturate(.92) contrast(1.08) blur(.2px);
+  opacity:.3;filter:saturate(1.04) contrast(1.12) blur(.1px);
   -webkit-mask-image:radial-gradient(ellipse at center,#000 0%,rgba(0,0,0,.72) 48%,transparent 78%);
   mask-image:radial-gradient(ellipse at center,#000 0%,rgba(0,0,0,.72) 48%,transparent 78%);
 }
 .MysterioBackground::after{
   content:'';position:absolute;inset:0;
   background:
-    radial-gradient(circle at 50% 44%,rgba(118,242,85,.12),transparent 26%),
-    radial-gradient(circle at 50% 56%,rgba(79,203,53,.07),transparent 34%);
+    radial-gradient(circle at 50% 44%,rgba(118,242,85,.2),transparent 27%),
+    radial-gradient(circle at 50% 58%,rgba(79,203,53,.12),transparent 36%);
   mix-blend-mode:screen;opacity:.9;
 }
 
@@ -1119,7 +1119,7 @@ body::after{
   #nwi{display:none!important}
   .hero{padding:68px 18px 48px}
   .MysterioBackground::before{
-    width:122vw;height:82vh;opacity:.1;filter:saturate(.88) contrast(1.08) blur(.4px);
+    width:132vw;height:90vh;opacity:.16;filter:saturate(.96) contrast(1.1) blur(.25px);
     top:78%;
     -webkit-mask-image:radial-gradient(ellipse at center,#000 0%,rgba(0,0,0,.58) 45%,transparent 76%);
     mask-image:radial-gradient(ellipse at center,#000 0%,rgba(0,0,0,.58) 45%,transparent 76%);
