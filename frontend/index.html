@@ -560,6 +560,7 @@ body::after{
 .epoch-live-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:44px;align-items:start}
 .epoch-kicker{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
 .epoch-live h2{font-family:'Inter';font-size:clamp(44px,7vw,92px);line-height:.92;letter-spacing:-.055em;text-transform:uppercase;margin-bottom:20px}
+.epoch-live h2.echo-title{font-size:clamp(36px,5vw,68px);letter-spacing:-.035em;white-space:nowrap}
 .epoch-copy{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);line-height:1.9;max-width:640px}
 .epoch-rules{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line-2);margin:28px 0}
 .epoch-rule{background:rgba(9,17,10,.92);padding:16px}
@@ -579,7 +580,7 @@ body::after{
 .clue-item .n{color:var(--accent);letter-spacing:.2em;text-transform:uppercase;font-size:8px;margin-bottom:4px}
 @media(max-width:900px){.epoch-live{padding:58px 18px}.epoch-live-inner{grid-template-columns:1fr}.epoch-rules{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.epoch-actions{flex-wrap:wrap}.epoch-actions .bp,.epoch-actions .bg{width:100%}}
-@media(max-width:520px){.epoch-rules{grid-template-columns:1fr}.epoch-countdown{font-size:36px}}
+@media(max-width:520px){.epoch-live h2.echo-title{font-size:clamp(31px,10vw,42px)}.epoch-rules{grid-template-columns:1fr}.epoch-countdown{font-size:36px}}
 
 /* === CTA BOTTOM === */
 .cta-bottom{
@@ -1352,7 +1353,7 @@ body::after{
     <div class="epoch-live-inner">
       <div>
         <div class="epoch-kicker">TRIALS OF ECHO // LAUNCH COUNTDOWN</div>
-        <h2>TRIALS OF ECHO</h2>
+        <h2 class="echo-title">TRIALS OF ECHO</h2>
         <p class="epoch-copy">
           Fragments will appear across X and inside the terminal. No single clue is enough.
           Mysterio is the engine beneath the archive. Echo begins when the launch countdown reaches zero. Your job is to reconstruct the answer.
