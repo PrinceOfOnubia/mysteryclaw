@@ -224,6 +224,33 @@ router.post("/api/epochs/echo/live", async (req, res) => {
   }
 });
 
+router.post("/api/epochs/echo/countdown", async (req, res) => {
+  try {
+    if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
+    const launchInMinutes = clampNumber(req.body?.launchInMinutes, 1, 10080, 120);
+    const durationHours = clampNumber(req.body?.durationHours, 1, 168, 3);
+    const result = await query(
+      `update prize_epochs
+       set status = 'pending',
+           started_at = null,
+           starts_at = now() + ($1::text)::interval,
+           closes_at = now() + ($1::text)::interval + ($2::text)::interval,
+           ends_at = now() + ($1::text)::interval + ($2::text)::interval
+       where slug = 'echo'
+       returning id, epoch_number, title, slug, status, starts_at, closes_at, max_attempts_per_wallet`,
+      [`${launchInMinutes} minutes`, `${durationHours} hours`]
+    );
+    await auditLog("admin_echo_countdown_reset", {
+      actor: req.adminActor,
+      launchInMinutes,
+      durationHours,
+    });
+    res.json({ ok: true, epoch: result.rows[0] });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || "echo_countdown_failed" });
+  }
+});
+
 router.post("/api/epochs/echo/close", async (req, res) => {
   try {
     if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
@@ -239,6 +266,79 @@ router.post("/api/epochs/echo/close", async (req, res) => {
     res.json({ ok: true, epoch: result.rows[0] });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || "echo_close_failed" });
+  }
+});
+
+router.post("/api/epochs", async (req, res) => {
+  try {
+    if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
+    const title = String(req.body?.title || "").trim();
+    const slug = slugify(req.body?.slug || title);
+    if (!title) return res.status(400).json({ error: "title_required" });
+    if (!slug) return res.status(400).json({ error: "slug_required" });
+
+    const poolUsdc = clampNumber(req.body?.poolUsdc, 0, 1000000, 1000);
+    const maxAttempts = clampNumber(req.body?.maxAttemptsPerWallet, 1, 100, 10);
+    const launchInMinutes = clampNumber(req.body?.launchInMinutes, 1, 10080, 120);
+    const durationHours = clampNumber(req.body?.durationHours, 1, 168, 3);
+    const xThreadUrl = String(req.body?.xThreadUrl || "").trim();
+    const secretEnvVar = String(req.body?.secretEnvVar || `${slug.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_SECRET_WORD`).trim();
+    const tagline = String(req.body?.tagline || "").trim();
+    const launchCopy = String(req.body?.launchCopy || "").trim();
+
+    if (!/^[a-z0-9][a-z0-9-]{1,60}$/.test(slug)) return res.status(400).json({ error: "invalid_slug" });
+    if (!/^[A-Z][A-Z0-9_]{2,80}$/.test(secretEnvVar)) return res.status(400).json({ error: "invalid_secret_env_var" });
+    if (xThreadUrl && !/^https:\/\/(x\.com|twitter\.com)\//i.test(xThreadUrl)) return res.status(400).json({ error: "invalid_x_thread_url" });
+
+    const result = await query(
+      `with next_epoch as (
+         select coalesce(max(epoch_number), 0) + 1 as epoch_number from prize_epochs
+       )
+       insert into prize_epochs (
+         epoch_number, title, slug, status, pool_usdc, max_attempts_per_wallet,
+         starts_at, closes_at, ends_at, x_thread_url, secret_env_var, metadata
+       )
+       select
+         next_epoch.epoch_number,
+         $1,
+         $2,
+         'pending',
+         $3,
+         $4,
+         now() + ($5::text)::interval,
+         now() + ($5::text)::interval + ($6::text)::interval,
+         now() + ($5::text)::interval + ($6::text)::interval,
+         nullif($7, ''),
+         $8,
+         jsonb_build_object('tagline', $9::text, 'launchCopy', $10::text)
+       from next_epoch
+       returning id, epoch_number, title, slug, status, starts_at, closes_at,
+         pool_usdc, max_attempts_per_wallet, x_thread_url, secret_env_var, metadata`,
+      [
+        title,
+        slug,
+        poolUsdc,
+        maxAttempts,
+        `${launchInMinutes} minutes`,
+        `${durationHours} hours`,
+        xThreadUrl,
+        secretEnvVar,
+        tagline,
+        launchCopy,
+      ]
+    );
+    await auditLog("admin_epoch_created", {
+      actor: req.adminActor,
+      epoch: result.rows[0]?.epoch_number,
+      slug,
+      secretEnvVar,
+      launchInMinutes,
+      durationHours,
+    });
+    res.json({ ok: true, epoch: result.rows[0] });
+  } catch (err) {
+    const status = err.code === "23505" ? 409 : (err.status || 500);
+    res.status(status).json({ error: err.code === "23505" ? "epoch_slug_or_number_exists" : (err.message || "epoch_create_failed") });
   }
 });
 
@@ -450,6 +550,21 @@ function getTokenLaunchStatus() {
     mint,
     launchFilePresent: fileExists,
   };
+}
+
+function clampNumber(value, min, max, fallback) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(parsed, max));
+}
+
+function slugify(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
 }
 
 async function getAutonomousPosts(limit) {

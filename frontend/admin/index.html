@@ -224,7 +224,10 @@
           <p class="k" style="margin-top:-4px;margin-bottom:10px;color:var(--yellow)">Do not reveal hidden answer publicly.</p>
           <div id="echoRows"></div>
           <div class="actions">
-            <button onclick="setEchoLive()">Set Echo Live</button>
+            <input id="echoLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="Launch in min" style="width:130px"/>
+            <input id="echoDurationHours" type="number" min="1" max="168" value="3" placeholder="Duration hrs" style="width:130px"/>
+            <button onclick="resetEchoCountdown()">Reset Countdown</button>
+            <button onclick="setEchoLive()">Set Echo Live Now</button>
             <button class="warn" onclick="closeEchoEpoch()">Close Echo</button>
           </div>
           <div class="actions">
@@ -237,6 +240,33 @@
             <input id="echoClueUrl" placeholder="X URL after posted" style="flex:1;min-width:180px"/>
             <button onclick="saveEchoClue()">Save Clue</button>
           </div>
+        </section>
+        <section class="card wide">
+          <h2>Create Epoch / Game</h2>
+          <p class="k" style="margin-top:-4px;margin-bottom:10px;color:var(--yellow)">Do not enter the hidden answer here. Set the secret word only as a backend environment variable matching Secret Env Var.</p>
+          <div class="actions">
+            <input id="epochTitle" placeholder="Title, e.g. EPOCH 03: VEIL" style="flex:2;min-width:220px"/>
+            <input id="epochSlug" placeholder="slug, e.g. veil" style="width:160px"/>
+            <input id="epochSecretEnv" placeholder="SECRET ENV VAR" style="width:190px"/>
+          </div>
+          <div class="actions">
+            <input id="epochPool" type="number" min="0" value="1000" placeholder="Prize USDC" style="width:130px"/>
+            <input id="epochAttempts" type="number" min="1" max="100" value="10" placeholder="Attempts" style="width:120px"/>
+            <input id="epochLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="Launch in min" style="width:130px"/>
+            <input id="epochDurationHours" type="number" min="1" max="168" value="3" placeholder="Duration hrs" style="width:130px"/>
+          </div>
+          <div class="actions">
+            <input id="epochXThread" placeholder="X thread URL" style="flex:1;min-width:220px"/>
+            <button onclick="createEpoch()">Create Pending Epoch</button>
+          </div>
+          <div class="actions">
+            <input id="epochTagline" placeholder="Tagline" style="flex:1;min-width:220px"/>
+            <input id="epochLaunchCopy" placeholder="Launch copy" style="flex:2;min-width:260px"/>
+          </div>
+        </section>
+        <section class="card full">
+          <h2>Epochs</h2>
+          <div id="epochsTable"></div>
         </section>
         <section class="card">
           <h2>Controls</h2>
@@ -432,6 +462,16 @@
     }
 
     function renderPrize(data){
+      table('epochsTable', ['Epoch','Title','Slug','Status','Starts','Ends','Pool','Attempts'], data.epochs || [], (e) => [
+        e.epoch_number,
+        esc(e.title || ''),
+        esc(e.slug || ''),
+        esc(e.status || ''),
+        e.starts_at ? fmt(e.starts_at) : '',
+        e.closes_at ? fmt(e.closes_at) : '',
+        '$' + Number(e.pool_usdc || 0).toLocaleString(),
+        e.max_attempts_per_wallet || 10
+      ])
       table('winnersTable', ['Epoch','Wallet','Guess','Approved','Paid','Action'], data.winners || [], (w) => [
         w.epoch_number,
         short(w.wallet_pubkey),
@@ -484,10 +524,24 @@
 
     async function setEchoLive(){
       try{
-        await api('/admin/api/epochs/echo/live', { method:'POST', body:JSON.stringify({ hours:3 }) })
+        const hours = numberValue('echoDurationHours', 3)
+        await api('/admin/api/epochs/echo/live', { method:'POST', body:JSON.stringify({ hours }) })
         toast('Echo set live')
         await refreshAll()
       }catch(e){ toast('Echo live failed: ' + e.message) }
+    }
+
+    async function resetEchoCountdown(){
+      try{
+        const launchInMinutes = numberValue('echoLaunchMinutes', 120)
+        const durationHours = numberValue('echoDurationHours', 3)
+        await api('/admin/api/epochs/echo/countdown', {
+          method:'POST',
+          body:JSON.stringify({ launchInMinutes, durationHours })
+        })
+        toast('Echo countdown reset')
+        await refreshAll()
+      }catch(e){ toast('Countdown reset failed: ' + e.message) }
     }
 
     async function closeEchoEpoch(){
@@ -521,6 +575,34 @@
       }catch(e){ toast('Clue save failed: ' + e.message) }
     }
 
+    async function createEpoch(){
+      try{
+        const title = document.getElementById('epochTitle').value.trim()
+        const slug = document.getElementById('epochSlug').value.trim()
+        const secretEnvVar = document.getElementById('epochSecretEnv').value.trim()
+        const xThreadUrl = document.getElementById('epochXThread').value.trim()
+        const tagline = document.getElementById('epochTagline').value.trim()
+        const launchCopy = document.getElementById('epochLaunchCopy').value.trim()
+        const payload = {
+          title,
+          slug,
+          secretEnvVar,
+          poolUsdc:numberValue('epochPool', 1000),
+          maxAttemptsPerWallet:numberValue('epochAttempts', 10),
+          launchInMinutes:numberValue('epochLaunchMinutes', 120),
+          durationHours:numberValue('epochDurationHours', 3),
+          xThreadUrl,
+          tagline,
+          launchCopy
+        }
+        if(!payload.title) return toast('Epoch title required')
+        const created = await api('/admin/api/epochs', { method:'POST', body:JSON.stringify(payload) })
+        toast('Epoch created: ' + (created.epoch?.slug || payload.title))
+        clearEpochForm()
+        await refreshAll()
+      }catch(e){ toast('Epoch create failed: ' + e.message) }
+    }
+
     async function togglePrizePause(){
       const paused = statusCache?.settings?.prize_submissions_paused !== 'true'
       await postToggle('/admin/api/prize/pause', paused, 'Prize submissions')
@@ -537,6 +619,18 @@
         toast(label + (paused ? ' paused' : ' unpaused'))
         await refreshAll()
       }catch(e){ toast(label + ' update failed: ' + e.message) }
+    }
+
+    function numberValue(id, fallback){
+      const value = Number(document.getElementById(id)?.value)
+      return Number.isFinite(value) ? value : fallback
+    }
+
+    function clearEpochForm(){
+      ;['epochTitle','epochSlug','epochSecretEnv','epochXThread','epochTagline','epochLaunchCopy'].forEach(id => {
+        const el = document.getElementById(id)
+        if(el) el.value = ''
+      })
     }
 
     function confirmAction(action){
