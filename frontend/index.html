@@ -1819,32 +1819,36 @@ body::after{
   <section class="epoch-live" style="padding-top:120px">
     <div class="epoch-live-inner">
       <div>
-        <div class="epoch-kicker">TRIALS OF ECHO // HYBRID INVESTIGATION</div>
-        <h2>X IS FOR THEORIES.<br/><span class="accent">THE TERMINAL IS FOR ANSWERS.</span></h2>
+        <div class="epoch-kicker">TRIALS OF ECHO // LAUNCH COUNTDOWN</div>
+        <h2 class="echo-title">TRIALS OF ECHO</h2>
         <p class="epoch-copy">
-          The word is gone. The echoes remain. Public theories, quote replies, and clue drops belong on X.
-          Official reward eligibility only counts through website submissions on MysteryClaw.
+          Fragments will appear across X and inside the terminal. No single clue is enough.
+          Mysterio is the engine beneath the archive. Echo begins when the launch countdown reaches zero. Your job is to reconstruct the answer.
         </p>
         <div class="epoch-rules">
-          <div class="epoch-rule"><div class="l">OFFICIAL ANSWERS</div><div class="v">Website only</div></div>
+          <div class="epoch-rule"><div class="l">INVESTIGATION</div><div class="v">X theories</div></div>
+          <div class="epoch-rule"><div class="l">VERIFICATION</div><div class="v">site answers</div></div>
           <div class="epoch-rule"><div class="l">ATTEMPTS</div><div class="v">10 / wallet</div></div>
-          <div class="epoch-rule"><div class="l">WIN RULE</div><div class="v">First valid</div></div>
-          <div class="epoch-rule"><div class="l">PAYOUT</div><div class="v">Admin verified</div></div>
+          <div class="epoch-rule"><div class="l">REWARD</div><div class="v">$1,000 USDC</div></div>
         </div>
         <p class="epoch-copy">
-          Official website submissions open when the countdown reaches zero.
-          X replies are never treated as official guesses.
+          <b style="color:var(--accent)">X is for theories. The terminal is for answers.</b><br/>
+          Only guesses submitted on MysteryClaw count for rewards. If someone posts the answer on X, they do not win unless they submit it here first.
         </p>
         <div class="epoch-actions">
-          <button class="bp" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
-          <button class="bg" onclick="reqA('term')">TALK TO ECHO</button>
-          <a class="bg" id="echoPageXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW THE X INVESTIGATION</a>
+          <button class="bp" onclick="reqA('term')">TALK TO ECHO</button>
+          <button class="bg" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
+          <a class="bg" id="echoPageXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW X INVESTIGATION</a>
         </div>
       </div>
       <div class="epoch-panel">
         <div class="epoch-status" id="echoPageStatus">LIVE</div>
-        <div style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin-bottom:8px">ECHO COUNTDOWN</div>
+        <div style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin-bottom:8px">COUNTDOWN</div>
         <div class="epoch-countdown" id="echoPageCountdown">SYNCING</div>
+        <div style="display:flex;justify-content:space-between;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase">
+          <span>Attempts remaining</span>
+          <span id="echoPageAttemptsRemaining" style="color:var(--accent)">10</span>
+        </div>
         <div class="clue-list" id="echoPageClues">
           <div class="clue-item"><div class="n">CLUE TIMELINE</div>Loading Echo clue schedule...</div>
         </div>
@@ -3046,7 +3050,7 @@ function renderEchoStatus(d){
 
 function updateEchoAttempts(left){
   const clean = Math.max(0, Number(left ?? S.echo.maxAttempts ?? 10))
-  ;['echoAttemptsRemaining'].forEach(id => {
+  ;['echoAttemptsRemaining','echoPageAttemptsRemaining'].forEach(id => {
     const el = document.getElementById(id)
     if(el) el.textContent = String(clean)
   })
