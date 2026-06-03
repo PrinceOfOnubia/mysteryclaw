@@ -1288,7 +1288,7 @@ body::after{
       <span id="nwa" style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:.1em;color:#fff"></span>
       <span id="accessBadge" class="access-badge no" style="display:none">NO ACCESS</span>
     </div>
-    <button class="bg" id="nbtn" onclick="openM('mAuth')" style="padding:8px 16px;font-size:9px">CONNECT</button>
+    <button class="bg" id="nbtn" onclick="connectPhantom()" style="padding:8px 16px;font-size:9px">CONNECT</button>
     <button class="bd" id="dbtn" onclick="disconnect()" style="display:none">DISCONNECT</button>
   </div>
 </nav>
@@ -2407,23 +2407,32 @@ function copyText(txt, msg){
 // ═══════════════════════════════════════════════════════════
 // WALLET (Phantom)
 // ═══════════════════════════════════════════════════════════
+function getPhantomProvider(){
+  return window?.phantom?.solana || window.solana
+}
+
+function setConnectedWallet(pubkey){
+  S.wallet = pubkey
+  S.pubkey = pubkey
+  const short = pubkey.slice(0,4) + '...' + pubkey.slice(-4)
+  document.getElementById('nwi').style.display = 'flex'
+  document.getElementById('nwa').textContent = short
+  document.getElementById('nbtn').style.display = 'none'
+  document.getElementById('dbtn').style.display = 'inline-flex'
+  return short
+}
+
 async function connectPhantom(){
-  const ph = window.solana || window?.phantom?.solana
+  const ph = getPhantomProvider()
   if(!ph?.isPhantom){
     toast('Phantom not installed — opening install page')
     window.open('https://phantom.app', '_blank')
     return
   }
   try{
-    const r = await ph.connect()
+    const r = await ph.connect({ onlyIfTrusted:false })
     const pubkey = r.publicKey.toString()
-    S.wallet = pubkey
-    S.pubkey = pubkey
-    const short = pubkey.slice(0,4) + '...' + pubkey.slice(-4)
-    document.getElementById('nwi').style.display = 'flex'
-    document.getElementById('nwa').textContent = short
-    document.getElementById('nbtn').style.display = 'none'
-    document.getElementById('dbtn').style.display = 'inline-flex'
+    const short = setConnectedWallet(pubkey)
     closeM('mAuth')
     toast('✓ Connected — ' + short)
     // load saved investigation for this wallet
@@ -2437,7 +2446,7 @@ async function connectPhantom(){
       setTimeout(() => go(dest), 300)
     }
   }catch(e){
-    toast('Connection rejected')
+    toast('Connection rejected or cancelled')
   }
 }
 
@@ -2474,7 +2483,7 @@ async function checkHoldings(pubkey){
 }
 
 async function createWalletAuth(){
-  const ph = window.solana || window?.phantom?.solana
+  const ph = getPhantomProvider()
   if(!ph?.isPhantom || !ph.signMessage) throw new Error('wallet_signature_unavailable')
   const challengeRes = await fetch(API_BASE + '/auth/nonce', {
     method:'POST',
@@ -2532,16 +2541,50 @@ function renderHoldings(){
   access.style.color = S.hasAccess ? 'var(--accent)' : 'var(--danger)'
 }
 
-function disconnect(){
+async function disconnect(){
+  const ph = getPhantomProvider()
+  try{
+    if(ph?.isPhantom && ph.disconnect) await ph.disconnect()
+  }catch(e){
+    // Keep clearing local state even if Phantom is already disconnected.
+  }
+  clearWalletUi()
+  toast('Disconnected')
+}
+
+function clearWalletUi(){
   S.wallet = null; S.pubkey = null
   S.holdings = null; S.hasAccess = false
-  document.getElementById('nwi').style.display = 'none'
-  document.getElementById('nbtn').style.display = 'inline-flex'
-  document.getElementById('dbtn').style.display = 'none'
-  document.getElementById('accessBadge').style.display = 'none'
+  const nwi = document.getElementById('nwi')
+  const nbtn = document.getElementById('nbtn')
+  const dbtn = document.getElementById('dbtn')
+  const badge = document.getElementById('accessBadge')
   const hp = document.getElementById('holdingsPanel')
+  if(nwi) nwi.style.display = 'none'
+  if(nbtn) nbtn.style.display = 'inline-flex'
+  if(dbtn) dbtn.style.display = 'none'
+  if(badge) badge.style.display = 'none'
   if(hp) hp.style.display = 'none'
-  toast('Disconnected')
+}
+
+function setupWalletEvents(){
+  const ph = getPhantomProvider()
+  if(!ph?.isPhantom || ph._mysteryclawEventsBound) return
+  ph._mysteryclawEventsBound = true
+  if(ph.on){
+    ph.on('disconnect', () => {
+      clearWalletUi()
+    })
+    ph.on('accountChanged', publicKey => {
+      if(publicKey){
+        const pubkey = publicKey.toString()
+        setConnectedWallet(pubkey)
+        checkHoldings(pubkey)
+      } else {
+        clearWalletUi()
+      }
+    })
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -3067,6 +3110,7 @@ function esc(s){
 // ═══════════════════════════════════════════════════════════
 renderTokenGate()
 renderDiscoveries()
+setupWalletEvents()
 </script>
 </body>
 </html>
