@@ -44,7 +44,77 @@ npm run launch-token
 
 The command is retained as a guarded utility. It validates metadata and refuses to submit token transactions directly. Do not launch a second token.
 
-## Run The Agent
+## Railway Worker Deployment
+
+Production automation should run as a separate Railway worker service, not AWS/PM2.
+
+Recommended Railway service:
+
+```text
+Service name: mysterio-worker
+Root Directory: agent-runtime
+Build Command: npm install
+Start Command: npm run worker
+```
+
+Required Railway worker env vars:
+
+```bash
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o
+DATABASE_URL=
+X_API_KEY=
+X_API_SECRET=
+X_ACCESS_TOKEN=
+X_ACCESS_TOKEN_SECRET=
+X_HANDLE=MysteryClawPump
+AUTOPOST_ENABLED=true
+AUTOPOST_INTERVAL_MINUTES=60
+MYSTERIO_MODE=production
+MYSTERYCLAW_API=https://piverse-production.up.railway.app
+AGENT_KEY=
+CLAWPUMP_API_KEY=
+CLAWPUMP_AGENT_ID=
+CLAWPUMP_AGENT_NAME=Mysterio
+CLAWPUMP_AGENT_WALLET_PUBKEY=
+MYSTO_TOKEN_MINT=G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ
+```
+
+The worker:
+
+- posts scheduled epoch clues to X when their `scheduled_at` time is due
+- generates Mysterio-style X posts between clues
+- respects `AUTOPOST_INTERVAL_MINUTES`
+- stores last post time, last tweet id, and duplicate hashes in Postgres
+- mirrors successful tweets into the MysteryClaw autonomous feed when `MYSTERYCLAW_API` and `AGENT_KEY` are set
+- fails safely without posting if X credentials are missing
+
+Safe tests:
+
+```bash
+npm run autopost:test  # dry-run generation only, no tweet
+npm run x:test         # verifies X credentials and previews text, no tweet
+```
+
+Real X test, only when you intentionally want to post:
+
+```bash
+npm run x:test -- --post --text "Mysterio test transmission."
+```
+
+Disable autopost immediately by setting this in the Railway worker service:
+
+```bash
+AUTOPOST_ENABLED=false
+```
+
+## Legacy Local / AWS Agent
+
+AWS/PM2 is now optional/deprecated. Keep it stopped once the Railway worker is confirmed online to avoid duplicate posting.
+
+Do not delete the files yet; they remain useful for local dry-runs and emergency rollback.
+
+## Run The Legacy Agent
 
 ```bash
 npm run agent
@@ -65,9 +135,12 @@ With `EXECUTE_REAL_TXNS=false`, tool calls remain simulated while Mysterio can s
 ```bash
 npm run earnings
 npm run loop
+npm run worker
+npm run autopost:test
+npm run x:test
 ```
 
-`npm run earnings` checks hosted ClawPump earnings. `npm run loop` starts the older lightweight autonomous loop; production uses `npm run agent`.
+`npm run earnings` checks hosted ClawPump earnings. `npm run loop` starts the older lightweight autonomous loop; production uses `npm run worker` on Railway.
 
 ## Files
 
@@ -80,7 +153,13 @@ agent-runtime/
 │   ├── 03-launch-token.js
 │   ├── 04-autonomous-loop.js
 │   ├── 05-check-earnings.js
-│   └── 06-agent-loop.js
+│   ├── 06-agent-loop.js
+│   ├── 07-railway-worker.js
+│   ├── test-autopost.js
+│   └── test-x.js
+├── worker/
+│   ├── db.js
+│   └── x-client.js
 ├── token-launch.json       # created manually after dashboard launch, git-ignored
 └── mysterio-memory.json    # persistent runtime memory, git-ignored
 ```

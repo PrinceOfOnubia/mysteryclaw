@@ -55,12 +55,12 @@ This guide walks through everything needed to take MysteryClaw from code to a fu
    │                    │
    ▼                    ▼
 ┌─────────────┐  ┌──────────────────────────────────────┐
-│ OpenAI      │  │ AGENT RUNTIME (separate process)     │
-│ API         │  │ pm2 / systemd on VPS                 │
-│ (chat LLM)  │  │ - Observes hosted ClawPump wallet           │
+│ OpenAI      │  │ MYSTERIO WORKER (Railway service)    │
+│ API         │  │ root: agent-runtime                  │
+│ (chat LLM)  │  │ - Observes hosted ClawPump wallet    │
 └─────────────┘  │ - Observes launched $MYSTO state        │
-                 │ - Runs autonomous loop 24/7          │
-                 │ - Posts to /autonomous every 5 min   │
+                 │ - Posts scheduled clues to X         │
+                 │ - Mirrors posts to /autonomous       │
                  └─────────┬────────────────────────────┘
                            │
                            ▼
@@ -380,87 +380,102 @@ The frontend has a fallback array of mock fragments, so this is not blocking. Wh
 
 ---
 
-## 8. Agent Runtime Deployment
+## 8. Mysterio Railway Worker Deployment
 
-This is **a separate deployment** from the backend. It runs Mysterio's autonomous loop 24/7 and observes the hosted ClawPump agent wallet. It does not store that wallet's private key.
+This is **a separate Railway service** from the backend. It runs Mysterio's X autoposting and epoch automation without depending on AWS SSH or PM2. It does not store a hosted ClawPump wallet private key.
 
-**Recommended host:** a small VPS (DigitalOcean $4/mo, Hetzner €3/mo, AWS Lightsail $3.50/mo). Railway works too but introduces unnecessary HTTP layer.
+**Recommended architecture:** separate Railway worker service rooted at `agent-runtime`. This keeps the public backend isolated: if X, OpenAI, or the worker fails, the website/API stays online.
 
-### 8.1 Provision a VPS
+### 8.1 Railway service settings
 
-Spin up a basic Ubuntu 22.04 server with 1 GB RAM. SSH in.
-
-### 8.2 Install Node + pm2
-
-```bash
-# Install Node 22
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# Install pm2 globally (process manager)
-sudo npm install -g pm2
+```text
+Service name: mysterio-worker
+Root Directory: agent-runtime
+Build Command: npm install
+Start Command: npm run worker
 ```
 
-### 8.3 Pull the agent-runtime folder
-
-```bash
-git clone https://github.com/PrinceOfOnubia/mysteryclaw.git
-cd mysteryclaw/agent-runtime
-npm install
-```
-
-### 8.4 Create the hosted ClawPump agent and get its API key
+### 8.2 Create the hosted ClawPump agent and get its API key
 
 1. Open https://clawpump.tech
 2. Click **Login with Google** (Crossmint auth)
 3. Create or select the hosted Mysterio agent
 4. Copy the agent UUID, hosted wallet public address, and `cpk_...` API key
 
-### 8.5 Configure `.env`
+### 8.3 Configure Railway worker env
 
-```bash
-cp .env.example .env
-nano .env
-```
-
-Fill in:
-- `CLAWPUMP_AGENT_ID` (hosted agent UUID from step 8.4)
-- `CLAWPUMP_AGENT_WALLET_PUBKEY` (hosted public wallet address from step 8.4)
-- `CLAWPUMP_API_KEY` (from step 8.4)
-- `TOKEN_IMAGE_URL=https://mysteryclaw.xyz/assets/mysteryclaw-logo.jpg`
-- `TOKEN_TWITTER=https://x.com/mysteryclawpump?s=11`
-- `OPENAI_API_KEY` (same OpenAI API key as backend)
-- `MYSTERYCLAW_API=https://<your-railway-service>.up.railway.app`
-- `AGENT_KEY` (same value as on Railway — without this `/autonomous` push fails with 401)
-
-### 8.6 Confirm the token image
-
-Confirm `assets/myst-token.png` exists and is the approved token logo.
-
-### 8.7 Confirm launched $MYSTO configuration
-
-Use this mint everywhere:
+Set these on the `mysterio-worker` Railway service only:
 
 ```text
-G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o
+DATABASE_URL=
+X_API_KEY=
+X_API_SECRET=
+X_ACCESS_TOKEN=
+X_ACCESS_TOKEN_SECRET=
+X_HANDLE=MysteryClawPump
+AUTOPOST_ENABLED=true
+AUTOPOST_INTERVAL_MINUTES=60
+MYSTERIO_MODE=production
+MYSTERYCLAW_API=https://piverse-production.up.railway.app
+AGENT_KEY=
+CLAWPUMP_API_KEY=
+CLAWPUMP_AGENT_ID=
+CLAWPUMP_AGENT_NAME=Mysterio
+CLAWPUMP_AGENT_WALLET_PUBKEY=
+MYSTO_TOKEN_MINT=G6E1GoffSHQU2GGuZXcojs1RRYx6MmtgJVeB69s3eYKQ
 ```
 
-Set `MYSTO_TOKEN_MINT` in Railway and AWS `agent-runtime/.env`. Keep the frontend `MYSTO_MINT` constant and backend `ACCESS_TOKENS.MYSTO` aligned with the same CA.
+Do not put X secrets in Vercel or frontend config.
 
-### 8.8 Start the autonomous loop
+### 8.4 Worker responsibilities
+
+- read Railway env vars
+- post scheduled `epoch_clues` to X when due
+- generate short Mysterio-style X transmissions
+- mirror successful tweets into `/autonomous` when `MYSTERYCLAW_API` and `AGENT_KEY` are set
+- store `mysterio_worker_last_post_at`, `mysterio_worker_last_tweet_id`, and text hashes in Postgres
+- avoid duplicate tweet text
+- refuse local-file-only state on Railway
+- fail safely when X credentials are missing
+
+### 8.5 Safe tests
+
+From `agent-runtime`:
 
 ```bash
-pm2 start scripts/06-agent-loop.js --name mysterio-agent
-pm2 save
-pm2 startup  # makes pm2 survive reboots — follow the printed instructions
+npm run autopost:test  # dry-run generation only
+npm run x:test         # validates X credentials and previews text; no tweet
 ```
 
-Check it's running:
+Only when intentionally posting a real X test:
+
 ```bash
-pm2 logs mysterio-agent
+npm run x:test -- --post --text "Mysterio test transmission."
 ```
 
-You should see a tick every 5 minutes. Within 30 seconds the first post should appear at https://mysteryclaw.xyz/discoveries.
+### 8.6 Disable or rollback
+
+Fast disable:
+
+```bash
+AUTOPOST_ENABLED=false
+```
+
+Rollback: stop or pause the `mysterio-worker` Railway service. The backend remains live.
+
+### 8.7 AWS/PM2 retirement
+
+AWS/PM2 runtime is now optional/deprecated. Do not delete AWS files yet.
+
+Retirement checklist:
+
+1. Confirm `mysterio-worker` logs show successful ticks.
+2. Confirm X posts appear from `@MysteryClawPump`.
+3. Confirm corresponding autonomous posts appear on MysteryClaw when mirroring is enabled.
+4. Stop PM2 only after Railway worker is confirmed working.
+5. EC2 can be terminated later after a quiet observation window.
 
 ---
 
@@ -637,7 +652,7 @@ vercel --prod
 
 ### 11.2 Verify token mint address
 
-Confirm the `$MYSTO` CA is identical in Railway `MYSTO_TOKEN_MINT`, frontend `MYSTO_MINT`, backend `ACCESS_TOKENS.MYSTO`, and AWS agent-runtime `MYSTO_TOKEN_MINT`.
+Confirm the `$MYSTO` CA is identical in Railway backend `MYSTO_TOKEN_MINT`, Railway worker `MYSTO_TOKEN_MINT`, frontend `MYSTO_MINT`, and backend `ACCESS_TOKENS.MYSTO`.
 
 ### 11.3 Domain (optional)
 
@@ -682,7 +697,7 @@ AGENT_CONTROL_URL=
 AGENT_CONTROL_KEY=
 ```
 
-`AGENT_CONTROL_URL` and `AGENT_CONTROL_KEY` are only for a future private AWS control bridge. Without them, token launch and agent restart buttons refuse safely.
+`AGENT_CONTROL_URL` and `AGENT_CONTROL_KEY` are optional legacy/private control bridge settings. Without them, token launch and agent restart buttons refuse safely.
 
 ### Hosted ClawPump admin bridge
 
@@ -699,7 +714,7 @@ POST /admin/clawpump/sync
 
 `POST /admin/clawpump/sync` accepts `{ "messageIds": ["..."] }`. It fetches current hosted-agent messages and imports only the selected Mysterio outputs into `autonomous_posts`. Imports are idempotent, so retrying the same message IDs does not duplicate discoveries.
 
-The AWS agent runtime remains optional. Keep `PAYOUTS_ENABLED=false`; the ClawPump bridge does not launch tokens or enable payouts.
+The legacy AWS agent runtime remains optional/deprecated. Keep `PAYOUTS_ENABLED=false`; the ClawPump bridge does not launch tokens or enable payouts.
 
 ---
 
@@ -731,14 +746,15 @@ Before announcing publicly, verify:
 - [ ] Guess submission shows correct error messages (not_holder, rate_limited, etc.)
 - [ ] Discoveries page polls `/autonomous` and shows live posts when loop is active
 
-### Agent Runtime
+### Mysterio Worker
 - [ ] Hosted ClawPump agent UUID and public wallet address configured
-- [ ] No agent wallet private key stored in `agent-runtime/.env`
+- [ ] No agent wallet private key stored in Railway worker env
 - [ ] `$MYSTO` mint matches the launched CA everywhere
-- [ ] `npm run earnings` returns real data
-- [ ] `pm2 list` shows `mysterio-loop` as `online`
-- [ ] `pm2 logs mysterio-loop` shows successful ticks
-- [ ] Frontend `/discoveries` shows posts appearing every ~5 min
+- [ ] Railway service `mysterio-worker` is online
+- [ ] `npm run x:test` passes before enabling real autoposts
+- [ ] Worker logs show successful ticks
+- [ ] X posts appear from `@MysteryClawPump`
+- [ ] Frontend `/discoveries` shows mirrored worker posts
 
 ### Prize Pool (if enabled)
 - [ ] Treasury wallet funded with 1,000 USDC + 0.1 SOL
@@ -769,7 +785,18 @@ Before announcing publicly, verify:
 - **Dashboard:** https://www.helius.dev/dashboard — track RPC requests/day
 - Upgrade to paid plan if you hit 100k/day consistently
 
-### pm2 (Agent Runtime)
+### Mysterio Worker
+
+Production automation runs in Railway service `mysterio-worker`.
+
+- **Logs:** Railway dashboard → `mysterio-worker` → Logs
+- **Disable:** set `AUTOPOST_ENABLED=false`
+- **Restart:** Railway dashboard → `mysterio-worker` → Redeploy/Restart
+
+### pm2 (Deprecated AWS fallback)
+
+Use only for rollback/local emergency testing after confirming the Railway worker is paused.
+
 ```bash
 pm2 status               # see all processes
 pm2 logs mysterio-agent         # tail logs
@@ -804,7 +831,7 @@ Check ClawPump leaderboard: https://clawpump.tech/leaderboard
 |---|---|
 | Railway Hobby plan | $7 |
 | Helius free tier | $0 (upgrade to $49/mo if needed) |
-| VPS for agent-runtime | $4–$6 |
+| Railway worker (`mysterio-worker`) | included/usage-based on Railway plan |
 | OpenAI API | Usage-based; default model is `gpt-4o` |
 | Vercel (frontend) | $0 (Hobby tier) |
 | Domain | $10–20/year |

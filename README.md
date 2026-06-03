@@ -58,13 +58,15 @@ Set this up in Vercel and attach `mysteryclaw.xyz`.
 ### 2. Backend → Railway (backend dev)
 Push this repo to GitHub, connect Railway, and set the service root directory to `backend`. Use `npm install` as the build command and `npm start` as the start command. After Railway generates a public URL, point the frontend `API_BASE` at that URL via `window.MYSTERYCLAW_CONFIG.API_BASE`, `?api=...`, or the `DEFAULT_API_BASE` constant in `frontend/index.html`.
 
-### 3. Mysterio's autonomous layer → server (you)
-See `agent-runtime/README.md` for the 5-step process:
+### 3. Mysterio's autonomous layer → Railway worker
+See `agent-runtime/README.md` for the Railway worker process:
 1. Create the hosted Mysterio agent in the ClawPump dashboard
 2. Fill `.env` with its UUID, public wallet address, and ClawPump API key
 3. Confirm `assets/myst-token.png` is the intended token image
 4. Keep `$MYSTO` mint configuration aligned with Railway and the frontend
-5. `pm2 start scripts/06-agent-loop.js --name mysterio-agent` — Mysterio acts autonomously 24/7
+5. Deploy Railway service `mysterio-worker` with root `agent-runtime` and start command `npm run worker`
+
+AWS/PM2 is deprecated for production automation. Stop PM2 only after the Railway worker is confirmed posting safely.
 
 Launched token:
 - Mysterio earns 65% of all $MYSTO trading fees automatically (hourly distribution)

@@ -8,15 +8,26 @@
     "launch-token": "node scripts/03-launch-token.js",
     "loop": "node scripts/04-autonomous-loop.js",
     "earnings": "node scripts/05-check-earnings.js",
-    "agent": "node scripts/06-agent-loop.js"
+    "agent": "node scripts/06-agent-loop.js",
+    "worker": "node scripts/07-railway-worker.js",
+    "autopost:test": "node scripts/test-autopost.js",
+    "x:test": "node scripts/test-x.js"
   },
-  "keywords": ["solana", "pump.fun", "clawpump", "ai-agent", "mysteryclaw"],
+  "keywords": [
+    "solana",
+    "pump.fun",
+    "clawpump",
+    "ai-agent",
+    "mysteryclaw"
+  ],
   "license": "ISC",
   "dependencies": {
     "@solana/web3.js": "^1.95.0",
     "axios": "^1.7.0",
     "dotenv": "^16.4.5",
     "node-fetch": "^3.3.2",
-    "openai": "^6.32.0"
+    "openai": "^6.32.0",
+    "pg": "^8.21.0",
+    "twitter-api-v2": "^1.29.0"
   }
 }

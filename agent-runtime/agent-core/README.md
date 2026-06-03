@@ -146,21 +146,21 @@ You'll see ticks like:
 
 ### Production
 ```bash
-pm2 start scripts/06-agent-loop.js --name mysterio-agent
-pm2 save
-pm2 logs mysterio-agent
+npm run worker
 ```
 
-To enable real tweets (after testing):
+Production automation now runs as the Railway service `mysterio-worker` with root `agent-runtime` and start command `npm run worker`.
+
+To enable real X posts after testing:
 ```bash
-# in .env
-EXECUTE_REAL_TXNS=true
-TWITTER_API_KEY=...
-TWITTER_API_SECRET=...
-TWITTER_ACCESS_TOKEN=...
-TWITTER_ACCESS_SECRET=...
-pm2 restart mysterio-agent
+AUTOPOST_ENABLED=true
+X_API_KEY=...
+X_API_SECRET=...
+X_ACCESS_TOKEN=...
+X_ACCESS_TOKEN_SECRET=...
 ```
+
+Use `npm run x:test` first. AWS/PM2 is deprecated and should stay stopped once Railway is confirmed working.
 
 ---
 
