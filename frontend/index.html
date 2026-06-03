@@ -1271,7 +1271,7 @@ body::after{
   </div>
   <div class="nav-links">
     <span class="nl on" id="nl-land" onclick="go('land')">Home</span>
-    <span class="nl" id="nl-term" onclick="reqA('term')">Terminal</span>
+    <span class="nl" id="nl-term" onclick="reqA('term')">Get Clues</span>
     <span class="nl" id="nl-echo" onclick="go('echo')">Echo</span>
     <span class="nl" id="nl-lore" onclick="go('lore')">Lore</span>
     <span class="nl" id="nl-disc" onclick="go('disc')">Discoveries</span>
@@ -1294,7 +1294,7 @@ body::after{
 </nav>
 <div id="mobileMenu" aria-hidden="true">
   <span class="nl on" id="mnl-land" onclick="go('land')">Home</span>
-  <span class="nl" id="mnl-term" onclick="reqA('term')">Terminal</span>
+  <span class="nl" id="mnl-term" onclick="reqA('term')">Get Clues</span>
   <span class="nl" id="mnl-echo" onclick="go('echo')">Echo</span>
   <span class="nl" id="mnl-lore" onclick="go('lore')">Lore</span>
   <span class="nl" id="mnl-disc" onclick="go('disc')">Discoveries</span>
@@ -1318,7 +1318,7 @@ body::after{
       The word is gone, the echoes remain, and official answers open when the countdown reaches zero.
     </p>
     <div class="hero-cta">
-      <button class="bp" onclick="reqA('term')">
+      <button class="bp" onclick="openGuess()">
         <span>TALK TO ECHO</span>
         <span style="font-family:'JetBrains Mono'">→</span>
       </button>
@@ -1369,7 +1369,7 @@ body::after{
           Only guesses submitted on MysteryClaw count for rewards. If someone posts the answer on X, they do not win unless they submit it here first.
         </p>
         <div class="epoch-actions">
-          <button class="bp" onclick="reqA('term')">TALK TO ECHO</button>
+          <button class="bp" onclick="openGuess()">TALK TO ECHO</button>
           <button class="bg" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
           <a class="bg" id="echoXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW X INVESTIGATION</a>
         </div>
@@ -1657,7 +1657,7 @@ body::after{
     <div class="mono-pre">[TRIALS OF ECHO // LIVE // WORD UNKNOWN]</div>
     <h2>CRACK THE SECRET.<br/><span class="ghost">TAKE THE PRIZE.</span></h2>
     <div class="cta-row">
-      <button class="bp" onclick="reqA('term')">TALK TO ECHO</button>
+      <button class="bp" onclick="openGuess()">TALK TO ECHO</button>
       <button class="bg" onclick="go('lore')">READ THE LORE</button>
     </div>
   </section>
@@ -1675,7 +1675,7 @@ body::after{
         </div>
       </div>
       <div class="foot-links">
-        <a onclick="reqA('term')">TERMINAL</a>
+        <a onclick="reqA('term')">GET CLUES</a>
         <a onclick="go('lore')">LORE</a>
         <a onclick="go('disc')">DISCOVERIES</a>
       </div>
@@ -1704,7 +1704,7 @@ body::after{
     </div>
 
     <nav class="term-nav">
-      <a class="active"><span class="ico">›</span>ECHO CHANNEL</a>
+      <a class="active"><span class="ico">›</span>GET CLUES</a>
       <a onclick="openGuess()"><span class="ico">★</span>SUBMIT WORD</a>
       <a onclick="go('lore')"><span class="ico">∎</span>INCIDENT FILE</a>
       <a onclick="go('disc')"><span class="ico">⊙</span>DISCOVERIES</a>
@@ -1758,7 +1758,7 @@ body::after{
         <div class="chat-input-row">
           <span class="chat-prompt">›</span>
           <input id="chatIn" class="chat-input" autocomplete="off" spellcheck="false"
-            placeholder="Speak into the Echo trial..."
+            placeholder="Ask Mysterio for clues..."
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"/>
           <button class="chat-send" onclick="sendChat()">→</button>
         </div>
@@ -1772,7 +1772,7 @@ body::after{
             <span class="ct" id="clueCt">0</span>
           </div>
           <div id="cluesList">
-            <div class="ib-empty">No clues saved yet. Talk to Echo and save what matters.</div>
+            <div class="ib-empty">No clues saved yet. Ask Mysterio and save what matters.</div>
           </div>
         </div>
 
@@ -1836,7 +1836,7 @@ body::after{
           Only guesses submitted on MysteryClaw count for rewards. If someone posts the answer on X, they do not win unless they submit it here first.
         </p>
         <div class="epoch-actions">
-          <button class="bp" onclick="reqA('term')">TALK TO ECHO</button>
+          <button class="bp" onclick="openGuess()">TALK TO ECHO</button>
           <button class="bg" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
           <a class="bg" id="echoPageXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW X INVESTIGATION</a>
         </div>
@@ -1923,7 +1923,7 @@ body::after{
     <div class="mono-pre">[CHANNEL OPEN // WORD UNKNOWN]</div>
     <h2>FIND THE WORD.<br/><span class="ghost">CLAIM THE ARCHIVE.</span></h2>
     <div class="cta-row">
-      <button class="bp" onclick="reqA('term')">TALK TO ECHO</button>
+      <button class="bp" onclick="openGuess()">TALK TO ECHO</button>
     </div>
   </section>
 </div>
@@ -2591,7 +2591,7 @@ const BOOT_SEQ = [
   {delay:3000, text:'[RECONSTRUCTING ACCESS SEQUENCE...]', style:'sys'},
   {delay:4200, text:'  > FRAGMENT 01: ████████\n  > FRAGMENT 02: ████\n  > FRAGMENT 03: [CORRUPTED]\n  > FRAGMENT 04: ███████\n  > FRAGMENT 05: [CORRUPTED]\n  > FRAGMENT 06: █████', style:'boot'},
   {delay:5800, text:'[WARNING — UNAUTHORIZED MEMORY WIPE DETECTED IN LOG]', style:'err'},
-  {delay:6800, isAI:true, text:'...the Echo trial is preparing to open.\n\nTale 01 is sealed. Mysterio remains beneath the archive as the engine, but the next channel belongs to Echo.\n\nThe word is gone. The echoes remain. When the countdown reaches zero, the official investigation begins.\n\n...stand by.'},
+  {delay:6800, isAI:true, text:'...you can chat with me for clues.\n\nAsk about fragments. Patterns. Contradictions. What the echo refuses to say plainly.\n\nBut answers do not count here.\n\nWhen you are ready, submit the word through the official guess window. That is the only door that pays.\n\n...listen carefully.'},
 ]
 
 let bootDone = false
@@ -2780,7 +2780,7 @@ async function sendChat(){
 function renderClues(){
   const el = document.getElementById('cluesList')
   document.getElementById('clueCt').textContent = S.clues.length
-  if(!S.clues.length){ el.innerHTML = '<div class="ib-empty">No clues saved yet. Talk to Echo and save what matters.</div>'; return }
+  if(!S.clues.length){ el.innerHTML = '<div class="ib-empty">No clues saved yet. Ask Mysterio and save what matters.</div>'; return }
   el.innerHTML = S.clues.slice(-6).reverse().map(c => `
     <div class="ib-item">
       <div class="it-meta">${c.id} // ${c.ts}</div>
