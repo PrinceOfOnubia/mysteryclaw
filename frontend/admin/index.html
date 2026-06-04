@@ -122,9 +122,20 @@
       letter-spacing:.12em;
       text-transform:uppercase;
     }
+    .field small {
+      color:rgba(237,247,235,.62);
+      font-size:11px;
+      line-height:1.35;
+    }
     .field input,
     .field select {
       width:100%;
+    }
+    .admin-note {
+      margin:8px 0 0;
+      color:rgba(237,247,235,.66);
+      font-size:12px;
+      line-height:1.5;
     }
     table {
       width:100%;
@@ -265,59 +276,61 @@
         <section class="card wide">
           <h2>Echo Controls</h2>
           <p class="k" style="margin-top:-4px;margin-bottom:10px;color:var(--yellow)">Do not reveal hidden answer publicly.</p>
+          <p class="admin-note">Use this section only for the current Echo epoch. Countdown controls change when the game opens and closes; winner rules change how many approved winners can share the pool.</p>
           <div id="echoRows"></div>
           <div class="actions">
-            <label class="field" style="width:140px"><span>Launch Delay Minutes</span><input id="echoLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="120"/></label>
-            <label class="field" style="width:140px"><span>Epoch Duration Hours</span><input id="echoDurationHours" type="number" min="1" max="168" value="3" placeholder="3"/></label>
+            <label class="field" style="width:170px"><span>Launch Delay Minutes</span><input id="echoLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="120"/><small>Minutes from now before Echo becomes live. Example: 120 = starts in 2 hours.</small></label>
+            <label class="field" style="width:170px"><span>Epoch Duration Hours</span><input id="echoDurationHours" type="number" min="1" max="168" value="3" placeholder="3"/><small>How long submissions stay open after launch. Example: 3 = closes after 3 hours.</small></label>
             <button onclick="resetEchoCountdown()">Reset Countdown</button>
             <button onclick="setEchoLive()">Set Echo Live Now</button>
             <button class="warn" onclick="closeEchoEpoch()">Close Echo</button>
           </div>
           <div class="actions">
-            <label class="field" style="width:140px"><span>Winner Cap</span><input id="echoMaxWinners" type="number" min="1" max="1000" value="10" placeholder="10"/></label>
-            <label class="field" style="width:190px"><span>Payout Split</span><select id="echoPayoutSplit" title="Prize split policy">
+            <label class="field" style="width:170px"><span>Winner Cap</span><input id="echoMaxWinners" type="number" min="1" max="1000" value="10" placeholder="10"/><small>Maximum winners allowed for Echo. Example: 10 = up to ten approved wallets.</small></label>
+            <label class="field" style="width:210px"><span>Payout Split</span><select id="echoPayoutSplit" title="Prize split policy">
                 <option value="equal">Equal split</option>
                 <option value="first_winner">First winner gets pool</option>
-              </select></label>
+              </select><small>Choose whether the prize pool is shared or paid to only the first winner.</small></label>
             <button onclick="saveEchoRules()">Save Winner Rules</button>
           </div>
           <div class="actions">
-            <label class="field" style="flex:1;min-width:220px"><span>X Investigation Thread URL</span><input id="echoXThreadInput" placeholder="https://x.com/..."/></label>
+            <label class="field" style="flex:1;min-width:220px"><span>X Investigation Thread URL</span><input id="echoXThreadInput" placeholder="https://x.com/..."/><small>Paste the public X post/thread users should follow for clues.</small></label>
             <button onclick="saveEchoXThread()">Save X Thread</button>
           </div>
           <div class="actions">
-            <label class="field" style="width:100px"><span>Clue Number</span><input id="echoClueNumber" placeholder="1"/></label>
-            <label class="field" style="flex:2;min-width:220px"><span>Clue Post Copy</span><input id="echoClueCopy" placeholder="Public clue copy"/></label>
-            <label class="field" style="flex:1;min-width:180px"><span>Posted X URL</span><input id="echoClueUrl" placeholder="https://x.com/..."/></label>
+            <label class="field" style="width:130px"><span>Clue Number</span><input id="echoClueNumber" placeholder="1"/><small>Order number shown on the clue timeline.</small></label>
+            <label class="field" style="flex:2;min-width:220px"><span>Clue Post Copy</span><input id="echoClueCopy" placeholder="Public clue copy"/><small>Short public clue text. Never paste the hidden answer here.</small></label>
+            <label class="field" style="flex:1;min-width:180px"><span>Posted X URL</span><input id="echoClueUrl" placeholder="https://x.com/..."/><small>Optional link after the clue has been posted on X.</small></label>
             <button onclick="saveEchoClue()">Save Clue</button>
           </div>
         </section>
         <section class="card wide">
           <h2>Create Epoch / Game</h2>
           <p class="k" style="margin-top:-4px;margin-bottom:10px;color:var(--yellow)">Do not enter the hidden answer here. Set the secret word only as a backend environment variable matching Secret Env Var.</p>
+          <p class="admin-note">This creates the next game in pending mode. It does not reveal the answer, does not launch payouts, and does not start unless you set its countdown/live state.</p>
           <div class="actions">
-            <label class="field" style="flex:2;min-width:220px"><span>Public Epoch Title</span><input id="epochTitle" placeholder="EPOCH 03: VEIL"/></label>
-            <label class="field" style="width:170px"><span>URL Slug</span><input id="epochSlug" placeholder="veil"/></label>
-            <label class="field" style="width:200px"><span>Secret Env Var</span><input id="epochSecretEnv" placeholder="EPOCH_03_SECRET_WORD"/></label>
+            <label class="field" style="flex:2;min-width:220px"><span>Public Epoch Title</span><input id="epochTitle" placeholder="EPOCH 03: VEIL"/><small>Name users see on the site and leaderboard.</small></label>
+            <label class="field" style="width:190px"><span>URL Slug</span><input id="epochSlug" placeholder="veil"/><small>Lowercase short id used in URLs/API. Example: veil.</small></label>
+            <label class="field" style="width:230px"><span>Secret Env Var</span><input id="epochSecretEnv" placeholder="EPOCH_03_SECRET_WORD"/><small>Backend env var name that stores the answer. Do not type the answer itself.</small></label>
           </div>
           <div class="actions">
-            <label class="field" style="width:140px"><span>Prize Pool USDC</span><input id="epochPool" type="number" min="0" value="1000" placeholder="1000"/></label>
-            <label class="field" style="width:130px"><span>Attempts / Wallet</span><input id="epochAttempts" type="number" min="1" max="100" value="10" placeholder="10"/></label>
-            <label class="field" style="width:130px"><span>Winner Cap</span><input id="epochMaxWinners" type="number" min="1" max="1000" value="1" placeholder="1"/></label>
-            <label class="field" style="width:190px"><span>Payout Split</span><select id="epochPayoutSplit" title="Prize split policy">
+            <label class="field" style="width:170px"><span>Prize Pool USDC</span><input id="epochPool" type="number" min="0" value="1000" placeholder="1000"/><small>Total reward pool shown publicly. Example: 1000 = $1,000 USDC.</small></label>
+            <label class="field" style="width:170px"><span>Attempts / Wallet</span><input id="epochAttempts" type="number" min="1" max="100" value="10" placeholder="10"/><small>Official guesses each wallet can submit.</small></label>
+            <label class="field" style="width:160px"><span>Winner Cap</span><input id="epochMaxWinners" type="number" min="1" max="1000" value="1" placeholder="1"/><small>Maximum approved winners. Example: 1 = single winner.</small></label>
+            <label class="field" style="width:210px"><span>Payout Split</span><select id="epochPayoutSplit" title="Prize split policy">
                 <option value="equal">Equal split</option>
                 <option value="first_winner">First winner gets pool</option>
-              </select></label>
-            <label class="field" style="width:140px"><span>Launch Delay Minutes</span><input id="epochLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="120"/></label>
-            <label class="field" style="width:140px"><span>Epoch Duration Hours</span><input id="epochDurationHours" type="number" min="1" max="168" value="3" placeholder="3"/></label>
+              </select><small>Equal split divides pool across approved winners.</small></label>
+            <label class="field" style="width:170px"><span>Launch Delay Minutes</span><input id="epochLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="120"/><small>Minutes until pending game starts. 120 = 2 hours.</small></label>
+            <label class="field" style="width:170px"><span>Epoch Duration Hours</span><input id="epochDurationHours" type="number" min="1" max="168" value="3" placeholder="3"/><small>Hours the game remains open after launch.</small></label>
           </div>
           <div class="actions">
-            <label class="field" style="flex:1;min-width:220px"><span>X Investigation Thread URL</span><input id="epochXThread" placeholder="https://x.com/..."/></label>
+            <label class="field" style="flex:1;min-width:220px"><span>X Investigation Thread URL</span><input id="epochXThread" placeholder="https://x.com/..."/><small>Optional public X thread for investigation/clue drops.</small></label>
             <button onclick="createEpoch()">Create Pending Epoch</button>
           </div>
           <div class="actions">
-            <label class="field" style="flex:1;min-width:220px"><span>Short Tagline</span><input id="epochTagline" placeholder="The archive stirs again."/></label>
-            <label class="field" style="flex:2;min-width:260px"><span>Launch Copy</span><input id="epochLaunchCopy" placeholder="Public description shown on the homepage."/></label>
+            <label class="field" style="flex:1;min-width:220px"><span>Short Tagline</span><input id="epochTagline" placeholder="The archive stirs again."/><small>One-line flavor text shown near the epoch title.</small></label>
+            <label class="field" style="flex:2;min-width:260px"><span>Launch Copy</span><input id="epochLaunchCopy" placeholder="Public description shown on the homepage."/><small>Longer public description. Keep it spoiler-free.</small></label>
           </div>
         </section>
         <section class="card full">
@@ -332,13 +345,18 @@
         </section>
         <section class="card full">
           <h2>Winners</h2>
+          <p class="admin-note">Use this to add or edit manual winners for an epoch. It changes leaderboard/winner status only; payouts still require the guarded payout flow.</p>
           <div class="actions">
-            <label class="field" style="width:150px"><span>Epoch Slug</span><input id="manualWinnerSlug" placeholder="echo" value="echo"/></label>
-            <label class="field" style="flex:1;min-width:260px"><span>Winner Wallet Address</span><input id="manualWinnerWallet" placeholder="Full Solana wallet address"/></label>
-            <label class="field" style="width:120px"><span>Shown Attempts</span><input id="manualWinnerAttempts" type="number" min="0" max="1000" value="1" placeholder="1"/></label>
-            <label class="field" style="flex:1;min-width:220px"><span>Admin Note / Source</span><input id="manualWinnerNotes" placeholder="X comment reward, internal review, etc."/></label>
-            <label style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:10px;color:var(--muted);padding-top:18px">
-              <input id="manualWinnerApproveNow" type="checkbox"/> approve now
+            <label class="field" style="width:170px"><span>Epoch Slug</span><input id="manualWinnerSlug" placeholder="echo" value="echo"/><small>Which game to update. Example: echo.</small></label>
+            <label class="field" style="flex:1;min-width:260px"><span>Winner Wallet Address</span><input id="manualWinnerWallet" placeholder="Full Solana wallet address"/><small>Paste the full wallet, not a shortened address.</small></label>
+            <label class="field" style="width:150px"><span>Shown Attempts</span><input id="manualWinnerAttempts" type="number" min="0" max="1000" value="1" placeholder="1"/><small>Attempt count displayed on leaderboard for manual winners.</small></label>
+            <label class="field" style="flex:1;min-width:220px"><span>Admin Note / Source</span><input id="manualWinnerNotes" placeholder="X comment reward, internal review, etc."/><small>Private context for why this wallet was selected.</small></label>
+            <label class="field" style="width:180px">
+              <span>Approve Immediately</span>
+              <span style="display:flex;align-items:center;gap:6px;color:var(--text);letter-spacing:0;text-transform:none;font-size:12px">
+                <input id="manualWinnerApproveNow" type="checkbox"/> Mark as approved now
+              </span>
+              <small>If unchecked, the wallet is added as a winner record but waits for later approval.</small>
             </label>
             <button onclick="addManualWinner()">Add / Update Winner</button>
             <button class="warn" onclick="unapproveEpochWinners()">Unapprove Epoch Winners</button>
@@ -369,7 +387,7 @@
     <div class="box">
       <h2 id="modalTitle">Confirm</h2>
       <p id="modalText" class="k"></p>
-      <input id="modalPhrase" placeholder="confirmation phrase" style="width:100%;margin:12px 0" />
+      <label class="field" style="width:100%;margin:12px 0"><span>Confirmation Phrase</span><input id="modalPhrase" placeholder="Type the exact phrase shown above" /><small>Required for dangerous admin actions like payout, launch, or restart.</small></label>
       <div class="actions">
         <button class="danger" id="modalConfirm">Confirm</button>
         <button onclick="closeModal()">Cancel</button>
