@@ -2908,7 +2908,7 @@ async function loadLeaderboard(){
     const r = await fetch(API_BASE + '/leaderboard?epoch=echo', { cache:'no-store' })
     const d = await r.json()
     if(!r.ok) throw new Error(d.error || 'leaderboard_failed')
-    const ended = ['closed','closing','paid'].includes(String(d.epoch?.status || '').toLowerCase())
+    const ended = ['closed','closing','paid'].includes(String(d.epoch?.status || '').toLowerCase()) || Number(d.summary?.approvedWinners || 0) > 0
     setStat('lbEpoch', ended ? 'Echo ended' : (d.epoch?.title || 'Echo'))
     setStat('lbPlayers', d.summary?.participants)
     setStat('lbAttempts', d.summary?.attempts)
@@ -2916,7 +2916,7 @@ async function loadLeaderboard(){
     renderLeaderboardRows(d.participants || [])
   }catch(e){
     ;['lbEpoch','lbPlayers','lbAttempts','lbWinners'].forEach(id => setStat(id, null))
-    if(list) list.innerHTML = `<div class="clue-item"><div class="n">RECORDS SYNCING</div>Leaderboard data is waiting for the production database migration. Official submissions remain server-side.</div>`
+    if(list) list.innerHTML = `<div class="clue-item"><div class="n">LIVE RECORDS TEMPORARILY UNAVAILABLE</div>Official submissions are safe server-side. Please refresh in a moment.</div>`
   }
 }
 

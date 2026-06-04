@@ -78,7 +78,20 @@ router.get("/", async (req, res) => {
       participants: rows.length,
       attempts: rows.reduce((sum, row) => sum + row.attempts, 0),
       winners: rows.filter((row) => row.winner).length,
+      approvedWinners: rows.filter((row) => row.approved).length,
     };
+    const startsAt = epoch.starts_at ? new Date(epoch.starts_at).getTime() : null;
+    const closesAt = (epoch.closes_at || epoch.ends_at) ? new Date(epoch.closes_at || epoch.ends_at).getTime() : null;
+    const rawStatus = String(epoch.status || "open").toLowerCase();
+    const publicStatus = epoch.paid_out_at
+      ? "paid"
+      : summary.approvedWinners > 0 || (closesAt && Date.now() >= closesAt)
+        ? "closing"
+        : startsAt && Date.now() < startsAt
+          ? "pending"
+          : ["live", "active", "open"].includes(rawStatus)
+            ? "active"
+            : rawStatus;
 
     res.json({
       epoch: {
@@ -86,12 +99,12 @@ router.get("/", async (req, res) => {
         number: epoch.epoch_number,
         title: epoch.title || `Epoch ${epoch.epoch_number}`,
         slug: epoch.slug || null,
-        status: epoch.status,
+        status: publicStatus,
         pool: Number(epoch.pool_usdc || 0),
         maxWinners: epoch.max_winners || 1,
         payoutSplit: epoch.payout_split || "equal",
-        startsAt: epoch.starts_at ? new Date(epoch.starts_at).getTime() : null,
-        closesAt: (epoch.closes_at || epoch.ends_at) ? new Date(epoch.closes_at || epoch.ends_at).getTime() : null,
+        startsAt,
+        closesAt,
       },
       summary,
       participants: rows,
