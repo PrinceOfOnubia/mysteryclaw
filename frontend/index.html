@@ -587,10 +587,12 @@ body::after{
 .clue-item a{color:var(--accent);text-decoration:none}
 .clue-item .n{color:var(--accent);letter-spacing:.2em;text-transform:uppercase;font-size:8px;margin-bottom:4px}
 .solved-banner{
-  margin-top:18px;padding:16px;border:1px solid rgba(118,242,85,.48);
-  background:linear-gradient(135deg,rgba(88,214,58,.15),rgba(9,17,10,.72));
+  margin-top:18px;padding:18px;border:1px solid rgba(245,191,66,.62);
+  background:
+    radial-gradient(circle at 88% 18%,rgba(245,191,66,.18),transparent 26%),
+    linear-gradient(135deg,rgba(245,191,66,.13),rgba(88,214,58,.08),rgba(9,17,10,.78));
   position:relative;overflow:hidden;font-family:'JetBrains Mono';color:#fff;
-  box-shadow:0 0 34px rgba(88,214,58,.12);
+  box-shadow:0 0 42px rgba(245,191,66,.16), inset 0 0 32px rgba(88,214,58,.05);
 }
 .solved-banner::before,.solved-banner::after{
   content:'';position:absolute;width:18px;height:24px;border-radius:50% 50% 45% 45%;
@@ -599,15 +601,32 @@ body::after{
 }
 .solved-banner::before{right:28px;top:14px}
 .solved-banner::after{right:62px;top:34px;animation-delay:.7s;transform:scale(.72)}
-.solved-crown{font-size:30px;line-height:1;margin-bottom:8px;color:var(--accent);text-shadow:0 0 18px rgba(118,242,85,.42)}
-.solved-title{font-family:'Inter';font-size:20px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.solved-crown{font-size:34px;line-height:1;margin-bottom:8px;color:#f5bf42;text-shadow:0 0 22px rgba(245,191,66,.62)}
+.solved-title{font-family:'Inter';font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;color:#f5bf42;text-shadow:0 0 24px rgba(245,191,66,.28)}
 .solved-copy{font-size:11px;line-height:1.7;color:var(--text-dim);max-width:520px}
+.solved-banner.hero-solved{
+  margin:0 0 22px;max-width:660px;padding:22px;
+  border-color:rgba(245,191,66,.82);
+  box-shadow:0 0 54px rgba(245,191,66,.2), inset 0 0 38px rgba(88,214,58,.06);
+}
+.solved-banner.hero-solved .solved-title{font-size:clamp(24px,3.2vw,40px)}
+.solved-banner.hero-solved .solved-crown{font-size:42px}
 @keyframes floatBalloon{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
 .terminal-solved-banner{
   margin:18px 32px 0;position:relative;z-index:2;display:none;
 }
 .terminal-solved-banner.on{display:block}
 .terminal-solved-banner .solved-banner{margin-top:0}
+.terminal-input-solved{
+  display:none;padding:18px 24px;border-top:1px solid rgba(245,191,66,.45);
+  background:
+    radial-gradient(circle at 92% 20%,rgba(245,191,66,.18),transparent 28%),
+    linear-gradient(90deg,rgba(245,191,66,.1),rgba(0,0,0,.74));
+  position:relative;z-index:2;
+}
+.terminal-input-solved.on{display:block}
+.terminal-input-solved .solved-banner{margin-top:0;padding:18px 20px}
+.terminal-input-solved .solved-title{font-size:22px}
 .guess-solved-lock{display:none;margin-bottom:18px}
 .guess-solved-lock.on{display:block}
 .term-nav a.disabled,.ib-action .bp:disabled,#guessSubmitBtn:disabled{
@@ -1122,10 +1141,14 @@ body::after{
 
 /* === LEADERBOARD / PROFILE === */
 .board-wrap{padding:120px 60px 80px;max-width:1220px;margin:0 auto;width:100%}
-.board-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px}
+.board-head{display:block;margin-bottom:16px}
 .board-kicker{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.42em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
 .board-head h1{font-size:clamp(42px,7vw,96px);line-height:.9;letter-spacing:0;text-transform:uppercase;font-weight:900}
-.board-head p{max-width:520px;font-family:'JetBrains Mono';font-size:12px;line-height:1.8;color:var(--text-dim)}
+.board-note{
+  max-width:720px;margin:14px 0 26px;padding:12px 14px;border-left:2px solid var(--accent-dim);
+  background:rgba(88,214,58,.035);font-family:'JetBrains Mono';font-size:11px;
+  line-height:1.75;color:var(--text-dim);
+}
 .board-summary{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line-2);background:rgba(9,17,10,.72);margin-bottom:28px}
 .board-stat{padding:22px;border-right:1px solid var(--line)}
 .board-stat:last-child{border-right:0}
@@ -1143,10 +1166,24 @@ body::after{
 .leader-user{display:flex;align-items:center;gap:12px;min-width:0}
 .leader-avatar{
   width:44px;height:44px;border-radius:50%;border:1px solid var(--line-2);
-  background:rgba(88,214,58,.08);display:flex;align-items:center;justify-content:center;
-  overflow:hidden;color:var(--accent);font-weight:900;flex:0 0 auto;
+  background:var(--avatar-bg,rgba(88,214,58,.08));display:flex;align-items:center;justify-content:center;
+  overflow:hidden;color:var(--avatar-fg,var(--accent));font-weight:900;flex:0 0 auto;
+  box-shadow:inset 0 0 18px rgba(0,0,0,.35),0 0 18px var(--avatar-glow,rgba(88,214,58,.12));
+  appearance:none;padding:0;
 }
 .leader-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.leader-avatar.preset{font-family:'Inter';font-size:16px;text-shadow:0 0 10px rgba(0,0,0,.62)}
+.profile-preview .leader-avatar{cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+.profile-preview .leader-avatar:hover{transform:translateY(-1px);border-color:#f5bf42;box-shadow:0 0 28px rgba(245,191,66,.22)}
+.avatar-picker{display:grid;grid-template-columns:repeat(6,44px);gap:10px;margin:10px 0 4px}
+.avatar-choice{
+  width:44px;height:44px;border-radius:50%;border:1px solid var(--line-2);cursor:pointer;
+  background:var(--avatar-bg);color:var(--avatar-fg);display:flex;align-items:center;justify-content:center;
+  font-family:'Inter';font-size:16px;font-weight:900;transition:all .2s;
+  box-shadow:inset 0 0 18px rgba(0,0,0,.35),0 0 16px var(--avatar-glow,rgba(88,214,58,.12));
+}
+.avatar-choice:hover,.avatar-choice.active{border-color:#f5bf42;transform:translateY(-1px);box-shadow:0 0 24px rgba(245,191,66,.2)}
+.avatar-help{font-family:'JetBrains Mono';font-size:9px;line-height:1.7;color:var(--text-mute);letter-spacing:.08em}
 .leader-name{font-weight:900;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .leader-wallet{font-family:'JetBrains Mono';font-size:10px;color:var(--text-mute);margin-top:3px}
 .leader-metric .l{font-family:'JetBrains Mono';font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-mute);margin-bottom:4px}
@@ -1461,6 +1498,7 @@ body::after{
       <div>
         <div class="epoch-kicker">TRIALS OF ECHO // LAUNCH COUNTDOWN</div>
         <h2 class="echo-title">TRIALS OF ECHO</h2>
+        <div id="echoHeroSolvedBanner"></div>
         <p class="epoch-copy">
           Fragments will appear across X and inside the terminal. No single clue is enough.
           Mysterio is the engine beneath the archive. Echo begins when the launch countdown reaches zero. Your job is to reconstruct the answer.
@@ -1484,7 +1522,7 @@ body::after{
       <div class="epoch-panel">
         <div class="epoch-status" id="echoEpochStatus">LIVE</div>
         <div style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin-bottom:8px">COUNTDOWN</div>
-        <div class="epoch-countdown" id="echoCountdown">SYNCING</div>
+        <div class="epoch-countdown" id="echoCountdown">WAITING</div>
         <div style="display:flex;justify-content:space-between;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase">
           <span>Attempts remaining</span>
           <span id="echoAttemptsRemaining" style="color:var(--accent)">10</span>
@@ -1838,7 +1876,7 @@ body::after{
       </div>
       <div class="tsb-row">
         <span class="tsb-label">ECHO TIMER</span>
-        <span class="tsb-val" id="terminalEpochTimer" style="color:var(--accent)">SYNCING</span>
+        <span class="tsb-val" id="terminalEpochTimer" style="color:var(--accent)">WAITING</span>
       </div>
     </div>
   </aside>
@@ -1864,7 +1902,8 @@ body::after{
             <div class="typing-dot" style="animation-delay:.4s"></div>
           </div>
         </div>
-        <div class="chat-input-row">
+        <div id="terminalInputSolved" class="terminal-input-solved"></div>
+        <div class="chat-input-row" id="chatInputRow">
           <span class="chat-prompt">›</span>
           <input id="chatIn" class="chat-input" autocomplete="off" spellcheck="false"
             placeholder="Ask Mysterio for clues..."
@@ -1930,6 +1969,7 @@ body::after{
       <div>
         <div class="epoch-kicker">TRIALS OF ECHO // LAUNCH COUNTDOWN</div>
         <h2 class="echo-title">TRIALS OF ECHO</h2>
+        <div id="echoPageHeroSolvedBanner"></div>
         <p class="epoch-copy">
           Fragments will appear across X and inside the terminal. No single clue is enough.
           Mysterio is the engine beneath the archive. Echo begins when the launch countdown reaches zero. Your job is to reconstruct the answer.
@@ -1953,7 +1993,7 @@ body::after{
       <div class="epoch-panel">
         <div class="epoch-status" id="echoPageStatus">LIVE</div>
         <div style="font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin-bottom:8px">COUNTDOWN</div>
-        <div class="epoch-countdown" id="echoPageCountdown">SYNCING</div>
+        <div class="epoch-countdown" id="echoPageCountdown">WAITING</div>
         <div style="display:flex;justify-content:space-between;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase">
           <span>Attempts remaining</span>
           <span id="echoPageAttemptsRemaining" style="color:var(--accent)">10</span>
@@ -1975,11 +2015,8 @@ body::after{
         <div class="board-kicker">OFFICIAL WEBSITE SUBMISSIONS</div>
         <h1>LEADERBOARD</h1>
       </div>
-      <p>
-        Every wallet that submits an official answer appears here. X theories are public investigation;
-        only signed MysteryClaw submissions count toward attempts, ranks, and winner status.
-      </p>
     </div>
+    <p class="board-note">Official submissions determine rank, attempts, and winner status. X is for public theories.</p>
     <div class="board-summary">
       <div class="board-stat"><div class="l">Epoch</div><div class="v" id="lbEpoch">—</div></div>
       <div class="board-stat"><div class="l">Participants</div><div class="v" id="lbPlayers">—</div></div>
@@ -2001,14 +2038,14 @@ body::after{
         <h1>PROFILE</h1>
       </div>
       <p>
-        Set the name and image shown on the leaderboard. Updates require a fresh Phantom signature,
-        so only the wallet owner can change a profile.
+        Set the identity shown on the leaderboard. Updates require a fresh Phantom signature,
+        so only the wallet owner can change it.
       </p>
     </div>
     <div class="profile-grid">
       <div class="profile-card">
         <div class="profile-preview">
-          <div class="leader-avatar" id="profileAvatar">?</div>
+          <button type="button" class="leader-avatar" id="profileAvatar" onclick="focusAvatarPicker()" title="Change avatar">?</button>
           <div>
             <div class="leader-name" id="profileName">CONNECT WALLET</div>
             <div class="profile-wallet" id="profileWallet">No wallet connected</div>
@@ -2019,15 +2056,16 @@ body::after{
           <div class="board-stat"><div class="l">Wins</div><div class="v" id="profileWins">—</div></div>
         </div>
         <div class="profile-note">
-          Public profile data is limited to your display name, avatar URL, short bio, and game stats.
+          Public profile data is limited to your display name, selected avatar, short bio, and game stats.
           Private wallet signatures and auth nonces are never shown here.
         </div>
       </div>
       <div class="profile-form">
         <label>Display name</label>
         <input id="profileDisplayName" maxlength="32" placeholder="Archive name"/>
-        <label>Avatar image URL</label>
-        <input id="profileAvatarUrl" maxlength="300" placeholder="https://..."/>
+        <label>Avatar</label>
+        <div id="avatarPicker" class="avatar-picker"></div>
+        <div class="avatar-help">Click an avatar to update your leaderboard identity.</div>
         <label>Bio</label>
         <textarea id="profileBio" maxlength="140" placeholder="Short investigator note"></textarea>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
@@ -2035,7 +2073,7 @@ body::after{
           <button class="bg" onclick="loadMyProfile()">REFRESH</button>
         </div>
         <div class="profile-note">
-          Images are stored as URLs for now. Use a permanent HTTPS image link so the leaderboard can render it reliably.
+          Avatars are MysteryClaw presets. No image uploads or external URLs are required.
         </div>
       </div>
     </div>
@@ -2217,6 +2255,16 @@ const TOKENS = [
     dex:`https://pump.fun/coin/${PENGXBT_MINT}`
   }
 ]
+
+const AVATAR_PRESETS = [
+  { id:'nft:emerald', glyph:'◈', bg:'linear-gradient(135deg,#163D12,#58D63A)', fg:'#061006', glow:'rgba(88,214,58,.28)' },
+  { id:'nft:gold', glyph:'♛', bg:'linear-gradient(135deg,#352309,#f5bf42)', fg:'#080602', glow:'rgba(245,191,66,.28)' },
+  { id:'nft:onyx', glyph:'◆', bg:'linear-gradient(135deg,#060806,#2F7A1D)', fg:'#76F255', glow:'rgba(118,242,85,.18)' },
+  { id:'nft:signal', glyph:'⌁', bg:'linear-gradient(135deg,#092015,#4FCB35)', fg:'#020602', glow:'rgba(79,203,53,.24)' },
+  { id:'nft:archive', glyph:'◇', bg:'linear-gradient(135deg,#0c120c,#76F255)', fg:'#061006', glow:'rgba(118,242,85,.26)' },
+  { id:'nft:shadow', glyph:'∎', bg:'linear-gradient(135deg,#010301,#163D12)', fg:'#58D63A', glow:'rgba(88,214,58,.16)' }
+]
+let selectedAvatar = AVATAR_PRESETS[0].id
 
 function renderTokenGate(){
   const g = document.getElementById('tgGrid')
@@ -2722,9 +2770,59 @@ function renderHoldings(){
   access.style.color = 'var(--accent)'
 }
 
-function avatarHtml(url, fallback){
-  if(url) return `<img src="${esc(url)}" alt=""/>`
-  return esc((fallback || '?').slice(0,1).toUpperCase())
+function hashString(value){
+  return String(value || '').split('').reduce((sum, ch) => ((sum << 5) - sum + ch.charCodeAt(0)) | 0, 0)
+}
+
+function avatarPreset(id, seed){
+  const byId = AVATAR_PRESETS.find(a => a.id === id)
+  if(byId) return byId
+  const index = Math.abs(hashString(seed || id || 'mysteryclaw')) % AVATAR_PRESETS.length
+  return AVATAR_PRESETS[index]
+}
+
+function avatarStyle(value, fallback){
+  const preset = avatarPreset(value, fallback)
+  return `--avatar-bg:${preset.bg};--avatar-fg:${preset.fg};--avatar-glow:${preset.glow}`
+}
+
+function avatarHtml(value, fallback){
+  const preset = avatarPreset(value, fallback)
+  return esc(preset.glyph)
+}
+
+function renderAvatarPicker(activeId){
+  const picker = document.getElementById('avatarPicker')
+  if(!picker) return
+  selectedAvatar = avatarPreset(activeId, S.wallet || 'mysteryclaw').id
+  picker.innerHTML = AVATAR_PRESETS.map(a => `
+    <button type="button" class="avatar-choice ${a.id === selectedAvatar ? 'active' : ''}"
+      style="--avatar-bg:${a.bg};--avatar-fg:${a.fg};--avatar-glow:${a.glow}"
+      onclick="selectAvatar('${a.id}')">${esc(a.glyph)}</button>
+  `).join('')
+}
+
+function selectAvatar(id){
+  selectedAvatar = avatarPreset(id, S.wallet || 'mysteryclaw').id
+  renderAvatarPicker(selectedAvatar)
+  const avatarEl = document.getElementById('profileAvatar')
+  const name = document.getElementById('profileDisplayName')?.value || S.wallet || 'Investigator'
+  if(avatarEl){
+    avatarEl.classList.add('preset')
+    avatarEl.setAttribute('style', avatarStyle(selectedAvatar, name))
+    avatarEl.innerHTML = avatarHtml(selectedAvatar, name)
+  }
+}
+
+function focusAvatarPicker(){
+  const picker = document.getElementById('avatarPicker')
+  if(!picker) return
+  picker.scrollIntoView({ behavior:'smooth', block:'center' })
+  picker.animate([
+    { filter:'drop-shadow(0 0 0 rgba(245,191,66,0))' },
+    { filter:'drop-shadow(0 0 18px rgba(245,191,66,.45))' },
+    { filter:'drop-shadow(0 0 0 rgba(245,191,66,0))' }
+  ], { duration:900, easing:'ease-out' })
 }
 
 async function loadLeaderboard(){
@@ -2734,14 +2832,15 @@ async function loadLeaderboard(){
     const r = await fetch(API_BASE + '/leaderboard?epoch=echo', { cache:'no-store' })
     const d = await r.json()
     if(!r.ok) throw new Error(d.error || 'leaderboard_failed')
-    setStat('lbEpoch', d.epoch?.title || 'Echo')
+    const ended = ['closed','closing','paid'].includes(String(d.epoch?.status || '').toLowerCase())
+    setStat('lbEpoch', ended ? 'Echo ended' : (d.epoch?.title || 'Echo'))
     setStat('lbPlayers', d.summary?.participants)
     setStat('lbAttempts', d.summary?.attempts)
     setStat('lbWinners', d.summary?.winners)
     renderLeaderboardRows(d.participants || [])
   }catch(e){
     ;['lbEpoch','lbPlayers','lbAttempts','lbWinners'].forEach(id => setStat(id, null))
-    if(list) list.innerHTML = `<div class="clue-item"><div class="n">LEADERBOARD OFFLINE</div>Official submissions could not be loaded.</div>`
+    if(list) list.innerHTML = `<div class="clue-item"><div class="n">RECORDS SYNCING</div>Leaderboard data is waiting for the production database migration. Official submissions remain server-side.</div>`
   }
 }
 
@@ -2761,7 +2860,7 @@ function renderLeaderboardRows(rows){
       <div class="leader-row ${row.winner ? 'winner' : ''}">
         <div class="leader-rank">#${row.rank}</div>
         <div class="leader-user">
-          <div class="leader-avatar">${avatarHtml(row.avatarUrl, name)}</div>
+          <div class="leader-avatar preset" style="${avatarStyle(row.avatarUrl, row.wallet || name)}">${avatarHtml(row.avatarUrl, row.wallet || name)}</div>
           <div style="min-width:0">
             <div class="leader-name">${esc(name)}</div>
             <div class="leader-wallet">${esc(row.shortWallet || row.wallet)}</div>
@@ -2783,7 +2882,10 @@ async function loadMyProfile(){
   if(!S.wallet){
     nameEl.textContent = 'CONNECT WALLET'
     walletEl.textContent = 'No wallet connected'
-    avatarEl.innerHTML = '?'
+    avatarEl.classList.add('preset')
+    avatarEl.setAttribute('style', avatarStyle('', 'guest'))
+    avatarEl.innerHTML = avatarHtml('', 'guest')
+    renderAvatarPicker(selectedAvatar)
     ;['profileGuesses','profileWins'].forEach(id => setStat(id, null))
     return
   }
@@ -2795,16 +2897,23 @@ async function loadMyProfile(){
     if(!r.ok && d.error !== 'profile_not_found') throw new Error(d.error || 'profile_failed')
     const profile = r.ok ? d : null
     const displayName = profile?.displayName || fallback
+    selectedAvatar = avatarPreset(profile?.avatarUrl, S.wallet).id
     nameEl.textContent = displayName
-    avatarEl.innerHTML = avatarHtml(profile?.avatarUrl, displayName)
+    avatarEl.classList.add('preset')
+    avatarEl.setAttribute('style', avatarStyle(selectedAvatar, S.wallet))
+    avatarEl.innerHTML = avatarHtml(selectedAvatar, S.wallet)
     document.getElementById('profileDisplayName').value = profile?.displayName || ''
-    document.getElementById('profileAvatarUrl').value = profile?.avatarUrl || ''
     document.getElementById('profileBio').value = profile?.bio || ''
+    renderAvatarPicker(selectedAvatar)
     setStat('profileGuesses', profile?.stats?.guesses || 0)
     setStat('profileWins', profile?.stats?.wins || 0)
   }catch(e){
     nameEl.textContent = fallback
-    avatarEl.innerHTML = avatarHtml('', fallback)
+    selectedAvatar = avatarPreset('', S.wallet).id
+    avatarEl.classList.add('preset')
+    avatarEl.setAttribute('style', avatarStyle(selectedAvatar, S.wallet))
+    avatarEl.innerHTML = avatarHtml(selectedAvatar, S.wallet)
+    renderAvatarPicker(selectedAvatar)
     toast('Profile could not be loaded')
   }
 }
@@ -2820,7 +2929,7 @@ async function saveProfile(){
       pubkey:S.wallet,
       walletAuth,
       displayName:document.getElementById('profileDisplayName').value,
-      avatarUrl:document.getElementById('profileAvatarUrl').value,
+      avatarUrl:selectedAvatar,
       bio:document.getElementById('profileBio').value
     }
     const r = await fetch(API_BASE + '/profile', {
@@ -2836,8 +2945,8 @@ async function saveProfile(){
   }catch(e){
     const msg = e.message === 'invalid_display_name'
       ? 'Use 2-32 letters, numbers, spaces, dot, dash, or underscore'
-      : e.message === 'invalid_avatar_url'
-        ? 'Avatar must be a valid image URL'
+      : (e.message === 'invalid_avatar' || e.message === 'invalid_avatar_url')
+        ? 'Choose one of the MysteryClaw avatars'
         : e.message && e.message.startsWith('wallet_')
           ? 'Wallet signature failed — try again'
           : 'Profile update failed'
@@ -3296,9 +3405,17 @@ function formatCountdown(ms){
 }
 
 function renderPrizeCountdown(){
+  if(S.echo?.solved || ['closed','closing','paid'].includes(String(S.echo?.status || '').toLowerCase())){
+    const solvedValue = 'ENDED'
+    ;['prizeTimer','terminalEpochTimer','echoCountdown','echoPageCountdown'].forEach(id => {
+      const el = document.getElementById(id)
+      if(el) el.textContent = solvedValue
+    })
+    return
+  }
   const isPending = S.echo?.status === 'pending'
   const target = isPending && S.echo?.startsAt ? S.echo.startsAt : prizeClosesAt
-  const value = target ? formatCountdown(target - Date.now()) : 'SYNCING'
+  const value = target ? formatCountdown(target - Date.now()) : 'WAITING'
   const prizeTimer = document.getElementById('prizeTimer')
   const terminalTimer = document.getElementById('terminalEpochTimer')
   const echoTimer = document.getElementById('echoCountdown')
@@ -3340,13 +3457,13 @@ async function loadPrizeStatus(){
     if(live){
       if(isEpochSolved(d)){
         live.style.display = 'flex'
-        live.innerHTML = `<span class="d"></span><span>Mystery solved · ${d.approvedWinners} winner${d.approvedWinners===1?'':'s'} approved</span>`
+        live.innerHTML = `<span class="d"></span><span>Mystery solved · winners approved</span>`
       } else if(d.submissionsPaused){
         live.style.display = 'flex'
         live.innerHTML = `<span class="d"></span><span>Echo is paused · official submissions are temporarily suspended</span>`
       } else if(d.status === 'pending'){
         live.style.display = 'flex'
-        live.innerHTML = `<span class="d"></span><span>Echo launches in <b id="prizeTimer">${S.echo.startsAt ? formatCountdown(S.echo.startsAt - Date.now()) : 'SYNCING'}</b> · official guesses open at launch</span>`
+        live.innerHTML = `<span class="d"></span><span>Echo launches in <b id="prizeTimer">${S.echo.startsAt ? formatCountdown(S.echo.startsAt - Date.now()) : 'WAITING'}</b> · official guesses open at launch</span>`
       } else if(d.status === 'active' && d.winners > 0){
         const share = Math.floor(d.estimatedShare)
         live.style.display = 'flex'
@@ -3356,10 +3473,15 @@ async function loadPrizeStatus(){
         live.innerHTML = `<span class="d"></span><span>Epoch closed — payout processing on-chain...</span>`
       } else {
         live.style.display = 'flex'
-        live.innerHTML = `<span class="d"></span><span>Pool open · <b id="prizeTimer">${prizeClosesAt ? formatCountdown(prizeClosesAt - Date.now()) : 'SYNCING'}</b> remaining · be the first to recover the word</span>`
+        live.innerHTML = `<span class="d"></span><span>Pool open · <b id="prizeTimer">${prizeClosesAt ? formatCountdown(prizeClosesAt - Date.now()) : 'WAITING'}</b> remaining · be the first to recover the word</span>`
       }
     }
-  }catch(e){ /* silent */ }
+  }catch(e){
+    ;['echoCountdown','echoPageCountdown','terminalEpochTimer'].forEach(id => {
+      const el = document.getElementById(id)
+      if(el && ['SYNCING','WAITING'].includes(el.textContent)) el.textContent = 'ENDED'
+    })
+  }
 }
 loadPrizeStatus()
 loadEchoEpoch()
@@ -3432,22 +3554,41 @@ function renderSolvedState(d, solved){
   S.echo.solved = !!solved
   S.echo.approvedWinners = approved
   S.echo.paidWinners = Number(d?.paidWinners || 0)
+  const solvedCopy = 'Winners approved. Echo is sealed and official submissions are closed.'
   const copy = solved
     ? `<div class="solved-banner">
         <div class="solved-crown">♛</div>
         <div class="solved-title">Mystery Solved</div>
-        <div class="solved-copy">${approved} winner${approved===1?'':'s'} approved. Echo is sealed and official submissions are closed.</div>
+        <div class="solved-copy">${solvedCopy}</div>
+      </div>`
+    : ''
+  const heroCopy = solved
+    ? `<div class="solved-banner hero-solved">
+        <div class="solved-crown">♛</div>
+        <div class="solved-title">Mystery Solved</div>
+        <div class="solved-copy">${solvedCopy}</div>
       </div>`
     : ''
   ;['echoSolvedBanner','echoPageSolvedBanner'].forEach(id => {
     const el = document.getElementById(id)
     if(el) el.innerHTML = copy
   })
+  ;['echoHeroSolvedBanner','echoPageHeroSolvedBanner'].forEach(id => {
+    const el = document.getElementById(id)
+    if(el) el.innerHTML = heroCopy
+  })
   const terminalBanner = document.getElementById('terminalSolvedBanner')
   if(terminalBanner){
     terminalBanner.innerHTML = copy
     terminalBanner.classList.toggle('on', solved)
   }
+  const terminalInputSolved = document.getElementById('terminalInputSolved')
+  if(terminalInputSolved){
+    terminalInputSolved.innerHTML = copy
+    terminalInputSolved.classList.toggle('on', solved)
+  }
+  const chatInputRow = document.getElementById('chatInputRow')
+  if(chatInputRow) chatInputRow.style.display = solved ? 'none' : 'flex'
   const guessLock = document.getElementById('guessSolvedLock')
   if(guessLock){
     guessLock.innerHTML = copy

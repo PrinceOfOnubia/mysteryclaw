@@ -20,26 +20,13 @@ function cleanDisplayName(value) {
   return name;
 }
 
-function cleanAvatarUrl(value) {
-  const url = String(value || "").trim();
-  if (!url) return null;
-  if (url.length > 300) {
-    const err = new Error("invalid_avatar_url");
-    err.status = 400;
-    throw err;
-  }
-  try {
-    const parsed = new URL(url);
-    if (!["https:", "http:"].includes(parsed.protocol)) throw new Error("bad protocol");
-    if (parsed.protocol === "http:" && !["localhost", "127.0.0.1"].includes(parsed.hostname)) {
-      throw new Error("insecure avatar");
-    }
-    return parsed.toString();
-  } catch {
-    const err = new Error("invalid_avatar_url");
-    err.status = 400;
-    throw err;
-  }
+function cleanAvatarId(value) {
+  const avatar = String(value || "").trim().toLowerCase();
+  if (!avatar) return null;
+  if (/^nft:[a-z0-9_-]{2,32}$/.test(avatar)) return avatar;
+  const err = new Error("invalid_avatar");
+  err.status = 400;
+  throw err;
 }
 
 function cleanBio(value) {
@@ -123,7 +110,7 @@ router.post("/", async (req, res) => {
     await verifyWalletAuth(wallet, walletAuth);
 
     const displayName = cleanDisplayName(req.body.displayName);
-    const avatarUrl = cleanAvatarUrl(req.body.avatarUrl);
+    const avatarUrl = cleanAvatarId(req.body.avatarUrl);
     const bio = cleanBio(req.body.bio);
 
     const result = await query(
