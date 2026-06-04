@@ -8,6 +8,18 @@ function shortWallet(wallet) {
   return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
 }
 
+function publicEpochStatus(epoch, approvedWinners = 0) {
+  const rawStatus = String(epoch.status || "open").toLowerCase();
+  const closesAt = (epoch.closes_at || epoch.ends_at) ? new Date(epoch.closes_at || epoch.ends_at).getTime() : null;
+  const startsAt = epoch.starts_at ? new Date(epoch.starts_at).getTime() : null;
+  if (epoch.paid_out_at) return "paid";
+  if (epoch.slug === "mysterio" || rawStatus === "closed") return "closed";
+  if (approvedWinners > 0 || (closesAt && Date.now() >= closesAt)) return "closing";
+  if (startsAt && Date.now() < startsAt) return "pending";
+  if (["live", "active", "open"].includes(rawStatus)) return "active";
+  return rawStatus;
+}
+
 router.get("/", async (req, res) => {
   try {
     if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
@@ -104,16 +116,7 @@ router.get("/", async (req, res) => {
     };
     const startsAt = epoch.starts_at ? new Date(epoch.starts_at).getTime() : null;
     const closesAt = (epoch.closes_at || epoch.ends_at) ? new Date(epoch.closes_at || epoch.ends_at).getTime() : null;
-    const rawStatus = String(epoch.status || "open").toLowerCase();
-    const publicStatus = epoch.paid_out_at
-      ? "paid"
-      : summary.approvedWinners > 0 || (closesAt && Date.now() >= closesAt)
-        ? "closing"
-        : startsAt && Date.now() < startsAt
-          ? "pending"
-          : ["live", "active", "open"].includes(rawStatus)
-            ? "active"
-            : rawStatus;
+    const publicStatus = publicEpochStatus(epoch, summary.approvedWinners);
 
     res.json({
       epoch: {
@@ -132,7 +135,7 @@ router.get("/", async (req, res) => {
         number: e.epoch_number,
         title: e.title || `Epoch ${e.epoch_number}`,
         slug: e.slug || null,
-        status: e.paid_out_at ? "paid" : e.status,
+        status: publicEpochStatus(e),
         startsAt: e.starts_at ? new Date(e.starts_at).getTime() : null,
         closesAt: (e.closes_at || e.ends_at) ? new Date(e.closes_at || e.ends_at).getTime() : null,
       })),

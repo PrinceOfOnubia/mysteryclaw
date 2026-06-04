@@ -55,7 +55,7 @@ function profileFromRow(row) {
     profileUpdatedAt: row.profile_updated_at ? new Date(row.profile_updated_at).getTime() : null,
     stats: {
       guesses: Number(row.guesses || 0),
-      correctGuesses: Number(row.correct_guesses || 0),
+      correctGuesses: Math.min(1, Number(row.correct_guesses || 0)),
       wins: Number(row.wins || 0),
       approvedWins: Number(row.approved_wins || 0),
       paidWins: Number(row.paid_wins || 0),
@@ -83,7 +83,7 @@ router.get("/:wallet", async (req, res) => {
        left join users u on u.wallet_pubkey = wallet.wallet_pubkey
        left join lateral (
          select count(*)::int as guesses,
-            count(*) filter (where correct)::int as correct_guesses,
+            least(1, count(*) filter (where correct))::int as correct_guesses,
             min(created_at) as first_played_at,
             max(created_at) as last_played_at
          from guesses

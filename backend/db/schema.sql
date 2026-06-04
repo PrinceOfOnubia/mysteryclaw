@@ -192,6 +192,7 @@ on conflict (epoch_number) do nothing;
 update prize_epochs
 set title = coalesce(title, 'Epoch 01: Mysterio'),
     slug = coalesce(slug, 'mysterio'),
+    status = 'closed',
     secret_env_var = coalesce(secret_env_var, 'SECRET_WORD')
 where epoch_number = 1;
 
