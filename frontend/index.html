@@ -603,6 +603,23 @@ body::after{
 .solved-title{font-family:'Inter';font-size:20px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
 .solved-copy{font-size:11px;line-height:1.7;color:var(--text-dim);max-width:520px}
 @keyframes floatBalloon{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.terminal-solved-banner{
+  margin:18px 32px 0;position:relative;z-index:2;display:none;
+}
+.terminal-solved-banner.on{display:block}
+.terminal-solved-banner .solved-banner{margin-top:0}
+.guess-solved-lock{display:none;margin-bottom:18px}
+.guess-solved-lock.on{display:block}
+.term-nav a.disabled,.ib-action .bp:disabled,#guessSubmitBtn:disabled{
+  opacity:.86;cursor:not-allowed;pointer-events:none;
+  border-color:rgba(118,242,85,.5);
+  background:linear-gradient(135deg,rgba(118,242,85,.16),rgba(88,214,58,.08));
+  color:var(--accent);
+}
+#gIn:disabled{
+  opacity:.55;cursor:not-allowed;border-color:rgba(118,242,85,.35);
+  background:rgba(0,0,0,.72);color:var(--text-mute);
+}
 @media(max-width:900px){.epoch-live{padding:58px 18px}.epoch-live-inner{grid-template-columns:1fr}.epoch-rules{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.epoch-actions{flex-wrap:wrap}.epoch-actions .bp,.epoch-actions .bg{width:100%}}
 @media(max-width:520px){.epoch-live h2.echo-title{font-size:clamp(31px,10vw,42px)}.epoch-rules{grid-template-columns:1fr}.epoch-countdown{font-size:36px}}
@@ -1304,6 +1321,7 @@ body::after{
     <p style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.8;margin-bottom:20px">
       Enter the single word you believe Echo is hiding. A correct verified website submission claims a share of the <span style="color:var(--accent)">$1,000 USDC pool</span> — split evenly if there are multiple winners.
     </p>
+    <div id="guessSolvedLock" class="guess-solved-lock"></div>
     <div style="background:#000;border:1px solid var(--line);padding:12px 14px;margin-bottom:18px;font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute);letter-spacing:.1em;line-height:1.7">
       Public access. 10 official attempts per wallet per game session. Verification is server-side. The word never lives on the client.
     </div>
@@ -1314,7 +1332,7 @@ body::after{
         onkeydown="if(event.key==='Enter')submitGuess()"/>
     </div>
     <div style="font-family:'JetBrains Mono';font-size:10px;color:var(--text-mute);margin-bottom:24px;letter-spacing:.1em">ATTEMPTS LOGGED: <span id="guessCount" style="color:var(--accent)">0</span></div>
-    <button class="bp" style="width:100%;justify-content:center" onclick="submitGuess()">SUBMIT TO ARCHIVE</button>
+    <button class="bp" id="guessSubmitBtn" style="width:100%;justify-content:center" onclick="submitGuess()">SUBMIT TO ARCHIVE</button>
   </div>
 </div>
 
@@ -1795,7 +1813,7 @@ body::after{
 
     <nav class="term-nav">
       <a class="active"><span class="ico">›</span>GET CLUES</a>
-      <a onclick="openGuess()"><span class="ico">★</span>SUBMIT WORD</a>
+      <a id="terminalSubmitNav" onclick="openGuess()"><span class="ico">★</span>SUBMIT WORD</a>
       <a onclick="go('lore')"><span class="ico">∎</span>INCIDENT FILE</a>
       <a onclick="go('disc')"><span class="ico">⊙</span>DISCOVERIES</a>
     </nav>
@@ -1837,6 +1855,7 @@ body::after{
 
     <div class="term-body">
       <div class="term-chat">
+        <div id="terminalSolvedBanner" class="terminal-solved-banner"></div>
         <div id="chatOut" class="chat-out"></div>
         <div id="typingInd" class="typing-row">
           <div class="typing-box">
@@ -1897,7 +1916,7 @@ body::after{
         </div>
 
         <div class="ib-action">
-          <button class="bp" onclick="openGuess()">SUBMIT WORD</button>
+          <button class="bp" id="terminalSubmitBtn" onclick="openGuess()">SUBMIT WORD</button>
         </div>
       </aside>
     </div>
@@ -2143,7 +2162,7 @@ const S = {
   holdings:null,        // populated after /holdings call
   hasAccess:false,      // true if user holds at least 1 access token; Echo remains public
   pendingSaveText:null, // fragment text waiting for category in save modal
-  echo:{ status:'pending', maxAttempts:10, maxWinners:1, payoutSplit:'equal', startsAt:null, closesAt:null, submissionsPaused:false }
+  echo:{ status:'pending', maxAttempts:10, maxWinners:1, payoutSplit:'equal', startsAt:null, closesAt:null, submissionsPaused:false, solved:false, approvedWinners:0, paidWinners:0 }
 }
 
 const DEFAULT_API_BASE = 'https://piverse-production.up.railway.app'
@@ -3099,6 +3118,11 @@ function renderWrong(){
 // GUESS
 // ═══════════════════════════════════════════════════════════
 function openGuess(){
+  if(S.echo?.solved){
+    renderSolvedState(S.echo, true)
+    toast('Mystery solved — winners approved and official submissions are closed')
+    return
+  }
   if(!S.wallet){
     S.pendingRedirect = 'term'
     openM('mAuth')
@@ -3125,6 +3149,12 @@ function openGuess(){
 }
 
 async function submitGuess(){
+  if(S.echo?.solved){
+    closeM('mGuess')
+    renderSolvedState(S.echo, true)
+    toast('Mystery solved — winners approved and official submissions are closed')
+    return
+  }
   // hard gate — must be connected
   if(!S.wallet){
     closeM('mGuess')
@@ -3394,11 +3424,14 @@ async function loadEchoEpoch(){
 }
 
 function isEpochSolved(d){
-  return Number(d?.approvedWinners || 0) > 0 && ['closed','closing','paid'].includes(String(d?.status || '').toLowerCase())
+  return Number(d?.approvedWinners || 0) > 0 || ['closed','closing','paid'].includes(String(d?.status || '').toLowerCase())
 }
 
 function renderSolvedState(d, solved){
   const approved = Number(d?.approvedWinners || 0)
+  S.echo.solved = !!solved
+  S.echo.approvedWinners = approved
+  S.echo.paidWinners = Number(d?.paidWinners || 0)
   const copy = solved
     ? `<div class="solved-banner">
         <div class="solved-crown">♛</div>
@@ -3410,6 +3443,16 @@ function renderSolvedState(d, solved){
     const el = document.getElementById(id)
     if(el) el.innerHTML = copy
   })
+  const terminalBanner = document.getElementById('terminalSolvedBanner')
+  if(terminalBanner){
+    terminalBanner.innerHTML = copy
+    terminalBanner.classList.toggle('on', solved)
+  }
+  const guessLock = document.getElementById('guessSolvedLock')
+  if(guessLock){
+    guessLock.innerHTML = copy
+    guessLock.classList.toggle('on', solved)
+  }
   ;['echoActions','echoPageActions'].forEach(id => {
     const el = document.getElementById(id)
     if(el) el.classList.toggle('solved', solved)
@@ -3426,6 +3469,26 @@ function renderSolvedState(d, solved){
     btn.textContent = solved ? label : (id.includes('Guess') ? 'SUBMIT OFFICIAL GUESS' : 'TALK TO ECHO')
     btn.disabled = solved
   })
+  const terminalSubmitBtn = document.getElementById('terminalSubmitBtn')
+  if(terminalSubmitBtn){
+    terminalSubmitBtn.textContent = solved ? 'MYSTERY SOLVED' : 'SUBMIT WORD'
+    terminalSubmitBtn.disabled = solved
+  }
+  const terminalSubmitNav = document.getElementById('terminalSubmitNav')
+  if(terminalSubmitNav){
+    terminalSubmitNav.classList.toggle('disabled', solved)
+    terminalSubmitNav.innerHTML = solved ? '<span class="ico">♛</span>MYSTERY SOLVED' : '<span class="ico">★</span>SUBMIT WORD'
+  }
+  const guessInput = document.getElementById('gIn')
+  if(guessInput){
+    guessInput.disabled = solved
+    guessInput.placeholder = solved ? 'Mystery solved' : 'One word...'
+  }
+  const guessSubmitBtn = document.getElementById('guessSubmitBtn')
+  if(guessSubmitBtn){
+    guessSubmitBtn.disabled = solved
+    guessSubmitBtn.textContent = solved ? 'WINNERS APPROVED' : 'SUBMIT TO ARCHIVE'
+  }
 }
 
 function renderEchoClues(clues){
