@@ -279,6 +279,8 @@ router.post("/api/epochs", async (req, res) => {
 
     const poolUsdc = clampNumber(req.body?.poolUsdc, 0, 1000000, 1000);
     const maxAttempts = clampNumber(req.body?.maxAttemptsPerWallet, 1, 100, 10);
+    const maxWinners = clampNumber(req.body?.maxWinners, 1, 1000, 1);
+    const payoutSplit = normalizePayoutSplit(req.body?.payoutSplit);
     const launchInMinutes = clampNumber(req.body?.launchInMinutes, 1, 10080, 120);
     const durationHours = clampNumber(req.body?.durationHours, 1, 168, 3);
     const xThreadUrl = String(req.body?.xThreadUrl || "").trim();
@@ -295,7 +297,7 @@ router.post("/api/epochs", async (req, res) => {
          select coalesce(max(epoch_number), 0) + 1 as epoch_number from prize_epochs
        )
        insert into prize_epochs (
-         epoch_number, title, slug, status, pool_usdc, max_attempts_per_wallet,
+         epoch_number, title, slug, status, pool_usdc, max_attempts_per_wallet, max_winners, payout_split,
          starts_at, closes_at, ends_at, x_thread_url, secret_env_var, metadata
        )
        select
@@ -305,20 +307,24 @@ router.post("/api/epochs", async (req, res) => {
          'pending',
          $3,
          $4,
-         now() + ($5::text)::interval,
-         now() + ($5::text)::interval + ($6::text)::interval,
-         now() + ($5::text)::interval + ($6::text)::interval,
-         nullif($7, ''),
-         $8,
-         jsonb_build_object('tagline', $9::text, 'launchCopy', $10::text)
+         $5,
+         $6,
+         now() + ($7::text)::interval,
+         now() + ($7::text)::interval + ($8::text)::interval,
+         now() + ($7::text)::interval + ($8::text)::interval,
+         nullif($9, ''),
+         $10,
+         jsonb_build_object('tagline', $11::text, 'launchCopy', $12::text)
        from next_epoch
        returning id, epoch_number, title, slug, status, starts_at, closes_at,
-         pool_usdc, max_attempts_per_wallet, x_thread_url, secret_env_var, metadata`,
+         pool_usdc, max_attempts_per_wallet, max_winners, payout_split, x_thread_url, secret_env_var, metadata`,
       [
         title,
         slug,
         poolUsdc,
         maxAttempts,
+        maxWinners,
+        payoutSplit,
         `${launchInMinutes} minutes`,
         `${durationHours} hours`,
         xThreadUrl,
@@ -332,6 +338,8 @@ router.post("/api/epochs", async (req, res) => {
       epoch: result.rows[0]?.epoch_number,
       slug,
       secretEnvVar,
+      maxWinners,
+      payoutSplit,
       launchInMinutes,
       durationHours,
     });
@@ -339,6 +347,35 @@ router.post("/api/epochs", async (req, res) => {
   } catch (err) {
     const status = err.code === "23505" ? 409 : (err.status || 500);
     res.status(status).json({ error: err.code === "23505" ? "epoch_slug_or_number_exists" : (err.message || "epoch_create_failed") });
+  }
+});
+
+router.post("/api/epochs/:slug/rules", async (req, res) => {
+  try {
+    if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
+    const slug = slugify(req.params.slug);
+    if (!slug) return res.status(400).json({ error: "slug_required" });
+    const maxWinners = clampNumber(req.body?.maxWinners, 1, 1000, 1);
+    const payoutSplit = normalizePayoutSplit(req.body?.payoutSplit);
+    const result = await query(
+      `update prize_epochs
+       set max_winners = $2,
+           payout_split = $3
+       where slug = $1
+         and paid_out_at is null
+       returning id, epoch_number, title, slug, status, max_winners, payout_split`,
+      [slug, maxWinners, payoutSplit]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: "epoch_not_found_or_paid" });
+    await auditLog("admin_epoch_rules_updated", {
+      actor: req.adminActor,
+      slug,
+      maxWinners,
+      payoutSplit,
+    });
+    res.json({ ok: true, epoch: result.rows[0] });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || "epoch_rules_update_failed" });
   }
 });
 
@@ -556,6 +593,14 @@ function clampNumber(value, min, max, fallback) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.max(min, Math.min(parsed, max));
+}
+
+function normalizePayoutSplit(value) {
+  const clean = String(value || "equal").trim().toLowerCase();
+  if (clean === "equal" || clean === "first_winner") return clean;
+  const err = new Error("invalid_payout_split");
+  err.status = 400;
+  throw err;
 }
 
 function slugify(value) {

@@ -14,7 +14,7 @@ import {
 import bs58 from "bs58";
 
 import { auditLog, hasDatabase, pool } from "./_db.js";
-import { getPayableEpochs, markEpochPaid, markWinnerPaid, POOL_USDC } from "./_winners.js";
+import { getPayableEpochs, markEpochPaid, markWinnerPaid } from "./_winners.js";
 
 const USDC_DECIMALS = 6;
 
@@ -58,8 +58,10 @@ export async function processPayouts({ requestedBy = "admin" } = {}) {
 }
 
 async function payEpoch(conn, treasury, usdcMint, epoch, requestedBy) {
-  const winnerCount = epoch.winners.length;
-  const shareUi = POOL_USDC / winnerCount;
+  const winnersToPay = winnersForPayout(epoch);
+  const winnerCount = winnersToPay.length;
+  if (!winnerCount) return;
+  const shareUi = Number(epoch.pool_usdc || 0) / winnerCount;
   const shareRaw = Math.floor(shareUi * Math.pow(10, USDC_DECIMALS));
   const treasuryAta = await getAssociatedTokenAddress(usdcMint, treasury.publicKey);
 
@@ -76,7 +78,7 @@ async function payEpoch(conn, treasury, usdcMint, epoch, requestedBy) {
     throw new Error(`insufficient treasury USDC: have ${treasuryBalRaw / 1e6}, need ${needed / 1e6}`);
   }
 
-  for (const winner of epoch.winners) {
+  for (const winner of winnersToPay) {
     if (!winner.verifiedWalletId) throw new Error(`winner ${winner.id} has no verified wallet`);
     await payWinner({
       conn,
@@ -92,7 +94,20 @@ async function payEpoch(conn, treasury, usdcMint, epoch, requestedBy) {
   }
 
   await markEpochPaid(epoch.id);
-  await auditLog("payout_epoch_complete", { actor: requestedBy, epoch: epoch.epoch });
+  await auditLog("payout_epoch_complete", {
+    actor: requestedBy,
+    epoch: epoch.epoch,
+    payoutSplit: epoch.payout_split || "equal",
+    winnersPaid: winnerCount,
+  });
+}
+
+function winnersForPayout(epoch) {
+  const winners = Array.isArray(epoch.winners) ? epoch.winners : [];
+  if ((epoch.payout_split || "equal") === "first_winner") {
+    return winners.slice(0, 1);
+  }
+  return winners;
 }
 
 async function payWinner({ conn, treasury, treasuryAta, usdcMint, epoch, winner, shareUi, shareRaw, requestedBy }) {

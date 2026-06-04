@@ -48,7 +48,7 @@
     }
     h1 { margin:0; font-size:18px; letter-spacing:.12em; text-transform:uppercase; }
     h2 { margin:0 0 14px; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--green); }
-    button, input {
+    button, input, select {
       border:1px solid var(--line);
       background:rgba(9,17,10,.92);
       color:var(--text);
@@ -57,7 +57,7 @@
       font:inherit;
       outline:none;
     }
-    input:focus {
+    input:focus, select:focus {
       border-color:var(--green);
       box-shadow:0 0 0 3px rgba(88,214,58,.1), 0 0 24px var(--glow);
     }
@@ -123,6 +123,32 @@
     th { color:var(--success); font-weight:600; }
     tbody tr:hover { background:rgba(88,214,58,.035); }
     td.mono { font-family:"SFMono-Regular", Consolas, monospace; overflow-wrap:anywhere; }
+    .copyable {
+      display:inline-grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:center;
+      gap:8px;
+      max-width:100%;
+    }
+    .copyable code {
+      font-family:"SFMono-Regular", Consolas, monospace;
+      font-size:11px;
+      white-space:normal;
+      overflow-wrap:anywhere;
+      color:var(--text);
+    }
+    .copy-btn {
+      width:28px;
+      height:28px;
+      padding:0;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:4px;
+      color:var(--success);
+      flex:0 0 auto;
+    }
+    .copy-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; }
     .pill {
       display:inline-flex;
       align-items:center;
@@ -231,6 +257,14 @@
             <button class="warn" onclick="closeEchoEpoch()">Close Echo</button>
           </div>
           <div class="actions">
+            <input id="echoMaxWinners" type="number" min="1" max="1000" value="1" placeholder="Winner cap" style="width:130px"/>
+            <select id="echoPayoutSplit" title="Prize split policy" style="width:180px">
+              <option value="equal">Equal split</option>
+              <option value="first_winner">First winner gets pool</option>
+            </select>
+            <button onclick="saveEchoRules()">Save Winner Rules</button>
+          </div>
+          <div class="actions">
             <input id="echoXThreadInput" placeholder="X thread URL" style="flex:1;min-width:220px"/>
             <button onclick="saveEchoXThread()">Save X Thread</button>
           </div>
@@ -252,6 +286,11 @@
           <div class="actions">
             <input id="epochPool" type="number" min="0" value="1000" placeholder="Prize USDC" style="width:130px"/>
             <input id="epochAttempts" type="number" min="1" max="100" value="10" placeholder="Attempts" style="width:120px"/>
+            <input id="epochMaxWinners" type="number" min="1" max="1000" value="1" placeholder="Winners" style="width:120px"/>
+            <select id="epochPayoutSplit" title="Prize split policy" style="width:180px">
+              <option value="equal">Equal split</option>
+              <option value="first_winner">First winner gets pool</option>
+            </select>
             <input id="epochLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="Launch in min" style="width:130px"/>
             <input id="epochDurationHours" type="number" min="1" max="168" value="3" placeholder="Duration hrs" style="width:130px"/>
           </div>
@@ -422,19 +461,19 @@
       document.getElementById('holderState').textContent = data.requireHolder ? 'enabled' : 'disabled'
       rows('systemRows', [
         ['API', API_BASE],
-        ['Admin Wallet', adminWallet || 'session'],
+        ['Admin Wallet', copyValue(adminWallet || 'session')],
         ['Database', data.database ? 'configured' : 'not configured'],
         ['Payouts', data.payoutsEnabled ? 'enabled' : 'disabled'],
         ['Holder Gate', data.requireHolder ? 'enabled' : 'disabled']
       ])
       rows('agentRows', [
-        ['Wallet', data.agent?.wallet || 'not set'],
+        ['Wallet', data.agent?.wallet ? copyValue(data.agent.wallet) : 'not set'],
         ['Actions', data.agent?.actionsPaused ? 'paused' : 'active'],
         ['Control URL', data.agent?.controlConfigured ? 'configured' : 'not configured']
       ])
       rows('tokenRows', [
         ['Status', data.token?.launched ? 'launched' : 'not launched'],
-        ['Mint', data.token?.mint || 'not set'],
+        ['Mint / CA', data.token?.mint ? copyValue(data.token.mint) : 'not set'],
         ['Launch File', data.token?.launchFilePresent ? 'present' : 'absent']
       ])
         rows('prizeRows', [
@@ -443,6 +482,8 @@
           ['Slug', data.prize?.slug || '-'],
           ['Status', data.prize?.status || '-'],
           ['Winners', data.prize?.winners ?? 0],
+          ['Winner Cap', data.prize?.maxWinners ?? 1],
+          ['Prize Split', splitLabel(data.prize?.payoutSplit)],
           ['Pool', '$' + Number(data.prize?.pool || 0).toLocaleString() + ' USDC'],
           ['Submissions', data.settings?.prize_submissions_paused === 'true' ? 'paused' : 'active']
         ])
@@ -454,6 +495,10 @@
         ])
         const echoXInput = document.getElementById('echoXThreadInput')
         if(echoXInput && data.prize?.xThreadUrl) echoXInput.value = data.prize.xThreadUrl
+        const echoMaxWinners = document.getElementById('echoMaxWinners')
+        const echoPayoutSplit = document.getElementById('echoPayoutSplit')
+        if(echoMaxWinners) echoMaxWinners.value = data.prize?.maxWinners || 1
+        if(echoPayoutSplit) echoPayoutSplit.value = data.prize?.payoutSplit || 'equal'
       document.getElementById('agentPauseBtn').textContent = data.agent?.actionsPaused ? 'Unpause Agent Actions' : 'Pause Agent Actions'
       document.getElementById('prizePauseBtn').textContent = data.settings?.prize_submissions_paused === 'true' ? 'Unpause Prize Submissions' : 'Pause Prize Submissions'
       const tokenLaunchBtn = document.getElementById('tokenLaunchBtn')
@@ -462,7 +507,7 @@
     }
 
     function renderPrize(data){
-      table('epochsTable', ['Epoch','Title','Slug','Status','Starts','Ends','Pool','Attempts'], data.epochs || [], (e) => [
+      table('epochsTable', ['Epoch','Title','Slug','Status','Starts','Ends','Pool','Attempts','Winner Cap','Split'], data.epochs || [], (e) => [
         e.epoch_number,
         esc(e.title || ''),
         esc(e.slug || ''),
@@ -470,11 +515,13 @@
         e.starts_at ? fmt(e.starts_at) : '',
         e.closes_at ? fmt(e.closes_at) : '',
         '$' + Number(e.pool_usdc || 0).toLocaleString(),
-        e.max_attempts_per_wallet || 10
+        e.max_attempts_per_wallet || 10,
+        e.max_winners || 1,
+        splitLabel(e.payout_split)
       ])
       table('winnersTable', ['Epoch','Wallet','Guess','Approved','Paid','Action'], data.winners || [], (w) => [
         w.epoch_number,
-        short(w.wallet_pubkey),
+        copyValue(w.wallet_pubkey),
         esc(w.normalized_guess || ''),
         w.approved_at ? fmt(w.approved_at) : '<span class="bad">no</span>',
         w.paid_at ? fmt(w.paid_at) : 'no',
@@ -482,17 +529,17 @@
       ])
       table('guessesTable', ['Time','Wallet','Guess','Correct','Verified'], data.guesses || [], (g) => [
         fmt(g.created_at),
-        short(g.wallet_pubkey),
+        copyValue(g.wallet_pubkey),
         esc(g.normalized_guess || g.guess || ''),
         g.correct ? '<span class="ok">yes</span>' : 'no',
         g.verified_wallet ? '<span class="ok">yes</span>' : 'no'
       ])
       table('payoutTable', ['Time','Wallet','Amount','Status','Signature','Error'], data.payouts || [], (p) => [
         fmt(p.created_at),
-        short(p.wallet_pubkey),
+        copyValue(p.wallet_pubkey),
         Number(p.amount_usdc || 0).toLocaleString() + ' USDC',
         esc(p.status),
-        p.signature ? short(p.signature) : '',
+        p.signature ? copyValue(p.signature) : '',
         esc(p.error || '')
       ])
     }
@@ -552,6 +599,19 @@
       }catch(e){ toast('Echo close failed: ' + e.message) }
     }
 
+    async function saveEchoRules(){
+      try{
+        const maxWinners = numberValue('echoMaxWinners', 1)
+        const payoutSplit = document.getElementById('echoPayoutSplit').value
+        await api('/admin/api/epochs/echo/rules', {
+          method:'POST',
+          body:JSON.stringify({ maxWinners, payoutSplit })
+        })
+        toast('Echo winner rules updated')
+        await refreshAll()
+      }catch(e){ toast('Winner rules update failed: ' + e.message) }
+    }
+
     async function saveEchoXThread(){
       try{
         const xThreadUrl = document.getElementById('echoXThreadInput').value.trim()
@@ -589,6 +649,8 @@
           secretEnvVar,
           poolUsdc:numberValue('epochPool', 1000),
           maxAttemptsPerWallet:numberValue('epochAttempts', 10),
+          maxWinners:numberValue('epochMaxWinners', 1),
+          payoutSplit:document.getElementById('epochPayoutSplit').value,
           launchInMinutes:numberValue('epochLaunchMinutes', 120),
           durationHours:numberValue('epochDurationHours', 3),
           xThreadUrl,
@@ -631,6 +693,12 @@
         const el = document.getElementById(id)
         if(el) el.value = ''
       })
+      document.getElementById('epochMaxWinners').value = '1'
+      document.getElementById('epochPayoutSplit').value = 'equal'
+    }
+
+    function splitLabel(value){
+      return value === 'first_winner' ? 'first winner gets pool' : 'equal split'
     }
 
     function confirmAction(action){
@@ -678,14 +746,42 @@
 
     function rows(id, entries){
       document.getElementById(id).innerHTML = entries.map(([k,v]) =>
-        `<div class="row"><span class="k">${esc(k)}</span><span class="v">${typeof v === 'string' ? esc(v) : v}</span></div>`
+        `<div class="row"><span class="k">${esc(k)}</span><span class="v">${cell(v)}</span></div>`
       ).join('')
     }
     function table(id, headers, items, map){
       if(!items.length){ document.getElementById(id).innerHTML = '<div class="k">No rows.</div>'; return }
       document.getElementById(id).innerHTML = `<table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>` +
-        items.map(item => `<tr>${map(item).map(v=>`<td class="mono">${v}</td>`).join('')}</tr>`).join('') +
+        items.map(item => `<tr>${map(item).map(v=>`<td class="mono">${tableCell(v)}</td>`).join('')}</tr>`).join('') +
         '</tbody></table>'
+    }
+    function cell(v){
+      if(v && typeof v === 'object' && v.__html) return v.__html
+      return typeof v === 'string' ? esc(v) : String(v ?? '')
+    }
+    function tableCell(v){
+      if(v && typeof v === 'object' && v.__html) return v.__html
+      return String(v ?? '')
+    }
+    function copyValue(value){
+      const raw = String(value || '')
+      const id = 'copy_' + Math.random().toString(36).slice(2)
+      window[id] = raw
+      return { __html: `<span class="copyable"><code>${esc(raw)}</code><button class="copy-btn" title="Copy" onclick="copyAdminValue(window['${id}'])" aria-label="Copy value"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="10" height="10" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path></svg></button></span>` }
+    }
+    async function copyAdminValue(value){
+      try{
+        await navigator.clipboard.writeText(String(value || ''))
+        toast('Copied')
+      }catch{
+        const el = document.createElement('textarea')
+        el.value = String(value || '')
+        document.body.appendChild(el)
+        el.select()
+        document.execCommand('copy')
+        document.body.removeChild(el)
+        toast('Copied')
+      }
     }
     function esc(v){ return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
     function short(v){ v = String(v || ''); return v.length > 14 ? esc(v.slice(0, 6) + '...' + v.slice(-6)) : esc(v) }

@@ -15,6 +15,8 @@ import autonomousRoute from "./routes/autonomous.js";
 import prizeRoute from "./routes/prize.js";
 import authRoute from "./routes/auth.js";
 import adminRoute from "./routes/admin.js";
+import leaderboardRoute from "./routes/leaderboard.js";
+import profileRoute from "./routes/profile.js";
 
 const app = express();
 
@@ -108,6 +110,8 @@ app.use("/stats", statsRoute);
 app.use("/discoveries", discoveriesRoute);
 app.use("/autonomous", autonomousRoute);
 app.use("/prize", prizeRoute);
+app.use("/leaderboard", leaderboardRoute);
+app.use("/profile", guessLimit, profileRoute);
 app.use("/admin", adminRoute);
 
 app.get("/", (req, res) => {
@@ -128,6 +132,9 @@ app.get("/", (req, res) => {
       "GET  /prize":         "current prize epoch status",
       "GET  /prize/epochs/echo": "Echo epoch metadata and X clue timeline",
       "GET  /prize/history": "past epoch payouts (transparency)",
+      "GET  /leaderboard":   "current epoch participants and winners",
+      "GET  /profile/:wallet": "public wallet profile and game stats",
+      "POST /profile":       "signed wallet profile update",
       "GET  /admin/api/status": "admin system status (requires Authorization)",
       "POST /admin/api/payout": "admin-only payout trigger"
     }

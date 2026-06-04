@@ -46,7 +46,7 @@ export async function recordGuess({ wallet, userId, guess, normalized, correct, 
   return result.rows[0];
 }
 
-export async function recordWinner({ wallet, guessId, verifiedWalletId, epochId, closeOnWin = false }) {
+export async function recordWinner({ wallet, guessId, verifiedWalletId, epochId }) {
   if (!hasDatabase) {
     const err = new Error("database_not_configured");
     err.status = 503;
@@ -69,16 +69,41 @@ export async function recordWinner({ wallet, guessId, verifiedWalletId, epochId,
       err.status = 404;
       throw err;
     }
-    if (closeOnWin) {
-      const existingWinner = await client.query(
-        `select id from winners where epoch_id = $1 limit 1`,
+    const maxWinners = Math.max(1, Number(epoch.max_winners || 1));
+    const existingWinnerCount = await client.query(
+      `select count(*)::int as count
+       from winners
+       where epoch_id = $1`,
+      [epoch.id]
+    );
+    if (existingWinnerCount.rows[0].count >= maxWinners) {
+      const err = new Error("epoch_winner_limit_reached");
+      err.status = 409;
+      throw err;
+    }
+
+    const existingWalletWinner = await client.query(
+      `select id from winners where epoch_id = $1 and wallet_pubkey = $2 limit 1`,
+      [epoch.id, wallet]
+    );
+    if (existingWalletWinner.rows[0]) {
+      const countResult = await client.query(
+        `select count(*)::int as count from winners where epoch_id = $1`,
         [epoch.id]
       );
-      if (existingWinner.rows[0]) {
-        const err = new Error("epoch_already_won");
-        err.status = 409;
-        throw err;
-      }
+      await client.query("commit");
+      const totalWinners = countResult.rows[0].count;
+      return {
+        epoch: epoch.epoch_number,
+        slug: epoch.slug,
+        alreadyWinner: true,
+        totalWinners,
+        maxWinners,
+        winnersRemaining: Math.max(0, maxWinners - totalWinners),
+        closesAt: epoch.closes_at ? new Date(epoch.closes_at).getTime() : null,
+        estimatedShare: payoutEstimate(epoch.pool_usdc, totalWinners, epoch.payout_split),
+        payoutSplit: epoch.payout_split || "equal",
+      };
     }
 
     await client.query(
@@ -101,7 +126,8 @@ export async function recordWinner({ wallet, guessId, verifiedWalletId, epochId,
     const totalWinners = countResult.rows[0].count;
 
     let closesAt = epoch.closes_at;
-    if (closeOnWin && inserted.rowCount > 0) {
+    const winnerLimitReached = totalWinners >= maxWinners;
+    if (winnerLimitReached && inserted.rowCount > 0) {
       const closed = await client.query(
         `update prize_epochs
          set status = 'closed',
@@ -121,8 +147,11 @@ export async function recordWinner({ wallet, guessId, verifiedWalletId, epochId,
       slug: epoch.slug,
       alreadyWinner: inserted.rowCount === 0,
       totalWinners,
+      maxWinners,
+      winnersRemaining: Math.max(0, maxWinners - totalWinners),
       closesAt: closesAt ? new Date(closesAt).getTime() : null,
-      estimatedShare: totalWinners ? POOL_USDC / totalWinners : POOL_USDC,
+      estimatedShare: payoutEstimate(epoch.pool_usdc, totalWinners, epoch.payout_split),
+      payoutSplit: epoch.payout_split || "equal",
     };
   } catch (err) {
     await client.query("rollback");
@@ -130,6 +159,12 @@ export async function recordWinner({ wallet, guessId, verifiedWalletId, epochId,
   } finally {
     client.release();
   }
+}
+
+function payoutEstimate(poolUsdc, winnerCount, payoutSplit = "equal") {
+  const pool = Number(poolUsdc || POOL_USDC);
+  const count = Math.max(1, Number(winnerCount || 1));
+  return payoutSplit === "first_winner" ? pool : pool / count;
 }
 
 export async function getSubmissionEpoch() {
@@ -187,6 +222,9 @@ export async function getEpochBySlug(slug) {
   if (!hasDatabase) return null;
   const result = await query(
     `select e.*,
+       (select count(*)::int from winners w where w.epoch_id = e.id) as winners,
+       (select count(*)::int from winners w where w.epoch_id = e.id and w.approved_at is not null) as approved_winners,
+       (select count(*)::int from winners w where w.epoch_id = e.id and w.paid_at is not null) as paid_winners,
        coalesce(json_agg(
          json_build_object(
            'id', c.id,
@@ -216,13 +254,15 @@ export async function getPayableEpochs() {
        e.epoch_number as epoch,
        e.slug,
        e.pool_usdc,
+       e.payout_split,
        e.started_at,
        e.closes_at,
        json_agg(
          json_build_object(
-           'id', w.id,
-           'pubkey', w.wallet_pubkey,
-           'verifiedWalletId', w.verified_wallet_id
+              'id', w.id,
+              'pubkey', w.wallet_pubkey,
+              'verifiedWalletId', w.verified_wallet_id,
+              'paidAt', w.paid_at
          )
          order by w.created_at
        ) as winners
@@ -231,7 +271,6 @@ export async function getPayableEpochs() {
      where e.closes_at is not null
        and e.closes_at <= now()
        and e.paid_out_at is null
-       and w.paid_at is null
        and w.approved_at is not null
      group by e.id
      order by e.epoch_number`
@@ -255,9 +294,27 @@ export async function markEpochPaid(epochId) {
     `update prize_epochs
      set paid_out_at = now(), status = 'paid'
      where id = $1
-       and not exists (
-         select 1 from winners
-         where epoch_id = $1 and paid_at is null
+       and (
+         (
+           payout_split = 'first_winner'
+           and exists (
+             select 1 from winners
+             where id = (
+               select id from winners
+               where epoch_id = $1 and approved_at is not null
+               order by created_at asc
+               limit 1
+             )
+             and paid_at is not null
+           )
+         )
+         or (
+           payout_split <> 'first_winner'
+           and not exists (
+             select 1 from winners
+             where epoch_id = $1 and approved_at is not null and paid_at is null
+           )
+         )
        )`,
     [epochId]
   );
@@ -299,7 +356,7 @@ export async function adminPrizeOverview() {
   const [epochs, guesses, winners, payouts] = await Promise.all([
     query(
       `select e.id, e.epoch_number, e.title, e.slug, e.status, e.pool_usdc, e.started_at, e.starts_at, e.closes_at, e.ends_at,
-          e.max_attempts_per_wallet, e.x_thread_url,
+       e.max_attempts_per_wallet, e.max_winners, e.payout_split, e.x_thread_url,
           e.paid_out_at, count(w.id)::int as winners
        from prize_epochs e
        left join winners w on w.epoch_id = e.id
@@ -348,6 +405,10 @@ export async function publicStatus() {
       epoch: 1,
       status: "open",
       winners: 0,
+      approvedWinners: 0,
+      paidWinners: 0,
+      maxWinners: 1,
+      payoutSplit: "equal",
       closesAt: null,
       estimatedShare: POOL_USDC,
       database: "not_configured",
@@ -368,8 +429,10 @@ export async function publicStatus() {
 
   const result = await query(
     `select e.id, e.epoch_number, e.pool_usdc, e.status, e.started_at, e.starts_at, e.closes_at, e.ends_at, e.paid_out_at,
-       e.title, e.slug, e.max_attempts_per_wallet, e.x_thread_url, e.metadata,
-       count(w.id)::int as winners
+       e.title, e.slug, e.max_attempts_per_wallet, e.max_winners, e.payout_split, e.x_thread_url, e.metadata,
+       count(w.id)::int as winners,
+       count(w.id) filter (where w.approved_at is not null)::int as approved_winners,
+       count(w.id) filter (where w.paid_at is not null)::int as paid_winners
      from prize_epochs e
      left join winners w on w.epoch_id = e.id
      where e.epoch_number = (
@@ -405,11 +468,15 @@ export async function publicStatus() {
     status,
     startsAt,
     winners: epoch.winners || 0,
+    approvedWinners: epoch.approved_winners || 0,
+    paidWinners: epoch.paid_winners || 0,
     closesAt,
     maxAttemptsPerWallet: epoch.max_attempts_per_wallet || 10,
+    maxWinners: epoch.max_winners || 1,
+    payoutSplit: epoch.payout_split || "equal",
     xThreadUrl: epoch.x_thread_url || null,
     metadata: epoch.metadata || {},
-    estimatedShare: epoch.winners ? Number(epoch.pool_usdc || POOL_USDC) / epoch.winners : Number(epoch.pool_usdc || POOL_USDC),
+    estimatedShare: payoutEstimate(epoch.pool_usdc, epoch.winners, epoch.payout_split),
   };
 }
 

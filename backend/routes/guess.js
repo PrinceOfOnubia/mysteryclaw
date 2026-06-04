@@ -98,7 +98,6 @@ router.post("/", async (req, res) => {
         guessId: guessRecord.id,
         verifiedWalletId: verified.verified_wallet_id,
         epochId: epoch.id,
-        closeOnWin: epoch.slug === "echo",
       });
       return res.json({
         correct: true,
@@ -111,6 +110,9 @@ router.post("/", async (req, res) => {
         epoch: winInfo.epoch,
         epochSlug: winInfo.slug,
         totalWinners: winInfo.totalWinners,
+        maxWinners: winInfo.maxWinners,
+        winnersRemaining: winInfo.winnersRemaining,
+        payoutSplit: winInfo.payoutSplit,
         estimatedShare: winInfo.estimatedShare,
         closesAt: winInfo.closesAt,
         attemptsLeft: attempts.attemptsLeft - 1,

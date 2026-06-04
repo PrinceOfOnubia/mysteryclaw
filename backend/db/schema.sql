@@ -3,9 +3,18 @@ create extension if not exists pgcrypto;
 create table if not exists users (
   id uuid primary key default gen_random_uuid(),
   wallet_pubkey text unique not null,
+  display_name text,
+  avatar_url text,
+  profile_bio text,
+  profile_updated_at timestamptz,
   created_at timestamptz not null default now(),
   last_seen_at timestamptz not null default now()
 );
+
+alter table users add column if not exists display_name text;
+alter table users add column if not exists avatar_url text;
+alter table users add column if not exists profile_bio text;
+alter table users add column if not exists profile_updated_at timestamptz;
 
 create table if not exists wallet_nonces (
   id uuid primary key default gen_random_uuid(),
@@ -44,6 +53,8 @@ create table if not exists prize_epochs (
   status text not null default 'open',
   pool_usdc numeric(18, 6) not null default 1000,
   max_attempts_per_wallet integer not null default 10,
+  max_winners integer not null default 1,
+  payout_split text not null default 'equal',
   x_thread_url text,
   secret_env_var text,
   metadata jsonb not null default '{}'::jsonb,
@@ -55,6 +66,8 @@ alter table prize_epochs add column if not exists slug text;
 alter table prize_epochs add column if not exists starts_at timestamptz;
 alter table prize_epochs add column if not exists ends_at timestamptz;
 alter table prize_epochs add column if not exists max_attempts_per_wallet integer not null default 10;
+alter table prize_epochs add column if not exists max_winners integer not null default 1;
+alter table prize_epochs add column if not exists payout_split text not null default 'equal';
 alter table prize_epochs add column if not exists x_thread_url text;
 alter table prize_epochs add column if not exists secret_env_var text;
 alter table prize_epochs add column if not exists metadata jsonb not null default '{}'::jsonb;
@@ -202,6 +215,8 @@ set title = excluded.title,
     slug = excluded.slug,
     pool_usdc = excluded.pool_usdc,
     max_attempts_per_wallet = excluded.max_attempts_per_wallet,
+    max_winners = greatest(prize_epochs.max_winners, excluded.max_winners),
+    payout_split = coalesce(prize_epochs.payout_split, excluded.payout_split),
     secret_env_var = excluded.secret_env_var,
     metadata = prize_epochs.metadata || excluded.metadata;
 

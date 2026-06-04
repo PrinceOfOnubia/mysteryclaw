@@ -577,10 +577,32 @@ body::after{
 .epoch-actions .bp,.epoch-actions .bg{
   white-space:nowrap;justify-content:center;font-size:9px;letter-spacing:.18em;padding:12px 14px;
 }
+.epoch-actions.solved .bp,.epoch-actions.solved .bg{
+  border-color:rgba(118,242,85,.6);
+  background:linear-gradient(135deg,rgba(118,242,85,.92),rgba(88,214,58,.78));
+  color:#061006;cursor:default;
+}
 .clue-list{margin-top:20px;display:grid;gap:10px}
 .clue-item{border:1px solid var(--line);background:rgba(0,0,0,.35);padding:12px 14px;font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);line-height:1.65}
 .clue-item a{color:var(--accent);text-decoration:none}
 .clue-item .n{color:var(--accent);letter-spacing:.2em;text-transform:uppercase;font-size:8px;margin-bottom:4px}
+.solved-banner{
+  margin-top:18px;padding:16px;border:1px solid rgba(118,242,85,.48);
+  background:linear-gradient(135deg,rgba(88,214,58,.15),rgba(9,17,10,.72));
+  position:relative;overflow:hidden;font-family:'JetBrains Mono';color:#fff;
+  box-shadow:0 0 34px rgba(88,214,58,.12);
+}
+.solved-banner::before,.solved-banner::after{
+  content:'';position:absolute;width:18px;height:24px;border-radius:50% 50% 45% 45%;
+  background:radial-gradient(circle at 35% 30%,#fff,rgba(118,242,85,.92) 28%,rgba(47,122,29,.4) 70%);
+  opacity:.82;animation:floatBalloon 3.8s ease-in-out infinite;
+}
+.solved-banner::before{right:28px;top:14px}
+.solved-banner::after{right:62px;top:34px;animation-delay:.7s;transform:scale(.72)}
+.solved-crown{font-size:30px;line-height:1;margin-bottom:8px;color:var(--accent);text-shadow:0 0 18px rgba(118,242,85,.42)}
+.solved-title{font-family:'Inter';font-size:20px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.solved-copy{font-size:11px;line-height:1.7;color:var(--text-dim);max-width:520px}
+@keyframes floatBalloon{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
 @media(max-width:900px){.epoch-live{padding:58px 18px}.epoch-live-inner{grid-template-columns:1fr}.epoch-rules{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.epoch-actions{flex-wrap:wrap}.epoch-actions .bp,.epoch-actions .bg{width:100%}}
 @media(max-width:520px){.epoch-live h2.echo-title{font-size:clamp(31px,10vw,42px)}.epoch-rules{grid-template-columns:1fr}.epoch-countdown{font-size:36px}}
@@ -1081,6 +1103,55 @@ body::after{
 .auto-context span{display:inline-flex;align-items:center;gap:6px}
 .auto-context span b{color:var(--accent);font-weight:500}
 
+/* === LEADERBOARD / PROFILE === */
+.board-wrap{padding:120px 60px 80px;max-width:1220px;margin:0 auto;width:100%}
+.board-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px}
+.board-kicker{font-family:'JetBrains Mono';font-size:10px;letter-spacing:.42em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.board-head h1{font-size:clamp(42px,7vw,96px);line-height:.9;letter-spacing:0;text-transform:uppercase;font-weight:900}
+.board-head p{max-width:520px;font-family:'JetBrains Mono';font-size:12px;line-height:1.8;color:var(--text-dim)}
+.board-summary{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line-2);background:rgba(9,17,10,.72);margin-bottom:28px}
+.board-stat{padding:22px;border-right:1px solid var(--line)}
+.board-stat:last-child{border-right:0}
+.board-stat .l{font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin-bottom:8px}
+.board-stat .v{font-size:34px;font-weight:900;color:#fff}
+.leader-list{display:grid;gap:10px}
+.leader-row{
+  display:grid;grid-template-columns:64px 1fr 120px 120px 140px;gap:14px;align-items:center;
+  padding:16px;border:1px solid var(--line);background:rgba(0,0,0,.56);
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+}
+.leader-row:hover{border-color:var(--line-2);box-shadow:0 0 26px rgba(88,214,58,.08);transform:translateY(-1px)}
+.leader-row.winner{border-color:rgba(118,242,85,.48);background:linear-gradient(90deg,rgba(88,214,58,.13),rgba(0,0,0,.5))}
+.leader-rank{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.18em;color:var(--accent)}
+.leader-user{display:flex;align-items:center;gap:12px;min-width:0}
+.leader-avatar{
+  width:44px;height:44px;border-radius:50%;border:1px solid var(--line-2);
+  background:rgba(88,214,58,.08);display:flex;align-items:center;justify-content:center;
+  overflow:hidden;color:var(--accent);font-weight:900;flex:0 0 auto;
+}
+.leader-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.leader-name{font-weight:900;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.leader-wallet{font-family:'JetBrains Mono';font-size:10px;color:var(--text-mute);margin-top:3px}
+.leader-metric .l{font-family:'JetBrains Mono';font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-mute);margin-bottom:4px}
+.leader-metric .v{font-family:'JetBrains Mono';font-size:14px;color:#fff}
+.winner-pill{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#061006;background:var(--accent);padding:7px 9px}
+.profile-grid{display:grid;grid-template-columns:minmax(280px,.75fr) minmax(0,1fr);gap:22px}
+.profile-card,.profile-form{
+  border:1px solid var(--line-2);background:rgba(9,17,10,.72);padding:24px;
+  box-shadow:inset 0 0 40px rgba(88,214,58,.035);
+}
+.profile-preview{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.profile-preview .leader-avatar{width:72px;height:72px;font-size:26px}
+.profile-wallet{font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);word-break:break-all}
+.profile-form label{display:block;font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin:16px 0 8px}
+.profile-form input,.profile-form textarea{
+  width:100%;border:1px solid var(--line-2);background:rgba(0,0,0,.66);color:#fff;
+  padding:12px 14px;font-family:'JetBrains Mono';font-size:12px;outline:none;
+}
+.profile-form textarea{min-height:88px;resize:vertical}
+.profile-form input:focus,.profile-form textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 18px rgba(88,214,58,.08)}
+.profile-note{font-family:'JetBrains Mono';font-size:10px;line-height:1.8;color:var(--text-mute);margin-top:14px}
+
 .sec-sub-divider{
   display:flex;align-items:center;gap:14px;padding:0 60px;margin:48px 0 24px;
   font-family:'JetBrains Mono';font-size:9px;letter-spacing:.32em;
@@ -1138,6 +1209,11 @@ body::after{
   .stat-cell:nth-child(1),.stat-cell:nth-child(2){border-bottom:1px solid var(--line)}
   .hiw-grid,.feat-grid,.agents-grid{grid-template-columns:1fr 1fr}
   .tg-grid{grid-template-columns:1fr 1fr}
+  .board-head{align-items:flex-start;flex-direction:column}
+  .board-summary{grid-template-columns:1fr 1fr}
+  .leader-row{grid-template-columns:48px 1fr 90px;gap:10px}
+  .leader-row .leader-metric:nth-of-type(3),.leader-row .leader-metric:nth-of-type(4){display:none}
+  .profile-grid{grid-template-columns:1fr}
   .nav-links{display:none}
   .mobile-menu-btn{display:inline-flex}
 }
@@ -1164,6 +1240,12 @@ body::after{
   .hero-cta{margin-bottom:18px}
   .hero-ca{align-items:flex-start;flex-direction:column;gap:7px;margin-bottom:42px}
   .sec-divider,.incident,.hiw,.tg-wrap,.cta-bottom,#footer,.lore-hero,.lore-section,.disc-hero,.disc-grid{padding-left:18px;padding-right:18px}
+  .board-wrap{padding:92px 18px 54px}
+  .board-summary{grid-template-columns:1fr}
+  .board-stat{border-right:0;border-bottom:1px solid var(--line)}
+  .board-stat:last-child{border-bottom:0}
+  .leader-row{grid-template-columns:1fr;padding:14px}
+  .leader-rank{font-size:10px}
   .hiw-grid,.feat-grid,.agents-grid{grid-template-columns:1fr}
   .tg-grid{grid-template-columns:1fr}
   #pg-term{flex-direction:column}
@@ -1276,6 +1358,8 @@ body::after{
     <span class="nl on" id="nl-land" onclick="go('land')">Home</span>
     <span class="nl" id="nl-term" onclick="reqA('term')">Get Clues</span>
     <span class="nl" id="nl-echo" onclick="go('echo')">Echo</span>
+    <span class="nl" id="nl-leaderboard" onclick="go('leaderboard')">Leaderboard</span>
+    <span class="nl" id="nl-profile" onclick="go('profile')">Profile</span>
     <span class="nl" id="nl-lore" onclick="go('lore')">Lore</span>
     <span class="nl" id="nl-disc" onclick="go('disc')">Discoveries</span>
   </div>
@@ -1299,6 +1383,8 @@ body::after{
   <span class="nl on" id="mnl-land" onclick="go('land')">Home</span>
   <span class="nl" id="mnl-term" onclick="reqA('term')">Get Clues</span>
   <span class="nl" id="mnl-echo" onclick="go('echo')">Echo</span>
+  <span class="nl" id="mnl-leaderboard" onclick="go('leaderboard')">Leaderboard</span>
+  <span class="nl" id="mnl-profile" onclick="go('profile')">Profile</span>
   <span class="nl" id="mnl-lore" onclick="go('lore')">Lore</span>
   <span class="nl" id="mnl-disc" onclick="go('disc')">Discoveries</span>
 </div>
@@ -1371,9 +1457,9 @@ body::after{
           <b style="color:var(--accent)">X is for theories. The terminal is for answers.</b><br/>
           Only guesses submitted on MysteryClaw count for rewards. If someone posts the answer on X, they do not win unless they submit it here first.
         </p>
-        <div class="epoch-actions">
-          <button class="bp" onclick="openGuess()">TALK TO ECHO</button>
-          <button class="bg" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
+        <div class="epoch-actions" id="echoActions">
+          <button class="bp" id="echoTalkBtn" onclick="openGuess()">TALK TO ECHO</button>
+          <button class="bg" id="echoGuessBtn" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
           <a class="bg" id="echoXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW X INVESTIGATION</a>
         </div>
       </div>
@@ -1388,6 +1474,7 @@ body::after{
         <div class="clue-list" id="echoClues">
           <div class="clue-item"><div class="n">CLUE TIMELINE</div>Loading Echo clue schedule...</div>
         </div>
+        <div id="echoSolvedBanner"></div>
       </div>
     </div>
   </section>
@@ -1422,8 +1509,8 @@ body::after{
             </div>
             <div class="prize-rule">
               <div class="rl">SPLIT</div>
-              <div class="rt">Evenly among winners</div>
-              <div class="rs">Same word, same epoch = shared pool</div>
+              <div class="rt" id="prizeSplitLabel">Configured per epoch</div>
+              <div class="rs" id="prizeWinnerCapLabel">Winner cap enforced server-side</div>
             </div>
             <div class="prize-rule">
               <div class="rl">PAYOUT</div>
@@ -1838,9 +1925,9 @@ body::after{
           <b style="color:var(--accent)">X is for theories. The terminal is for answers.</b><br/>
           Only guesses submitted on MysteryClaw count for rewards. If someone posts the answer on X, they do not win unless they submit it here first.
         </p>
-        <div class="epoch-actions">
-          <button class="bp" onclick="openGuess()">TALK TO ECHO</button>
-          <button class="bg" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
+        <div class="epoch-actions" id="echoPageActions">
+          <button class="bp" id="echoPageTalkBtn" onclick="openGuess()">TALK TO ECHO</button>
+          <button class="bg" id="echoPageGuessBtn" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
           <a class="bg" id="echoPageXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW X INVESTIGATION</a>
         </div>
       </div>
@@ -1854,6 +1941,82 @@ body::after{
         </div>
         <div class="clue-list" id="echoPageClues">
           <div class="clue-item"><div class="n">CLUE TIMELINE</div>Loading Echo clue schedule...</div>
+        </div>
+        <div id="echoPageSolvedBanner"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══ PAGE: LEADERBOARD ═══ -->
+<div class="pg" id="pg-leaderboard">
+  <section class="board-wrap">
+    <div class="board-head">
+      <div>
+        <div class="board-kicker">OFFICIAL WEBSITE SUBMISSIONS</div>
+        <h1>LEADERBOARD</h1>
+      </div>
+      <p>
+        Every wallet that submits an official answer appears here. X theories are public investigation;
+        only signed MysteryClaw submissions count toward attempts, ranks, and winner status.
+      </p>
+    </div>
+    <div class="board-summary">
+      <div class="board-stat"><div class="l">Epoch</div><div class="v" id="lbEpoch">—</div></div>
+      <div class="board-stat"><div class="l">Participants</div><div class="v" id="lbPlayers">—</div></div>
+      <div class="board-stat"><div class="l">Official Guesses</div><div class="v" id="lbAttempts">—</div></div>
+      <div class="board-stat"><div class="l">Winners</div><div class="v" id="lbWinners">—</div></div>
+    </div>
+    <div class="leader-list" id="leaderList">
+      <div class="clue-item"><div class="n">LEADERBOARD</div>Loading official submissions...</div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══ PAGE: PROFILE ═══ -->
+<div class="pg" id="pg-profile">
+  <section class="board-wrap">
+    <div class="board-head">
+      <div>
+        <div class="board-kicker">WALLET IDENTITY</div>
+        <h1>PROFILE</h1>
+      </div>
+      <p>
+        Set the name and image shown on the leaderboard. Updates require a fresh Phantom signature,
+        so only the wallet owner can change a profile.
+      </p>
+    </div>
+    <div class="profile-grid">
+      <div class="profile-card">
+        <div class="profile-preview">
+          <div class="leader-avatar" id="profileAvatar">?</div>
+          <div>
+            <div class="leader-name" id="profileName">CONNECT WALLET</div>
+            <div class="profile-wallet" id="profileWallet">No wallet connected</div>
+          </div>
+        </div>
+        <div class="board-summary" style="grid-template-columns:1fr 1fr;margin-bottom:0">
+          <div class="board-stat"><div class="l">Guesses</div><div class="v" id="profileGuesses">—</div></div>
+          <div class="board-stat"><div class="l">Wins</div><div class="v" id="profileWins">—</div></div>
+        </div>
+        <div class="profile-note">
+          Public profile data is limited to your display name, avatar URL, short bio, and game stats.
+          Private wallet signatures and auth nonces are never shown here.
+        </div>
+      </div>
+      <div class="profile-form">
+        <label>Display name</label>
+        <input id="profileDisplayName" maxlength="32" placeholder="Archive name"/>
+        <label>Avatar image URL</label>
+        <input id="profileAvatarUrl" maxlength="300" placeholder="https://..."/>
+        <label>Bio</label>
+        <textarea id="profileBio" maxlength="140" placeholder="Short investigator note"></textarea>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+          <button class="bp" onclick="saveProfile()">SAVE PROFILE</button>
+          <button class="bg" onclick="loadMyProfile()">REFRESH</button>
+        </div>
+        <div class="profile-note">
+          Images are stored as URLs for now. Use a permanent HTTPS image link so the leaderboard can render it reliably.
         </div>
       </div>
     </div>
@@ -1980,7 +2143,7 @@ const S = {
   holdings:null,        // populated after /holdings call
   hasAccess:false,      // true if user holds at least 1 access token; Echo remains public
   pendingSaveText:null, // fragment text waiting for category in save modal
-  echo:{ status:'pending', maxAttempts:10, startsAt:null, closesAt:null, submissionsPaused:false }
+  echo:{ status:'pending', maxAttempts:10, maxWinners:1, payoutSplit:'equal', startsAt:null, closesAt:null, submissionsPaused:false }
 }
 
 const DEFAULT_API_BASE = 'https://piverse-production.up.railway.app'
@@ -2329,6 +2492,8 @@ function go(page){
   if(page === 'term') bootChat()
   if(page === 'land') renderTokenGate()
   if(page === 'echo') loadEchoEpoch()
+  if(page === 'leaderboard') loadLeaderboard()
+  if(page === 'profile') loadMyProfile()
   if(page === 'disc'){
     renderDiscoveries()
     startAutoFeedPolling()
@@ -2435,6 +2600,7 @@ async function connectPhantom(){
     loadInvestigation()
     // verify on-chain token holdings
     checkHoldings(pubkey)
+    if(S.page === 'profile') loadMyProfile()
     // auto-redirect if user was trying to reach a gated page
     if(S.pendingRedirect){
       const dest = S.pendingRedirect
@@ -2535,6 +2701,129 @@ function renderHoldings(){
 
   access.textContent = S.hasAccess ? 'HOLDER DETECTED' : 'PUBLIC ACCESS'
   access.style.color = 'var(--accent)'
+}
+
+function avatarHtml(url, fallback){
+  if(url) return `<img src="${esc(url)}" alt=""/>`
+  return esc((fallback || '?').slice(0,1).toUpperCase())
+}
+
+async function loadLeaderboard(){
+  const list = document.getElementById('leaderList')
+  if(list) list.innerHTML = `<div class="clue-item"><div class="n">LEADERBOARD</div>Loading official submissions...</div>`
+  try{
+    const r = await fetch(API_BASE + '/leaderboard?epoch=echo', { cache:'no-store' })
+    const d = await r.json()
+    if(!r.ok) throw new Error(d.error || 'leaderboard_failed')
+    setStat('lbEpoch', d.epoch?.title || 'Echo')
+    setStat('lbPlayers', d.summary?.participants)
+    setStat('lbAttempts', d.summary?.attempts)
+    setStat('lbWinners', d.summary?.winners)
+    renderLeaderboardRows(d.participants || [])
+  }catch(e){
+    ;['lbEpoch','lbPlayers','lbAttempts','lbWinners'].forEach(id => setStat(id, null))
+    if(list) list.innerHTML = `<div class="clue-item"><div class="n">LEADERBOARD OFFLINE</div>Official submissions could not be loaded.</div>`
+  }
+}
+
+function renderLeaderboardRows(rows){
+  const list = document.getElementById('leaderList')
+  if(!list) return
+  if(!rows.length){
+    list.innerHTML = `<div class="clue-item"><div class="n">NO OFFICIAL SUBMISSIONS YET</div>Participants appear here after their first signed website guess.</div>`
+    return
+  }
+  list.innerHTML = rows.map(row => {
+    const name = row.displayName || row.shortWallet || 'Investigator'
+    const status = row.winner
+      ? `<span class="winner-pill">${row.paid ? 'PAID' : row.approved ? 'APPROVED' : 'WINNER'}</span>`
+      : `<span style="font-family:'JetBrains Mono';font-size:10px;color:var(--text-mute);letter-spacing:.16em">INVESTIGATING</span>`
+    return `
+      <div class="leader-row ${row.winner ? 'winner' : ''}">
+        <div class="leader-rank">#${row.rank}</div>
+        <div class="leader-user">
+          <div class="leader-avatar">${avatarHtml(row.avatarUrl, name)}</div>
+          <div style="min-width:0">
+            <div class="leader-name">${esc(name)}</div>
+            <div class="leader-wallet">${esc(row.shortWallet || row.wallet)}</div>
+          </div>
+        </div>
+        <div class="leader-metric"><div class="l">Attempts</div><div class="v">${Number(row.attempts || 0).toLocaleString()}</div></div>
+        <div class="leader-metric"><div class="l">Correct</div><div class="v">${Number(row.correctGuesses || 0).toLocaleString()}</div></div>
+        <div class="leader-metric"><div class="l">Status</div><div class="v">${status}</div></div>
+      </div>
+    `
+  }).join('')
+}
+
+async function loadMyProfile(){
+  const walletEl = document.getElementById('profileWallet')
+  const nameEl = document.getElementById('profileName')
+  const avatarEl = document.getElementById('profileAvatar')
+  if(!walletEl || !nameEl || !avatarEl) return
+  if(!S.wallet){
+    nameEl.textContent = 'CONNECT WALLET'
+    walletEl.textContent = 'No wallet connected'
+    avatarEl.innerHTML = '?'
+    ;['profileGuesses','profileWins'].forEach(id => setStat(id, null))
+    return
+  }
+  walletEl.textContent = S.wallet
+  const fallback = S.wallet.slice(0,4)
+  try{
+    const r = await fetch(API_BASE + '/profile/' + encodeURIComponent(S.wallet), { cache:'no-store' })
+    const d = await r.json()
+    if(!r.ok && d.error !== 'profile_not_found') throw new Error(d.error || 'profile_failed')
+    const profile = r.ok ? d : null
+    const displayName = profile?.displayName || fallback
+    nameEl.textContent = displayName
+    avatarEl.innerHTML = avatarHtml(profile?.avatarUrl, displayName)
+    document.getElementById('profileDisplayName').value = profile?.displayName || ''
+    document.getElementById('profileAvatarUrl').value = profile?.avatarUrl || ''
+    document.getElementById('profileBio').value = profile?.bio || ''
+    setStat('profileGuesses', profile?.stats?.guesses || 0)
+    setStat('profileWins', profile?.stats?.wins || 0)
+  }catch(e){
+    nameEl.textContent = fallback
+    avatarEl.innerHTML = avatarHtml('', fallback)
+    toast('Profile could not be loaded')
+  }
+}
+
+async function saveProfile(){
+  if(!S.wallet){
+    openM('mAuth')
+    return
+  }
+  try{
+    const walletAuth = await createWalletAuth()
+    const payload = {
+      pubkey:S.wallet,
+      walletAuth,
+      displayName:document.getElementById('profileDisplayName').value,
+      avatarUrl:document.getElementById('profileAvatarUrl').value,
+      bio:document.getElementById('profileBio').value
+    }
+    const r = await fetch(API_BASE + '/profile', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    })
+    const d = await r.json()
+    if(!r.ok || d.error) throw new Error(d.error || 'profile_update_failed')
+    toast('✓ Profile updated')
+    await loadMyProfile()
+    if(S.page === 'leaderboard') loadLeaderboard()
+  }catch(e){
+    const msg = e.message === 'invalid_display_name'
+      ? 'Use 2-32 letters, numbers, spaces, dot, dash, or underscore'
+      : e.message === 'invalid_avatar_url'
+        ? 'Avatar must be a valid image URL'
+        : e.message && e.message.startsWith('wallet_')
+          ? 'Wallet signature failed — try again'
+          : 'Profile update failed'
+    toast(msg)
+  }
 }
 
 async function disconnect(){
@@ -2874,8 +3163,8 @@ async function submitGuess(){
         toast('Time elapsed — official submissions are closed')
       } else if(data.error === 'epoch_answer_not_configured'){
         toast('Echo is not fully configured yet')
-      } else if(data.error === 'epoch_already_won'){
-        toast('Echo already has a pending verified winner')
+      } else if(data.error === 'epoch_winner_limit_reached'){
+        toast('Winner limit reached for this epoch')
       } else if(data.error === 'cooldown'){
         toast('Cooldown active — wait ' + (data.minutesLeft || '?') + ' min')
       } else if(data.error && data.error.startsWith('wallet_')){
@@ -2897,7 +3186,8 @@ async function submitGuess(){
       const wsub = document.querySelector('#winOverlay .win-sub')
       if(wsub && data.estimatedShare){
         const share = Math.floor(data.estimatedShare)
-        wsub.textContent = `You are winner #${data.totalWinners} this epoch · est. $${share.toLocaleString()} USDC`
+        const remaining = data.winnersRemaining !== undefined ? ` · ${data.winnersRemaining} winner slot${data.winnersRemaining===1?'':'s'} left` : ''
+        wsub.textContent = `You are winner #${data.totalWinners} of ${data.maxWinners || data.totalWinners} this epoch · est. $${share.toLocaleString()} USDC${remaining}`
       }
       document.getElementById('winOverlay').classList.add('on')
       if(S.page === 'term') appendChat('ai', '[SYSTEM BREACH — ACCESS GRANTED]\n\nYou found it.\n\n...how?')
@@ -2947,6 +3237,9 @@ function setStat(id, val){
   if(val === null || val === undefined){
     el.textContent = '—'
     el.style.color = 'var(--text-mute)'
+  } else if(typeof val === 'string'){
+    el.textContent = val
+    el.style.color = ''
   } else {
     el.textContent = Number(val).toLocaleString()
     el.style.color = ''
@@ -2997,17 +3290,28 @@ async function loadPrizeStatus(){
     prizeClosesAt = d.closesAt ? Number(d.closesAt) : null
     S.echo.closesAt = prizeClosesAt
     S.echo.maxAttempts = d.maxAttemptsPerWallet || S.echo.maxAttempts || 10
+    S.echo.maxWinners = d.maxWinners || 1
+    S.echo.payoutSplit = d.payoutSplit || 'equal'
+    S.echo.approvedWinners = d.approvedWinners || 0
+    S.echo.paidWinners = d.paidWinners || 0
     S.echo.submissionsPaused = !!d.submissionsPaused
     renderPrizeCountdown()
     renderEchoStatus(d)
     // update hero stat
     const poolEl = document.getElementById('sPool')
     if(poolEl) poolEl.textContent = '$' + Number(d.pool || 1000).toLocaleString()
+    const splitLabel = document.getElementById('prizeSplitLabel')
+    const capLabel = document.getElementById('prizeWinnerCapLabel')
+    if(splitLabel) splitLabel.textContent = d.payoutSplit === 'first_winner' ? 'First winner takes pool' : 'Evenly among winners'
+    if(capLabel) capLabel.textContent = `${d.maxWinners || 1} winner${(d.maxWinners || 1) === 1 ? '' : 's'} maximum`
 
     // update prize section live line
     const live = document.getElementById('prizeLive')
     if(live){
-      if(d.submissionsPaused){
+      if(isEpochSolved(d)){
+        live.style.display = 'flex'
+        live.innerHTML = `<span class="d"></span><span>Mystery solved · ${d.approvedWinners} winner${d.approvedWinners===1?'':'s'} approved</span>`
+      } else if(d.submissionsPaused){
         live.style.display = 'flex'
         live.innerHTML = `<span class="d"></span><span>Echo is paused · official submissions are temporarily suspended</span>`
       } else if(d.status === 'pending'){
@@ -3035,7 +3339,10 @@ setInterval(renderPrizeCountdown, 1000)
 
 function renderEchoStatus(d){
   const labels = [document.getElementById('echoEpochStatus'), document.getElementById('echoPageStatus')]
-  const status = d.submissionsPaused
+  const solved = isEpochSolved(d)
+  const status = solved
+    ? 'SOLVED'
+    : d.submissionsPaused
     ? 'PAUSED'
     : d.status === 'pending'
     ? 'COUNTDOWN'
@@ -3043,6 +3350,7 @@ function renderEchoStatus(d){
       ? 'CLOSED'
       : 'LIVE'
   labels.forEach(el => { if(el) el.textContent = status })
+  renderSolvedState(d, solved)
   updateEchoAttempts(S.echo.maxAttempts - S.guesses)
   const xUrl = d.xThreadUrl
   ;['echoXLink','echoPageXLink'].forEach(id => {
@@ -3066,6 +3374,10 @@ async function loadEchoEpoch(){
     const d = await r.json()
     S.echo.status = d.status || S.echo.status
     S.echo.maxAttempts = d.maxAttemptsPerWallet || 10
+    S.echo.maxWinners = d.maxWinners || 1
+    S.echo.payoutSplit = d.payoutSplit || 'equal'
+    S.echo.approvedWinners = d.approvedWinners || 0
+    S.echo.paidWinners = d.paidWinners || 0
     S.echo.startsAt = d.startsAt ? new Date(d.startsAt).getTime() : S.echo.startsAt
     S.echo.closesAt = d.closesAt ? new Date(d.closesAt).getTime() : S.echo.closesAt
     S.echo.submissionsPaused = !!d.submissionsPaused
@@ -3079,6 +3391,41 @@ async function loadEchoEpoch(){
     renderEchoClues(d.clues || [])
     renderPrizeCountdown()
   }catch(e){ /* keep page usable */ }
+}
+
+function isEpochSolved(d){
+  return Number(d?.approvedWinners || 0) > 0 && ['closed','closing','paid'].includes(String(d?.status || '').toLowerCase())
+}
+
+function renderSolvedState(d, solved){
+  const approved = Number(d?.approvedWinners || 0)
+  const copy = solved
+    ? `<div class="solved-banner">
+        <div class="solved-crown">♛</div>
+        <div class="solved-title">Mystery Solved</div>
+        <div class="solved-copy">${approved} winner${approved===1?'':'s'} approved. Echo is sealed and official submissions are closed.</div>
+      </div>`
+    : ''
+  ;['echoSolvedBanner','echoPageSolvedBanner'].forEach(id => {
+    const el = document.getElementById(id)
+    if(el) el.innerHTML = copy
+  })
+  ;['echoActions','echoPageActions'].forEach(id => {
+    const el = document.getElementById(id)
+    if(el) el.classList.toggle('solved', solved)
+  })
+  const buttons = [
+    ['echoTalkBtn', 'MYSTERY SOLVED'],
+    ['echoGuessBtn', 'WINNERS APPROVED'],
+    ['echoPageTalkBtn', 'MYSTERY SOLVED'],
+    ['echoPageGuessBtn', 'WINNERS APPROVED']
+  ]
+  buttons.forEach(([id, label]) => {
+    const btn = document.getElementById(id)
+    if(!btn) return
+    btn.textContent = solved ? label : (id.includes('Guess') ? 'SUBMIT OFFICIAL GUESS' : 'TALK TO ECHO')
+    btn.disabled = solved
+  })
 }
 
 function renderEchoClues(clues){
