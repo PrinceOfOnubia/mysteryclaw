@@ -28,6 +28,7 @@ router.get("/", async (req, res) => {
     const epochListResult = await query(
       `select epoch_number, title, slug, status, starts_at, closes_at, ends_at, paid_out_at
        from prize_epochs
+       where slug is not null
        order by epoch_number desc
        limit 50`
     );

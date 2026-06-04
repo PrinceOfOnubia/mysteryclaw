@@ -512,18 +512,6 @@ export async function publicStatus() {
     };
   }
 
-  const client = await pool.connect();
-  try {
-    await client.query("begin");
-    await ensureCurrentEpoch(client);
-    await client.query("commit");
-  } catch (err) {
-    await client.query("rollback");
-    throw err;
-  } finally {
-    client.release();
-  }
-
   const result = await query(
     `select e.id, e.epoch_number, e.pool_usdc, e.status, e.started_at, e.starts_at, e.closes_at, e.ends_at, e.paid_out_at,
        e.title, e.slug, e.max_attempts_per_wallet, e.max_winners, e.payout_split, e.x_thread_url, e.metadata,
@@ -532,13 +520,14 @@ export async function publicStatus() {
        count(w.id) filter (where w.paid_at is not null)::int as paid_winners
      from prize_epochs e
      left join winners w on w.epoch_id = e.id
-     where e.epoch_number = (
-       select coalesce(max(epoch_number), 1)
-       from prize_epochs
-       where paid_out_at is null
-     )
+     where e.slug is not null
      group by e.id
-     order by e.epoch_number desc
+     order by
+       case
+         when e.status in ('live', 'active', 'open', 'pending') and coalesce(e.closes_at, e.ends_at, now() + interval '1 day') > now() then 0
+         else 1
+       end,
+       e.epoch_number desc
      limit 1`
   );
 
@@ -627,6 +616,7 @@ async function ensureCurrentEpoch(client) {
     `select *
      from prize_epochs
      where paid_out_at is null
+       and slug is not null
        and status not in ('closed', 'paid')
      order by epoch_number desc
      limit 1`
@@ -634,12 +624,7 @@ async function ensureCurrentEpoch(client) {
 
   let epoch = existing.rows[0];
   if (!epoch) {
-    const next = await client.query(
-      `insert into prize_epochs (epoch_number, status)
-       values ((select coalesce(max(epoch_number), 0) + 1 from prize_epochs), 'open')
-       returning *`
-    );
-    epoch = next.rows[0];
+    return null;
   }
 
   if (epoch.starts_at && new Date(epoch.starts_at).getTime() > Date.now()) {
