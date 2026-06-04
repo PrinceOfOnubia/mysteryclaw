@@ -1150,13 +1150,31 @@ body::after{
   line-height:1.75;color:var(--text-dim);
 }
 .board-summary{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line-2);background:rgba(9,17,10,.72);margin-bottom:28px}
+.board-tools{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+  margin:0 0 18px;
+}
+.board-tools select{
+  min-width:240px;border:1px solid var(--line-2);background:#020402;color:#fff;
+  padding:11px 12px;font-family:'JetBrains Mono';font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;outline:none;
+}
+.board-pager{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.board-pager button{
+  border:1px solid var(--line-2);background:rgba(0,0,0,.68);color:var(--text);
+  padding:10px 12px;font-family:'JetBrains Mono';font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;cursor:pointer;
+}
+.board-pager button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.board-pager button:disabled{opacity:.35;cursor:not-allowed}
+.board-page-label{font-family:'JetBrains Mono';font-size:10px;color:var(--text-mute);letter-spacing:.14em}
 .board-stat{padding:22px;border-right:1px solid var(--line)}
 .board-stat:last-child{border-right:0}
 .board-stat .l{font-family:'JetBrains Mono';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-mute);margin-bottom:8px}
 .board-stat .v{font-size:34px;font-weight:900;color:#fff}
 .leader-list{display:grid;gap:10px}
 .leader-row{
-  display:grid;grid-template-columns:64px 1fr 120px 120px 140px;gap:14px;align-items:center;
+  display:grid;grid-template-columns:64px minmax(220px,1fr) 100px 100px 110px 130px;gap:14px;align-items:center;
   padding:16px;border:1px solid var(--line);background:rgba(0,0,0,.56);
   transition:border-color .2s,box-shadow .2s,transform .2s;
 }
@@ -1464,7 +1482,7 @@ body::after{
       The word is gone, the echoes remain, and official answers open when the countdown reaches zero.
     </p>
     <div class="hero-cta">
-      <button class="bp" onclick="openGuess()">
+      <button class="bp" onclick="reqA('term')">
         <span>TALK TO ECHO</span>
         <span style="font-family:'JetBrains Mono'">→</span>
       </button>
@@ -1516,7 +1534,7 @@ body::after{
           Only guesses submitted on MysteryClaw count for rewards. If someone posts the answer on X, they do not win unless they submit it here first.
         </p>
         <div class="epoch-actions" id="echoActions">
-          <button class="bp" id="echoTalkBtn" onclick="openGuess()">TALK TO ECHO</button>
+          <button class="bp" id="echoTalkBtn" onclick="reqA('term')">TALK TO ECHO</button>
           <button class="bg" id="echoGuessBtn" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
           <a class="bg" id="echoXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW X INVESTIGATION</a>
         </div>
@@ -1709,7 +1727,7 @@ body::after{
         <div class="agent-name">Echo</div>
         <div class="agent-tag">TRIALS OF ECHO</div>
         <div class="agent-desc">The next investigation. The word is gone, the echoes remain, and official answers open when the launch countdown reaches zero.</div>
-        <button class="bg" style="width:100%;justify-content:center" onclick="go('echo')">VIEW COUNTDOWN →</button>
+        <button class="bg" style="width:100%;justify-content:center" onclick="reqA('term')">TALK TO ECHO →</button>
       </div>
 
       <div class="agent-card">
@@ -1720,7 +1738,7 @@ body::after{
         <div class="agent-name">Mysterio</div>
         <div class="agent-tag">ARCHIVE ENGINE</div>
         <div class="agent-desc">The first tale is over. Mysterio remains under the terminal as the engine behind the archive, but Echo is the active public trial.</div>
-        <button class="bg" style="width:100%;justify-content:center;opacity:.55;cursor:not-allowed">OFFLINE</button>
+        <button class="bg" style="width:100%;justify-content:center;opacity:.55;cursor:not-allowed">ENDED</button>
       </div>
 
       <div class="agent-card">
@@ -1987,7 +2005,7 @@ body::after{
           Only guesses submitted on MysteryClaw count for rewards. If someone posts the answer on X, they do not win unless they submit it here first.
         </p>
         <div class="epoch-actions" id="echoPageActions">
-          <button class="bp" id="echoPageTalkBtn" onclick="openGuess()">TALK TO ECHO</button>
+          <button class="bp" id="echoPageTalkBtn" onclick="reqA('term')">TALK TO ECHO</button>
           <button class="bg" id="echoPageGuessBtn" onclick="openGuess()">SUBMIT OFFICIAL GUESS</button>
           <a class="bg" id="echoPageXLink" href="https://x.com/mysteryclawpump?s=11" target="_blank" rel="noopener" style="text-decoration:none">FOLLOW X INVESTIGATION</a>
         </div>
@@ -2019,6 +2037,16 @@ body::after{
       </div>
     </div>
     <p class="board-note">Official submissions determine rank, attempts, and winner status. X is for public theories.</p>
+    <div class="board-tools">
+      <select id="leaderEpochSelect" onchange="changeLeaderboardEpoch(this.value)">
+        <option value="echo">Trials of Echo</option>
+      </select>
+      <div class="board-pager">
+        <button id="leaderPrevBtn" onclick="changeLeaderboardPage(-1)">Previous</button>
+        <span class="board-page-label" id="leaderPageLabel">Page 1</span>
+        <button id="leaderNextBtn" onclick="changeLeaderboardPage(1)">Next</button>
+      </div>
+    </div>
     <div class="board-summary">
       <div class="board-stat"><div class="l">Epoch</div><div class="v" id="lbEpoch">—</div></div>
       <div class="board-stat"><div class="l">Participants</div><div class="v" id="lbPlayers">—</div></div>
@@ -2040,8 +2068,7 @@ body::after{
         <h1>PROFILE</h1>
       </div>
       <p>
-        Set the identity shown on the leaderboard. Updates require a fresh Phantom signature,
-        so only the wallet owner can change it.
+        Set the identity shown on the leaderboard. Connect your wallet, choose a name and avatar, then save.
       </p>
     </div>
     <div class="profile-grid">
@@ -2208,6 +2235,14 @@ const S = {
   hasAccess:false,      // true if user holds at least 1 access token; Echo remains public
   pendingSaveText:null, // fragment text waiting for category in save modal
   echo:{ status:'pending', maxAttempts:10, maxWinners:1, payoutSplit:'equal', startsAt:null, closesAt:null, submissionsPaused:false, solved:false, approvedWinners:0, paidWinners:0 }
+}
+
+const LEADERBOARD_PAGE_SIZE = 10
+const leaderboardState = {
+  epoch:'echo',
+  page:0,
+  rows:[],
+  epochs:[]
 }
 
 const DEFAULT_API_BASE = 'https://piverse-production.up.railway.app'
@@ -2905,7 +2940,7 @@ async function loadLeaderboard(){
   const list = document.getElementById('leaderList')
   if(list) list.innerHTML = `<div class="clue-item"><div class="n">LEADERBOARD</div>Loading official submissions...</div>`
   try{
-    const r = await fetch(API_BASE + '/leaderboard?epoch=echo', { cache:'no-store' })
+    const r = await fetch(API_BASE + '/leaderboard?epoch=' + encodeURIComponent(leaderboardState.epoch || 'echo'), { cache:'no-store' })
     const d = await r.json()
     if(!r.ok) throw new Error(d.error || 'leaderboard_failed')
     const ended = ['closed','closing','paid'].includes(String(d.epoch?.status || '').toLowerCase()) || Number(d.summary?.approvedWinners || 0) > 0
@@ -2913,21 +2948,51 @@ async function loadLeaderboard(){
     setStat('lbPlayers', d.summary?.participants)
     setStat('lbAttempts', d.summary?.attempts)
     setStat('lbWinners', d.summary?.winners)
-    renderLeaderboardRows(d.participants || [])
+    leaderboardState.rows = d.participants || []
+    leaderboardState.epochs = d.epochs || []
+    renderLeaderboardEpochSelect(d.epoch)
+    renderLeaderboardRows()
   }catch(e){
     ;['lbEpoch','lbPlayers','lbAttempts','lbWinners'].forEach(id => setStat(id, null))
     if(list) list.innerHTML = `<div class="clue-item"><div class="n">LIVE RECORDS TEMPORARILY UNAVAILABLE</div>Official submissions are safe server-side. Please refresh in a moment.</div>`
   }
 }
 
-function renderLeaderboardRows(rows){
+function renderLeaderboardEpochSelect(activeEpoch){
+  const select = document.getElementById('leaderEpochSelect')
+  if(!select) return
+  const epochs = leaderboardState.epochs.length ? leaderboardState.epochs : [{ slug:'echo', title:'TRIALS OF ECHO' }]
+  select.innerHTML = epochs.map(e => {
+    const slug = e.slug || String(e.number || '')
+    const label = `${e.title || ('Epoch ' + e.number)}${['closed','closing','paid'].includes(String(e.status || '').toLowerCase()) ? ' · ended' : ''}`
+    return `<option value="${esc(slug)}" ${slug === (activeEpoch?.slug || leaderboardState.epoch) ? 'selected' : ''}>${esc(label)}</option>`
+  }).join('')
+}
+
+function changeLeaderboardEpoch(slug){
+  leaderboardState.epoch = slug || 'echo'
+  leaderboardState.page = 0
+  loadLeaderboard()
+}
+
+function changeLeaderboardPage(delta){
+  const maxPage = Math.max(0, Math.ceil(leaderboardState.rows.length / LEADERBOARD_PAGE_SIZE) - 1)
+  leaderboardState.page = Math.max(0, Math.min(maxPage, leaderboardState.page + delta))
+  renderLeaderboardRows()
+}
+
+function renderLeaderboardRows(){
   const list = document.getElementById('leaderList')
   if(!list) return
+  const rows = leaderboardState.rows || []
   if(!rows.length){
     list.innerHTML = `<div class="clue-item"><div class="n">NO OFFICIAL SUBMISSIONS YET</div>Participants appear here after their first signed website guess.</div>`
+    updateLeaderboardPager()
     return
   }
-  list.innerHTML = rows.map(row => {
+  const start = leaderboardState.page * LEADERBOARD_PAGE_SIZE
+  const pageRows = rows.slice(start, start + LEADERBOARD_PAGE_SIZE)
+  list.innerHTML = pageRows.map(row => {
     const name = row.displayName || row.shortWallet || 'Investigator'
     const status = row.winner
       ? `<span class="winner-pill">${row.paid ? 'PAID' : row.approved ? 'APPROVED' : 'WINNER'}</span>`
@@ -2944,10 +3009,23 @@ function renderLeaderboardRows(rows){
         </div>
         <div class="leader-metric"><div class="l">Attempts</div><div class="v">${Number(row.attempts || 0).toLocaleString()}</div></div>
         <div class="leader-metric"><div class="l">Correct</div><div class="v">${Number(row.correctGuesses || 0).toLocaleString()}</div></div>
+        <div class="leader-metric"><div class="l">Prize Won</div><div class="v">${row.prizeWon ? '$' + Math.floor(row.prizeWon).toLocaleString() : '—'}</div></div>
         <div class="leader-metric"><div class="l">Status</div><div class="v">${status}</div></div>
       </div>
     `
   }).join('')
+  updateLeaderboardPager()
+}
+
+function updateLeaderboardPager(){
+  const total = leaderboardState.rows.length
+  const maxPage = Math.max(0, Math.ceil(total / LEADERBOARD_PAGE_SIZE) - 1)
+  const prev = document.getElementById('leaderPrevBtn')
+  const next = document.getElementById('leaderNextBtn')
+  const label = document.getElementById('leaderPageLabel')
+  if(prev) prev.disabled = leaderboardState.page <= 0
+  if(next) next.disabled = leaderboardState.page >= maxPage
+  if(label) label.textContent = total ? `Page ${leaderboardState.page + 1} / ${maxPage + 1}` : 'Page 1'
 }
 
 async function loadMyProfile(){
@@ -3000,10 +3078,8 @@ async function saveProfile(){
     return
   }
   try{
-    const walletAuth = await createWalletAuth()
     const payload = {
       pubkey:S.wallet,
-      walletAuth,
       displayName:document.getElementById('profileDisplayName').value,
       avatarUrl:selectedAvatar,
       bio:document.getElementById('profileBio').value
@@ -3675,16 +3751,16 @@ function renderSolvedState(d, solved){
     if(el) el.classList.toggle('solved', solved)
   })
   const buttons = [
-    ['echoTalkBtn', 'MYSTERY SOLVED'],
+    ['echoTalkBtn', 'TALK TO ECHO'],
     ['echoGuessBtn', 'WINNERS APPROVED'],
-    ['echoPageTalkBtn', 'MYSTERY SOLVED'],
+    ['echoPageTalkBtn', 'TALK TO ECHO'],
     ['echoPageGuessBtn', 'WINNERS APPROVED']
   ]
   buttons.forEach(([id, label]) => {
     const btn = document.getElementById(id)
     if(!btn) return
     btn.textContent = solved ? label : (id.includes('Guess') ? 'SUBMIT OFFICIAL GUESS' : 'TALK TO ECHO')
-    btn.disabled = solved
+    btn.disabled = solved && id.includes('Guess')
   })
   const terminalSubmitBtn = document.getElementById('terminalSubmitBtn')
   if(terminalSubmitBtn){

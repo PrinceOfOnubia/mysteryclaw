@@ -13,6 +13,12 @@ router.get("/", async (req, res) => {
     if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
 
     const requestedSlug = String(req.query.epoch || "").trim().toLowerCase();
+    const epochListResult = await query(
+      `select epoch_number, title, slug, status, starts_at, closes_at, ends_at, paid_out_at
+       from prize_epochs
+       order by epoch_number desc
+       limit 50`
+    );
     const epochResult = requestedSlug
       ? await query(`select * from prize_epochs where slug = $1 limit 1`, [requestedSlug])
       : await query(
@@ -26,26 +32,34 @@ router.get("/", async (req, res) => {
     if (!epoch) return res.status(404).json({ error: "epoch_not_found" });
 
     const participantResult = await query(
-      `select
-         g.wallet_pubkey,
+      `with participant_wallets as (
+         select wallet_pubkey from guesses where epoch_id = $1
+         union
+         select wallet_pubkey from winners where epoch_id = $1
+       )
+       select
+         p.wallet_pubkey,
          coalesce(u.display_name, '') as display_name,
          u.avatar_url,
          u.profile_bio,
-         count(g.id)::int as attempts,
-         count(g.id) filter (where g.correct)::int as correct_guesses,
+         count(g.id) filter (where g.source = 'website')::int as attempts,
+         least(1, count(g.id) filter (where g.correct))::int as correct_guesses,
          min(g.created_at) as first_guess_at,
          max(g.created_at) as last_guess_at,
          w.id as winner_id,
          w.created_at as won_at,
          w.approved_at,
          w.paid_at,
-         w.payout_signature
-       from guesses g
-       left join users u on u.wallet_pubkey = g.wallet_pubkey
-       left join winners w on w.wallet_pubkey = g.wallet_pubkey and w.epoch_id = g.epoch_id
-       where g.epoch_id = $1 and g.source = 'website'
-       group by g.wallet_pubkey, u.display_name, u.avatar_url, u.profile_bio,
-                w.id, w.created_at, w.approved_at, w.paid_at, w.payout_signature
+         w.payout_signature,
+         w.source as winner_source,
+         w.notes as winner_notes,
+         w.display_attempts
+       from participant_wallets p
+       left join guesses g on g.wallet_pubkey = p.wallet_pubkey and g.epoch_id = $1
+       left join users u on u.wallet_pubkey = p.wallet_pubkey
+       left join winners w on w.wallet_pubkey = p.wallet_pubkey and w.epoch_id = $1
+       group by p.wallet_pubkey, u.display_name, u.avatar_url, u.profile_bio,
+                w.id, w.created_at, w.approved_at, w.paid_at, w.payout_signature, w.source, w.notes, w.display_attempts
        order by
          case when w.id is not null then 0 else 1 end,
          w.created_at asc nulls last,
@@ -56,6 +70,11 @@ router.get("/", async (req, res) => {
       [epoch.id]
     );
 
+    const approvedWinnerCount = participantResult.rows.filter((row) => row.approved_at).length;
+    const estimatedWinnerPrize = approvedWinnerCount > 0
+      ? Number(epoch.pool_usdc || 0) / approvedWinnerCount
+      : 0;
+
     const rows = participantResult.rows.map((row, index) => ({
       rank: index + 1,
       wallet: row.wallet_pubkey,
@@ -63,7 +82,7 @@ router.get("/", async (req, res) => {
       displayName: row.display_name || null,
       avatarUrl: row.avatar_url || null,
       bio: row.profile_bio || null,
-      attempts: row.attempts,
+      attempts: row.display_attempts ?? row.attempts,
       correctGuesses: row.correct_guesses,
       firstGuessAt: row.first_guess_at ? new Date(row.first_guess_at).getTime() : null,
       lastGuessAt: row.last_guess_at ? new Date(row.last_guess_at).getTime() : null,
@@ -72,6 +91,9 @@ router.get("/", async (req, res) => {
       approved: Boolean(row.approved_at),
       paid: Boolean(row.paid_at),
       payoutSignature: row.payout_signature || null,
+      winnerSource: row.winner_source || null,
+      winnerNotes: row.winner_notes || null,
+      prizeWon: row.approved_at ? estimatedWinnerPrize : 0,
     }));
 
     const summary = {
@@ -106,6 +128,14 @@ router.get("/", async (req, res) => {
         startsAt,
         closesAt,
       },
+      epochs: epochListResult.rows.map((e) => ({
+        number: e.epoch_number,
+        title: e.title || `Epoch ${e.epoch_number}`,
+        slug: e.slug || null,
+        status: e.paid_out_at ? "paid" : e.status,
+        startsAt: e.starts_at ? new Date(e.starts_at).getTime() : null,
+        closesAt: (e.closes_at || e.ends_at) ? new Date(e.closes_at || e.ends_at).getTime() : null,
+      })),
       summary,
       participants: rows,
       winners: rows.filter((row) => row.winner),

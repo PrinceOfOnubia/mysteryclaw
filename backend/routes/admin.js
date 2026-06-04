@@ -6,7 +6,8 @@ import rateLimit from "express-rate-limit";
 import { auditLog, hasDatabase, query } from "../_db.js";
 import { createAdminNonce, verifyAdminLogin, verifyAdminRequest } from "../_adminAuth.js";
 import { processPayouts } from "../_payout.js";
-import { adminPrizeOverview, approveWinner, publicStatus } from "../_winners.js";
+import { adminPrizeOverview, approveWinner, publicStatus, unapproveEpochWinners, unapproveWinner, upsertManualWinner } from "../_winners.js";
+import { normalizePubkey } from "../_walletAuth.js";
 import { getSetting, setSetting } from "../_settings.js";
 import {
   autonomousPostId,
@@ -133,6 +134,64 @@ router.post("/api/winners/:id/approve", async (req, res) => {
     res.json({ ok: true, winner });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || "winner_approve_failed" });
+  }
+});
+
+router.post("/api/winners/:id/unapprove", async (req, res) => {
+  try {
+    const winner = await unapproveWinner(req.params.id);
+    await auditLog("admin_winner_unapproved", {
+      actor: req.adminActor,
+      wallet_pubkey: winner.wallet_pubkey,
+      winner_id: winner.id,
+    });
+    res.json({ ok: true, winner });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || "winner_unapprove_failed" });
+  }
+});
+
+router.post("/api/epochs/:slug/winners/unapprove-all", async (req, res) => {
+  try {
+    const slug = slugify(req.params.slug);
+    if (!slug) return res.status(400).json({ error: "slug_required" });
+    const winners = await unapproveEpochWinners(slug);
+    await auditLog("admin_epoch_winners_unapproved", {
+      actor: req.adminActor,
+      slug,
+      count: winners.length,
+    });
+    res.json({ ok: true, count: winners.length, winners });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || "epoch_winners_unapprove_failed" });
+  }
+});
+
+router.post("/api/epochs/:slug/winners/manual", async (req, res) => {
+  try {
+    const slug = slugify(req.params.slug);
+    if (!slug) return res.status(400).json({ error: "slug_required" });
+    const wallet = normalizePubkey(req.body?.wallet);
+    const displayAttempts = clampNumber(req.body?.displayAttempts, 0, 1000, 1);
+    const notes = String(req.body?.notes || "").trim().slice(0, 500);
+    const approveNow = Boolean(req.body?.approveNow);
+    const winner = await upsertManualWinner({
+      slug,
+      wallet,
+      displayAttempts,
+      notes,
+      approvedBy: approveNow ? req.adminActor : null,
+    });
+    await auditLog("admin_manual_winner_upserted", {
+      actor: req.adminActor,
+      slug,
+      wallet_pubkey: wallet,
+      displayAttempts,
+      approveNow,
+    });
+    res.json({ ok: true, winner });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || "manual_winner_failed" });
   }
 });
 

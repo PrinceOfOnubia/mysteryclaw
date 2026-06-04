@@ -342,6 +342,102 @@ export async function approveWinner(winnerId, approvedBy = "admin") {
   return result.rows[0];
 }
 
+export async function unapproveWinner(winnerId) {
+  if (!hasDatabase) {
+    const err = new Error("database_not_configured");
+    err.status = 503;
+    throw err;
+  }
+  const result = await query(
+    `update winners
+     set approved_at = null,
+         approved_by = null
+     where id = $1 and paid_at is null
+     returning id, wallet_pubkey, approved_at, approved_by, paid_at`,
+    [winnerId]
+  );
+  if (!result.rows[0]) {
+    const err = new Error("winner_not_found_or_paid");
+    err.status = 404;
+    throw err;
+  }
+  return result.rows[0];
+}
+
+export async function unapproveEpochWinners(slug) {
+  if (!hasDatabase) {
+    const err = new Error("database_not_configured");
+    err.status = 503;
+    throw err;
+  }
+  const result = await query(
+    `update winners w
+     set approved_at = null,
+         approved_by = null
+     from prize_epochs e
+     where w.epoch_id = e.id
+       and e.slug = $1
+       and w.paid_at is null
+     returning w.id, w.wallet_pubkey`,
+    [slug]
+  );
+  return result.rows;
+}
+
+export async function upsertManualWinner({ slug, wallet, displayAttempts = 1, notes = "", approvedBy = null }) {
+  if (!hasDatabase) {
+    const err = new Error("database_not_configured");
+    err.status = 503;
+    throw err;
+  }
+  const result = await query(
+    `with epoch as (
+       select id from prize_epochs where slug = $1 limit 1
+     ),
+     upsert_guess as (
+       insert into guesses (wallet_pubkey, user_id, guess, normalized_guess, correct, verified_wallet, epoch_id, source)
+       select $2, $2, 'ADMIN_REWARD', 'ADMIN_REWARD', true, false, id, 'admin'
+       from epoch
+       where not exists (
+         select 1 from guesses
+         where epoch_id = (select id from epoch)
+           and wallet_pubkey = $2
+           and source = 'admin'
+           and normalized_guess = 'ADMIN_REWARD'
+       )
+       returning id
+     ),
+     guess_row as (
+       select id from upsert_guess
+       union all
+       select id from guesses
+       where epoch_id = (select id from epoch)
+         and wallet_pubkey = $2
+         and source = 'admin'
+         and normalized_guess = 'ADMIN_REWARD'
+       limit 1
+     )
+     insert into winners (epoch_id, wallet_pubkey, guess_id, verified_wallet_id, source, notes, display_attempts, approved_at, approved_by)
+     select epoch.id, $2, guess_row.id, null, 'admin', nullif($4, ''), $3, null, null
+     from epoch, guess_row
+     on conflict (epoch_id, wallet_pubkey)
+     do update set
+       source = 'admin',
+       notes = excluded.notes,
+       display_attempts = excluded.display_attempts,
+       guess_id = coalesce(winners.guess_id, excluded.guess_id)
+     returning id, wallet_pubkey, source, notes, display_attempts, approved_at, paid_at`,
+    [slug, wallet, displayAttempts, notes]
+  );
+  if (!result.rows[0]) {
+    const err = new Error("epoch_not_found");
+    err.status = 404;
+    throw err;
+  }
+  if (approvedBy) return approveWinner(result.rows[0].id, approvedBy);
+  return result.rows[0];
+}
+
 export async function adminPrizeOverview() {
   if (!hasDatabase) {
     return {
@@ -374,7 +470,8 @@ export async function adminPrizeOverview() {
     ),
     query(
       `select w.id, w.wallet_pubkey, w.created_at, w.approved_at, w.approved_by,
-          w.paid_at, w.payout_signature, e.epoch_number, g.normalized_guess
+          w.paid_at, w.payout_signature, w.source, w.notes, w.display_attempts,
+          e.epoch_number, e.slug, g.normalized_guess
        from winners w
        join prize_epochs e on e.id = w.epoch_id
        left join guesses g on g.id = w.guess_id

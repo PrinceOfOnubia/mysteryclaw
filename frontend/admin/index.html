@@ -257,7 +257,7 @@
             <button class="warn" onclick="closeEchoEpoch()">Close Echo</button>
           </div>
           <div class="actions">
-            <input id="echoMaxWinners" type="number" min="1" max="1000" value="1" placeholder="Winner cap" style="width:130px"/>
+            <input id="echoMaxWinners" type="number" min="1" max="1000" value="10" placeholder="Winner cap" style="width:130px"/>
             <select id="echoPayoutSplit" title="Prize split policy" style="width:180px">
               <option value="equal">Equal split</option>
               <option value="first_winner">First winner gets pool</option>
@@ -315,6 +315,17 @@
         </section>
         <section class="card full">
           <h2>Winners</h2>
+          <div class="actions">
+            <input id="manualWinnerSlug" placeholder="epoch slug" value="echo" style="width:140px"/>
+            <input id="manualWinnerWallet" placeholder="winner wallet address" style="flex:1;min-width:260px"/>
+            <input id="manualWinnerAttempts" type="number" min="0" max="1000" value="1" placeholder="guesses" style="width:110px"/>
+            <input id="manualWinnerNotes" placeholder="note/source, e.g. X comment reward" style="flex:1;min-width:220px"/>
+            <label style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:10px;color:var(--muted)">
+              <input id="manualWinnerApproveNow" type="checkbox"/> approve now
+            </label>
+            <button onclick="addManualWinner()">Add / Update Winner</button>
+            <button class="warn" onclick="unapproveEpochWinners()">Unapprove Epoch Winners</button>
+          </div>
           <div id="winnersTable"></div>
         </section>
         <section class="card full">
@@ -519,13 +530,19 @@
         e.max_winners || 1,
         splitLabel(e.payout_split)
       ])
-      table('winnersTable', ['Epoch','Wallet','Guess','Approved','Paid','Action'], data.winners || [], (w) => [
+      table('winnersTable', ['Epoch','Wallet','Source','Guess','Shown Attempts','Approved','Paid','Action'], data.winners || [], (w) => [
         w.epoch_number,
         copyValue(w.wallet_pubkey),
+        esc(w.source || 'website'),
         esc(w.normalized_guess || ''),
+        w.display_attempts ?? '',
         w.approved_at ? fmt(w.approved_at) : '<span class="bad">no</span>',
         w.paid_at ? fmt(w.paid_at) : 'no',
-        w.approved_at ? '<span class="pill">approved</span>' : `<button onclick="approveWinner('${w.id}')">Approve</button>`
+        w.paid_at
+          ? '<span class="pill">paid</span>'
+          : w.approved_at
+            ? `<button class="warn" onclick="unapproveWinner('${w.id}')">Unapprove</button>`
+            : `<button onclick="approveWinner('${w.id}')">Approve</button>`
       ])
       table('guessesTable', ['Time','Wallet','Guess','Correct','Verified'], data.guesses || [], (g) => [
         fmt(g.created_at),
@@ -569,6 +586,42 @@
       }catch(e){ toast('Approve failed: ' + e.message) }
     }
 
+    async function unapproveWinner(id){
+      try{
+        await api('/admin/api/winners/' + encodeURIComponent(id) + '/unapprove', { method:'POST', body:'{}' })
+        toast('Winner unapproved')
+        await refreshAll()
+      }catch(e){ toast('Unapprove failed: ' + e.message) }
+    }
+
+    async function addManualWinner(){
+      try{
+        const slug = document.getElementById('manualWinnerSlug').value.trim() || 'echo'
+        const wallet = document.getElementById('manualWinnerWallet').value.trim()
+        const displayAttempts = numberValue('manualWinnerAttempts', 1)
+        const notes = document.getElementById('manualWinnerNotes').value.trim()
+        const approveNow = document.getElementById('manualWinnerApproveNow').checked
+        if(!wallet) return toast('Winner wallet required')
+        await api('/admin/api/epochs/' + encodeURIComponent(slug) + '/winners/manual', {
+          method:'POST',
+          body:JSON.stringify({ wallet, displayAttempts, notes, approveNow })
+        })
+        toast('Manual winner saved')
+        document.getElementById('manualWinnerWallet').value = ''
+        await refreshAll()
+      }catch(e){ toast('Manual winner failed: ' + e.message) }
+    }
+
+    async function unapproveEpochWinners(){
+      try{
+        const slug = document.getElementById('manualWinnerSlug').value.trim() || 'echo'
+        if(!confirm('Unapprove all unpaid winners for ' + slug + '?')) return
+        const result = await api('/admin/api/epochs/' + encodeURIComponent(slug) + '/winners/unapprove-all', { method:'POST', body:'{}' })
+        toast('Unapproved ' + (result.count || 0) + ' winner(s)')
+        await refreshAll()
+      }catch(e){ toast('Epoch unapprove failed: ' + e.message) }
+    }
+
     async function setEchoLive(){
       try{
         const hours = numberValue('echoDurationHours', 3)
@@ -601,7 +654,7 @@
 
     async function saveEchoRules(){
       try{
-        const maxWinners = numberValue('echoMaxWinners', 1)
+        const maxWinners = numberValue('echoMaxWinners', 10)
         const payoutSplit = document.getElementById('echoPayoutSplit').value
         await api('/admin/api/epochs/echo/rules', {
           method:'POST',

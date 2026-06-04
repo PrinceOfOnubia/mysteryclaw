@@ -105,11 +105,18 @@ create table if not exists winners (
   approved_by text,
   paid_at timestamptz,
   payout_signature text,
+  source text not null default 'website',
+  notes text,
+  display_attempts integer,
   unique (epoch_id, wallet_pubkey)
 );
 
 alter table winners add column if not exists approved_at timestamptz;
 alter table winners add column if not exists approved_by text;
+alter table winners add column if not exists source text not null default 'website';
+alter table winners add column if not exists notes text;
+alter table winners add column if not exists display_attempts integer;
+alter table winners alter column verified_wallet_id drop not null;
 
 create index if not exists winners_unpaid_idx on winners (epoch_id, paid_at) where paid_at is null;
 
@@ -231,3 +238,7 @@ cross join (values
 ) as c(clue_number, post_copy)
 where e.slug = 'echo'
 on conflict (epoch_id, clue_number) do nothing;
+
+update prize_epochs
+set max_winners = greatest(coalesce(max_winners, 1), 10)
+where slug = 'echo';

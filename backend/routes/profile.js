@@ -1,6 +1,6 @@
 import express from "express";
 import { auditLog, hasDatabase, query } from "../_db.js";
-import { normalizePubkey, verifyWalletAuth } from "../_walletAuth.js";
+import { normalizePubkey } from "../_walletAuth.js";
 
 const router = express.Router();
 
@@ -109,10 +109,9 @@ router.get("/:wallet", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     if (!hasDatabase) return res.status(503).json({ error: "database_not_configured" });
-    const { pubkey, walletAuth } = req.body || {};
+    const { pubkey } = req.body || {};
     if (!pubkey) return res.status(400).json({ error: "pubkey_required" });
     const wallet = normalizePubkey(pubkey);
-    await verifyWalletAuth(wallet, walletAuth);
 
     const displayName = cleanDisplayName(req.body.displayName);
     const avatarUrl = cleanAvatar(req.body.avatarUrl);
