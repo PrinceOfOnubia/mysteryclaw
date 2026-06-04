@@ -17,6 +17,7 @@ import authRoute from "./routes/auth.js";
 import adminRoute from "./routes/admin.js";
 import leaderboardRoute from "./routes/leaderboard.js";
 import profileRoute from "./routes/profile.js";
+import { migrateDatabase } from "./_db.js";
 
 const app = express();
 
@@ -74,7 +75,7 @@ app.use(cors({
   },
 }));
 app.options("*", cors());
-app.use(express.json({ limit: "100kb" }));
+app.use(express.json({ limit: "250kb" }));
 
 const publicLimit = rateLimit({
   windowMs: 60 * 1000,
@@ -142,6 +143,15 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+if (process.env.AUTO_MIGRATE !== "false") {
+  try {
+    const migrated = await migrateDatabase();
+    if (migrated) console.log("MysteryClaw database schema ready.");
+  } catch (err) {
+    console.error("MysteryClaw database migration failed:", err.message);
+  }
+}
 
 app.listen(PORT, () => {
   console.log(`MysteryClaw server running on port ${PORT}`);

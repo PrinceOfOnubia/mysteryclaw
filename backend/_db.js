@@ -1,4 +1,7 @@
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import pg from "pg";
 
 const { Pool } = pg;
@@ -17,6 +20,15 @@ export async function query(text, params = []) {
     throw new Error("DATABASE_URL is required for this operation");
   }
   return pool.query(text, params);
+}
+
+export async function migrateDatabase() {
+  if (!pool) return false;
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const schemaPath = path.resolve(__dirname, "db/schema.sql");
+  const sql = fs.readFileSync(schemaPath, "utf8");
+  await pool.query(sql);
+  return true;
 }
 
 export function requireDatabase() {

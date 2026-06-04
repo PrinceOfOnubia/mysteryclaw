@@ -1184,6 +1184,8 @@ body::after{
 }
 .avatar-choice:hover,.avatar-choice.active{border-color:#f5bf42;transform:translateY(-1px);box-shadow:0 0 24px rgba(245,191,66,.2)}
 .avatar-help{font-family:'JetBrains Mono';font-size:9px;line-height:1.7;color:var(--text-mute);letter-spacing:.08em}
+.avatar-upload-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 4px}
+.avatar-upload-row .bg{font-size:9px;padding:10px 12px}
 .leader-name{font-weight:900;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .leader-wallet{font-family:'JetBrains Mono';font-size:10px;color:var(--text-mute);margin-top:3px}
 .leader-metric .l{font-family:'JetBrains Mono';font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-mute);margin-bottom:4px}
@@ -2045,7 +2047,7 @@ body::after{
     <div class="profile-grid">
       <div class="profile-card">
         <div class="profile-preview">
-          <button type="button" class="leader-avatar" id="profileAvatar" onclick="focusAvatarPicker()" title="Change avatar">?</button>
+          <button type="button" class="leader-avatar" id="profileAvatar" onclick="openAvatarUpload()" title="Upload avatar">?</button>
           <div>
             <div class="leader-name" id="profileName">CONNECT WALLET</div>
             <div class="profile-wallet" id="profileWallet">No wallet connected</div>
@@ -2065,7 +2067,12 @@ body::after{
         <input id="profileDisplayName" maxlength="32" placeholder="Archive name"/>
         <label>Avatar</label>
         <div id="avatarPicker" class="avatar-picker"></div>
-        <div class="avatar-help">Click an avatar to update your leaderboard identity.</div>
+        <div class="avatar-upload-row">
+          <button type="button" class="bg" onclick="openAvatarUpload()">UPLOAD IMAGE</button>
+          <button type="button" class="bg" onclick="focusAvatarPicker()">CHOOSE PRESET</button>
+          <input id="profileAvatarFile" type="file" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handleAvatarFile(event)"/>
+        </div>
+        <div class="avatar-help">Upload a small profile image or choose a MysteryClaw preset. Save profile to publish it.</div>
         <label>Bio</label>
         <textarea id="profileBio" maxlength="140" placeholder="Short investigator note"></textarea>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
@@ -2073,7 +2080,7 @@ body::after{
           <button class="bg" onclick="loadMyProfile()">REFRESH</button>
         </div>
         <div class="profile-note">
-          Avatars are MysteryClaw presets. No image uploads or external URLs are required.
+          Uploaded images are compressed in your browser before saving. No external image URL is required.
         </div>
       </div>
     </div>
@@ -2257,12 +2264,12 @@ const TOKENS = [
 ]
 
 const AVATAR_PRESETS = [
-  { id:'nft:emerald', glyph:'◈', bg:'linear-gradient(135deg,#163D12,#58D63A)', fg:'#061006', glow:'rgba(88,214,58,.28)' },
-  { id:'nft:gold', glyph:'♛', bg:'linear-gradient(135deg,#352309,#f5bf42)', fg:'#080602', glow:'rgba(245,191,66,.28)' },
-  { id:'nft:onyx', glyph:'◆', bg:'linear-gradient(135deg,#060806,#2F7A1D)', fg:'#76F255', glow:'rgba(118,242,85,.18)' },
-  { id:'nft:signal', glyph:'⌁', bg:'linear-gradient(135deg,#092015,#4FCB35)', fg:'#020602', glow:'rgba(79,203,53,.24)' },
-  { id:'nft:archive', glyph:'◇', bg:'linear-gradient(135deg,#0c120c,#76F255)', fg:'#061006', glow:'rgba(118,242,85,.26)' },
-  { id:'nft:shadow', glyph:'∎', bg:'linear-gradient(135deg,#010301,#163D12)', fg:'#58D63A', glow:'rgba(88,214,58,.16)' }
+  { id:'nft:emerald', glyph:'◈', bg:'linear-gradient(135deg,#123D19,#58D63A)', fg:'#061006', glow:'rgba(88,214,58,.28)' },
+  { id:'nft:gold', glyph:'♛', bg:'linear-gradient(135deg,#3b2508,#f5bf42)', fg:'#080602', glow:'rgba(245,191,66,.28)' },
+  { id:'nft:violet', glyph:'◆', bg:'linear-gradient(135deg,#241046,#a56bff)', fg:'#f4edff', glow:'rgba(165,107,255,.26)' },
+  { id:'nft:crimson', glyph:'✦', bg:'linear-gradient(135deg,#3a0714,#ff4d6d)', fg:'#fff4f6', glow:'rgba(255,77,109,.24)' },
+  { id:'nft:azure', glyph:'◇', bg:'linear-gradient(135deg,#06263f,#55b8ff)', fg:'#f1f9ff', glow:'rgba(85,184,255,.24)' },
+  { id:'nft:obsidian', glyph:'∎', bg:'linear-gradient(135deg,#020303,#5f6b75)', fg:'#d7edf0', glow:'rgba(215,237,240,.12)' }
 ]
 let selectedAvatar = AVATAR_PRESETS[0].id
 
@@ -2781,12 +2788,19 @@ function avatarPreset(id, seed){
   return AVATAR_PRESETS[index]
 }
 
+function isCustomAvatar(value){
+  const str = String(value || '')
+  return /^data:image\/(png|jpe?g|webp);base64,/i.test(str) || /^https:\/\//i.test(str)
+}
+
 function avatarStyle(value, fallback){
+  if(isCustomAvatar(value)) return ''
   const preset = avatarPreset(value, fallback)
   return `--avatar-bg:${preset.bg};--avatar-fg:${preset.fg};--avatar-glow:${preset.glow}`
 }
 
 function avatarHtml(value, fallback){
+  if(isCustomAvatar(value)) return `<img src="${esc(value)}" alt=""/>`
   const preset = avatarPreset(value, fallback)
   return esc(preset.glyph)
 }
@@ -2794,7 +2808,7 @@ function avatarHtml(value, fallback){
 function renderAvatarPicker(activeId){
   const picker = document.getElementById('avatarPicker')
   if(!picker) return
-  selectedAvatar = avatarPreset(activeId, S.wallet || 'mysteryclaw').id
+  if(!isCustomAvatar(activeId)) selectedAvatar = avatarPreset(activeId, S.wallet || 'mysteryclaw').id
   picker.innerHTML = AVATAR_PRESETS.map(a => `
     <button type="button" class="avatar-choice ${a.id === selectedAvatar ? 'active' : ''}"
       style="--avatar-bg:${a.bg};--avatar-fg:${a.fg};--avatar-glow:${a.glow}"
@@ -2823,6 +2837,68 @@ function focusAvatarPicker(){
     { filter:'drop-shadow(0 0 18px rgba(245,191,66,.45))' },
     { filter:'drop-shadow(0 0 0 rgba(245,191,66,0))' }
   ], { duration:900, easing:'ease-out' })
+}
+
+function openAvatarUpload(){
+  const input = document.getElementById('profileAvatarFile')
+  if(input) input.click()
+}
+
+function readImageFile(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(new Error('avatar_read_failed'))
+    reader.readAsDataURL(file)
+  })
+}
+
+function loadImage(src){
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('avatar_image_failed'))
+    img.src = src
+  })
+}
+
+async function handleAvatarFile(event){
+  const file = event.target.files?.[0]
+  if(!file) return
+  if(!/^image\/(png|jpe?g|webp)$/i.test(file.type)){
+    toast('Choose a PNG, JPG, or WebP image')
+    return
+  }
+  if(file.size > 4 * 1024 * 1024){
+    toast('Avatar image is too large — use an image under 4MB')
+    return
+  }
+  try{
+    const raw = await readImageFile(file)
+    const img = await loadImage(raw)
+    const size = 180
+    const canvas = document.createElement('canvas')
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+    const scale = Math.max(size / img.width, size / img.height)
+    const w = img.width * scale
+    const h = img.height * scale
+    ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h)
+    selectedAvatar = canvas.toDataURL('image/jpeg', .78)
+    const avatarEl = document.getElementById('profileAvatar')
+    if(avatarEl){
+      avatarEl.classList.remove('preset')
+      avatarEl.removeAttribute('style')
+      avatarEl.innerHTML = avatarHtml(selectedAvatar, S.wallet || 'Investigator')
+    }
+    renderAvatarPicker(selectedAvatar)
+    toast('Avatar ready — save profile to publish')
+  }catch(e){
+    toast('Avatar upload failed')
+  }finally{
+    event.target.value = ''
+  }
 }
 
 async function loadLeaderboard(){
@@ -2897,9 +2973,9 @@ async function loadMyProfile(){
     if(!r.ok && d.error !== 'profile_not_found') throw new Error(d.error || 'profile_failed')
     const profile = r.ok ? d : null
     const displayName = profile?.displayName || fallback
-    selectedAvatar = avatarPreset(profile?.avatarUrl, S.wallet).id
+    selectedAvatar = isCustomAvatar(profile?.avatarUrl) ? profile.avatarUrl : avatarPreset(profile?.avatarUrl, S.wallet).id
     nameEl.textContent = displayName
-    avatarEl.classList.add('preset')
+    avatarEl.classList.toggle('preset', !isCustomAvatar(selectedAvatar))
     avatarEl.setAttribute('style', avatarStyle(selectedAvatar, S.wallet))
     avatarEl.innerHTML = avatarHtml(selectedAvatar, S.wallet)
     document.getElementById('profileDisplayName').value = profile?.displayName || ''
