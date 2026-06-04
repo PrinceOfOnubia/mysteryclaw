@@ -109,6 +109,23 @@
     .k { color:var(--muted); font-size:12px; }
     .v { font-family:"SFMono-Regular", Consolas, monospace; font-size:12px; overflow-wrap:anywhere; }
     .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .field {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:120px;
+    }
+    .field span {
+      color:var(--muted);
+      font-family:"SFMono-Regular", Consolas, monospace;
+      font-size:10px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    .field input,
+    .field select {
+      width:100%;
+    }
     table {
       width:100%;
       border-collapse:collapse;
@@ -250,28 +267,28 @@
           <p class="k" style="margin-top:-4px;margin-bottom:10px;color:var(--yellow)">Do not reveal hidden answer publicly.</p>
           <div id="echoRows"></div>
           <div class="actions">
-            <input id="echoLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="Launch in min" style="width:130px"/>
-            <input id="echoDurationHours" type="number" min="1" max="168" value="3" placeholder="Duration hrs" style="width:130px"/>
+            <label class="field" style="width:140px"><span>Launch Delay Minutes</span><input id="echoLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="120"/></label>
+            <label class="field" style="width:140px"><span>Epoch Duration Hours</span><input id="echoDurationHours" type="number" min="1" max="168" value="3" placeholder="3"/></label>
             <button onclick="resetEchoCountdown()">Reset Countdown</button>
             <button onclick="setEchoLive()">Set Echo Live Now</button>
             <button class="warn" onclick="closeEchoEpoch()">Close Echo</button>
           </div>
           <div class="actions">
-            <input id="echoMaxWinners" type="number" min="1" max="1000" value="10" placeholder="Winner cap" style="width:130px"/>
-            <select id="echoPayoutSplit" title="Prize split policy" style="width:180px">
-              <option value="equal">Equal split</option>
-              <option value="first_winner">First winner gets pool</option>
-            </select>
+            <label class="field" style="width:140px"><span>Winner Cap</span><input id="echoMaxWinners" type="number" min="1" max="1000" value="10" placeholder="10"/></label>
+            <label class="field" style="width:190px"><span>Payout Split</span><select id="echoPayoutSplit" title="Prize split policy">
+                <option value="equal">Equal split</option>
+                <option value="first_winner">First winner gets pool</option>
+              </select></label>
             <button onclick="saveEchoRules()">Save Winner Rules</button>
           </div>
           <div class="actions">
-            <input id="echoXThreadInput" placeholder="X thread URL" style="flex:1;min-width:220px"/>
+            <label class="field" style="flex:1;min-width:220px"><span>X Investigation Thread URL</span><input id="echoXThreadInput" placeholder="https://x.com/..."/></label>
             <button onclick="saveEchoXThread()">Save X Thread</button>
           </div>
           <div class="actions">
-            <input id="echoClueNumber" placeholder="Clue #" style="width:90px"/>
-            <input id="echoClueCopy" placeholder="Clue post copy" style="flex:2;min-width:220px"/>
-            <input id="echoClueUrl" placeholder="X URL after posted" style="flex:1;min-width:180px"/>
+            <label class="field" style="width:100px"><span>Clue Number</span><input id="echoClueNumber" placeholder="1"/></label>
+            <label class="field" style="flex:2;min-width:220px"><span>Clue Post Copy</span><input id="echoClueCopy" placeholder="Public clue copy"/></label>
+            <label class="field" style="flex:1;min-width:180px"><span>Posted X URL</span><input id="echoClueUrl" placeholder="https://x.com/..."/></label>
             <button onclick="saveEchoClue()">Save Clue</button>
           </div>
         </section>
@@ -279,28 +296,28 @@
           <h2>Create Epoch / Game</h2>
           <p class="k" style="margin-top:-4px;margin-bottom:10px;color:var(--yellow)">Do not enter the hidden answer here. Set the secret word only as a backend environment variable matching Secret Env Var.</p>
           <div class="actions">
-            <input id="epochTitle" placeholder="Title, e.g. EPOCH 03: VEIL" style="flex:2;min-width:220px"/>
-            <input id="epochSlug" placeholder="slug, e.g. veil" style="width:160px"/>
-            <input id="epochSecretEnv" placeholder="SECRET ENV VAR" style="width:190px"/>
+            <label class="field" style="flex:2;min-width:220px"><span>Public Epoch Title</span><input id="epochTitle" placeholder="EPOCH 03: VEIL"/></label>
+            <label class="field" style="width:170px"><span>URL Slug</span><input id="epochSlug" placeholder="veil"/></label>
+            <label class="field" style="width:200px"><span>Secret Env Var</span><input id="epochSecretEnv" placeholder="EPOCH_03_SECRET_WORD"/></label>
           </div>
           <div class="actions">
-            <input id="epochPool" type="number" min="0" value="1000" placeholder="Prize USDC" style="width:130px"/>
-            <input id="epochAttempts" type="number" min="1" max="100" value="10" placeholder="Attempts" style="width:120px"/>
-            <input id="epochMaxWinners" type="number" min="1" max="1000" value="1" placeholder="Winners" style="width:120px"/>
-            <select id="epochPayoutSplit" title="Prize split policy" style="width:180px">
-              <option value="equal">Equal split</option>
-              <option value="first_winner">First winner gets pool</option>
-            </select>
-            <input id="epochLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="Launch in min" style="width:130px"/>
-            <input id="epochDurationHours" type="number" min="1" max="168" value="3" placeholder="Duration hrs" style="width:130px"/>
+            <label class="field" style="width:140px"><span>Prize Pool USDC</span><input id="epochPool" type="number" min="0" value="1000" placeholder="1000"/></label>
+            <label class="field" style="width:130px"><span>Attempts / Wallet</span><input id="epochAttempts" type="number" min="1" max="100" value="10" placeholder="10"/></label>
+            <label class="field" style="width:130px"><span>Winner Cap</span><input id="epochMaxWinners" type="number" min="1" max="1000" value="1" placeholder="1"/></label>
+            <label class="field" style="width:190px"><span>Payout Split</span><select id="epochPayoutSplit" title="Prize split policy">
+                <option value="equal">Equal split</option>
+                <option value="first_winner">First winner gets pool</option>
+              </select></label>
+            <label class="field" style="width:140px"><span>Launch Delay Minutes</span><input id="epochLaunchMinutes" type="number" min="1" max="10080" value="120" placeholder="120"/></label>
+            <label class="field" style="width:140px"><span>Epoch Duration Hours</span><input id="epochDurationHours" type="number" min="1" max="168" value="3" placeholder="3"/></label>
           </div>
           <div class="actions">
-            <input id="epochXThread" placeholder="X thread URL" style="flex:1;min-width:220px"/>
+            <label class="field" style="flex:1;min-width:220px"><span>X Investigation Thread URL</span><input id="epochXThread" placeholder="https://x.com/..."/></label>
             <button onclick="createEpoch()">Create Pending Epoch</button>
           </div>
           <div class="actions">
-            <input id="epochTagline" placeholder="Tagline" style="flex:1;min-width:220px"/>
-            <input id="epochLaunchCopy" placeholder="Launch copy" style="flex:2;min-width:260px"/>
+            <label class="field" style="flex:1;min-width:220px"><span>Short Tagline</span><input id="epochTagline" placeholder="The archive stirs again."/></label>
+            <label class="field" style="flex:2;min-width:260px"><span>Launch Copy</span><input id="epochLaunchCopy" placeholder="Public description shown on the homepage."/></label>
           </div>
         </section>
         <section class="card full">
@@ -316,11 +333,11 @@
         <section class="card full">
           <h2>Winners</h2>
           <div class="actions">
-            <input id="manualWinnerSlug" placeholder="epoch slug" value="echo" style="width:140px"/>
-            <input id="manualWinnerWallet" placeholder="winner wallet address" style="flex:1;min-width:260px"/>
-            <input id="manualWinnerAttempts" type="number" min="0" max="1000" value="1" placeholder="guesses" style="width:110px"/>
-            <input id="manualWinnerNotes" placeholder="note/source, e.g. X comment reward" style="flex:1;min-width:220px"/>
-            <label style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:10px;color:var(--muted)">
+            <label class="field" style="width:150px"><span>Epoch Slug</span><input id="manualWinnerSlug" placeholder="echo" value="echo"/></label>
+            <label class="field" style="flex:1;min-width:260px"><span>Winner Wallet Address</span><input id="manualWinnerWallet" placeholder="Full Solana wallet address"/></label>
+            <label class="field" style="width:120px"><span>Shown Attempts</span><input id="manualWinnerAttempts" type="number" min="0" max="1000" value="1" placeholder="1"/></label>
+            <label class="field" style="flex:1;min-width:220px"><span>Admin Note / Source</span><input id="manualWinnerNotes" placeholder="X comment reward, internal review, etc."/></label>
+            <label style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:10px;color:var(--muted);padding-top:18px">
               <input id="manualWinnerApproveNow" type="checkbox"/> approve now
             </label>
             <button onclick="addManualWinner()">Add / Update Winner</button>

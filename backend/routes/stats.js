@@ -37,8 +37,20 @@ router.get("/", async (req, res) => {
     }
 
     const result = await query(
-      `select
-         (select count(*)::int from users) as investigators,
+      `with current_epoch as (
+         select id
+         from prize_epochs
+         where slug is not null
+         order by epoch_number desc
+         limit 1
+       ),
+       epoch_participants as (
+         select wallet_pubkey from guesses where epoch_id = (select id from current_epoch)
+         union
+         select wallet_pubkey from winners where epoch_id = (select id from current_epoch)
+       )
+       select
+         (select count(distinct wallet_pubkey)::int from epoch_participants) as investigators,
          (select count(*)::int from guesses where source = 'website') as official_guesses,
          (select count(distinct wallet_pubkey)::int from guesses where source = 'website') as active_players,
          (select count(*)::int from winners) as winners,
