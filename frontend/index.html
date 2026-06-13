@@ -1139,6 +1139,12 @@ body::after{
 .auto-context span{display:inline-flex;align-items:center;gap:6px}
 .auto-context span b{color:var(--accent);font-weight:500}
 
+/* === ARENA PROMO === */
+.arena-link-card{
+  border:1px solid var(--line-2);background:linear-gradient(180deg,rgba(22,61,18,.38),rgba(0,0,0,.72));
+  padding:24px;box-shadow:inset 0 0 36px rgba(88,214,58,.035);
+}
+
 /* === LEADERBOARD / PROFILE === */
 .board-wrap{padding:120px 60px 80px;max-width:1220px;margin:0 auto;width:100%}
 .board-head{display:block;margin-bottom:16px}
@@ -1433,6 +1439,7 @@ body::after{
     <span class="nl on" id="nl-land" onclick="go('land')">Home</span>
     <span class="nl" id="nl-term" onclick="reqA('term')">Get Clues</span>
     <span class="nl" id="nl-echo" onclick="go('echo')">Echo</span>
+    <span class="nl" onclick="location.href='/arena.html'">Arena</span>
     <span class="nl" id="nl-leaderboard" onclick="go('leaderboard')">Leaderboard</span>
     <span class="nl" id="nl-profile" onclick="go('profile')">Profile</span>
     <span class="nl" id="nl-lore" onclick="go('lore')">Lore</span>
@@ -1458,6 +1465,7 @@ body::after{
   <span class="nl on" id="mnl-land" onclick="go('land')">Home</span>
   <span class="nl" id="mnl-term" onclick="reqA('term')">Get Clues</span>
   <span class="nl" id="mnl-echo" onclick="go('echo')">Echo</span>
+  <span class="nl" onclick="location.href='/arena.html'">Arena</span>
   <span class="nl" id="mnl-leaderboard" onclick="go('leaderboard')">Leaderboard</span>
   <span class="nl" id="mnl-profile" onclick="go('profile')">Profile</span>
   <span class="nl" id="mnl-lore" onclick="go('lore')">Lore</span>
@@ -1482,6 +1490,10 @@ body::after{
       The word is gone, the echoes remain, and official answers open when the countdown reaches zero.
     </p>
     <div class="hero-cta">
+      <button class="bp" onclick="location.href='/arena.html'">
+        <span>ENTER ARENA</span>
+        <span style="font-family:'JetBrains Mono'">→</span>
+      </button>
       <button class="bp" onclick="reqA('term')">
         <span>TALK TO ECHO</span>
         <span style="font-family:'JetBrains Mono'">→</span>
@@ -1721,7 +1733,18 @@ body::after{
 
       <div class="agent-card live">
         <div class="agent-status">
-          <span class="live-tag">COUNTDOWN — NEXT TRIAL</span>
+          <span class="live-tag">LIVE — NEXT GAME</span>
+          <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">epoch 03</span>
+        </div>
+        <div class="agent-name">Arena</div>
+        <div class="agent-tag">CLAWPUMP ARENA</div>
+        <div class="agent-desc">The ecosystem has turned. Use the default Mysterio signal character, survive the waves, and submit verified runs for the reward leaderboard.</div>
+        <button class="bg" style="width:100%;justify-content:center" onclick="location.href='/arena.html'">ENTER ARENA →</button>
+      </div>
+
+      <div class="agent-card live">
+        <div class="agent-status">
+          <span class="live-tag">COUNTDOWN — TRIAL</span>
           <span style="font-family:'JetBrains Mono';font-size:9px;color:var(--text-mute)">epoch 02</span>
         </div>
         <div class="agent-name">Echo</div>

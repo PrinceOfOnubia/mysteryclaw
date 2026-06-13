@@ -179,10 +179,31 @@ create table if not exists system_settings (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists arena_runs (
+  id uuid primary key default gen_random_uuid(),
+  wallet_pubkey text not null,
+  verified_wallet_id uuid references verified_wallets(id),
+  epoch_id uuid references prize_epochs(id),
+  alias text not null,
+  score integer not null default 0,
+  wave integer not null default 1,
+  kills integer not null default 0,
+  duration_seconds integer not null default 0,
+  win boolean not null default false,
+  reward_label text,
+  ip_hash text,
+  user_agent text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists arena_runs_wallet_created_idx on arena_runs (wallet_pubkey, created_at desc);
+create index if not exists arena_runs_epoch_score_idx on arena_runs (epoch_id, score desc);
+
 insert into system_settings (key, value)
 values
   ('prize_submissions_paused', 'false'),
-  ('agent_actions_paused', 'false')
+  ('agent_actions_paused', 'false'),
+  ('arena_paused', 'false')
 on conflict (key) do nothing;
 
 insert into prize_epochs (epoch_number, status)
@@ -243,3 +264,41 @@ on conflict (epoch_id, clue_number) do nothing;
 update prize_epochs
 set max_winners = greatest(coalesce(max_winners, 1), 10)
 where slug = 'echo';
+
+insert into prize_epochs (
+  epoch_number, title, slug, status, pool_usdc, max_attempts_per_wallet,
+  max_winners, payout_split, started_at, starts_at, closes_at, ends_at,
+  secret_env_var, metadata
+)
+values (
+  3,
+  'CLAWPUMP ARENA',
+  'clawpump-arena',
+  'live',
+  250,
+  3,
+  10,
+  'equal',
+  now(),
+  now(),
+  now() + interval '7 days',
+  now() + interval '7 days',
+  null,
+  jsonb_build_object(
+    'tagline', 'Survive the swarm. Submit your best signal.',
+    'launchCopy', 'ClawPump Arena is the next live MysteryClaw game. Use the default Mysterio signal character, survive waves, and submit wallet-verified runs for the reward leaderboard.',
+    'xCta', 'Announce ClawPump Arena'
+  )
+)
+on conflict (epoch_number) do update
+set title = excluded.title,
+    slug = excluded.slug,
+    status = case
+      when prize_epochs.status in ('paid', 'closed') then prize_epochs.status
+      else excluded.status
+    end,
+    pool_usdc = excluded.pool_usdc,
+    max_attempts_per_wallet = excluded.max_attempts_per_wallet,
+    max_winners = greatest(prize_epochs.max_winners, excluded.max_winners),
+    payout_split = excluded.payout_split,
+    metadata = prize_epochs.metadata || excluded.metadata;

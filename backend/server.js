@@ -17,6 +17,7 @@ import authRoute from "./routes/auth.js";
 import adminRoute from "./routes/admin.js";
 import leaderboardRoute from "./routes/leaderboard.js";
 import profileRoute from "./routes/profile.js";
+import arenaRoute from "./routes/arena.js";
 import { migrateDatabase } from "./_db.js";
 
 const app = express();
@@ -113,6 +114,7 @@ app.use("/autonomous", autonomousRoute);
 app.use("/prize", prizeRoute);
 app.use("/leaderboard", leaderboardRoute);
 app.use("/profile", guessLimit, profileRoute);
+app.use("/arena", guessLimit, arenaRoute);
 app.use("/admin", adminRoute);
 
 app.get("/", (req, res) => {
@@ -136,6 +138,9 @@ app.get("/", (req, res) => {
       "GET  /leaderboard":   "current epoch participants and winners",
       "GET  /profile/:wallet": "public wallet profile and game stats",
       "POST /profile":       "signed wallet profile update",
+      "GET  /arena":         "ClawPump Arena status and public stats",
+      "GET  /arena/leaderboard": "ClawPump Arena leaderboard",
+      "POST /arena/runs":    "signed ClawPump Arena run submission",
       "GET  /admin/api/status": "admin system status (requires Authorization)",
       "POST /admin/api/payout": "admin-only payout trigger"
     }
